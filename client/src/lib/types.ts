@@ -57,3 +57,14 @@ export interface AIDetectionResult {
   isAI: boolean;
   probability: number;
 }
+
+export interface ShareViaEmailRequest {
+  recipientEmail: string;
+  senderEmail?: string;
+  senderName?: string;
+  subject: string;
+  documentType: 'single' | 'comparison';
+  analysisA: DocumentAnalysis;
+  analysisB?: DocumentAnalysis;
+  comparison?: DocumentComparison;
+}
