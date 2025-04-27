@@ -6,6 +6,7 @@ import { extractTextFromFile } from "./api/documentParser";
 import { checkForAI } from "./api/gptZero";
 import { DocumentAnalysis, DocumentComparison, ShareViaEmailRequest } from "@/lib/types";
 import { sendAnalysisViaEmail } from "./services/sendgrid";
+import { evaluateIntelligence } from "./services/openai";
 
 // Configure multer for file uploads - store in memory
 const upload = multer({ 
@@ -57,12 +58,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No content provided" });
       }
       
-      // Perform deep analysis on the document
-      // This is where the actual NLP analysis would happen
-      // For now, we'll generate a mock analysis for demonstration purposes
-      const result = generateAnalysis(document.content);
-      
-      res.json(result);
+      // Use OpenAI GPT-4 to perform deep semantic analysis of the document
+      try {
+        // First try to use the OpenAI-based analysis
+        const aiEvaluation = await evaluateIntelligence(document.content);
+        const result = formatAIEvaluationAsDocumentAnalysis(document.content, aiEvaluation);
+        res.json(result);
+      } catch (aiError) {
+        console.error("OpenAI analysis failed, falling back to algorithmic analysis:", aiError);
+        // Fallback to the algorithmic analysis if OpenAI fails
+        const result = generateAnalysis(document.content);
+        res.json(result);
+      }
     } catch (error: any) {
       console.error("Error analyzing document:", error);
       res.status(500).json({ message: error.message || "Error analyzing document" });
@@ -79,8 +86,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Analyze both documents
-      const analysisA = generateAnalysis(documentA.content);
-      const analysisB = generateAnalysis(documentB.content);
+      let analysisA: DocumentAnalysis;
+      let analysisB: DocumentAnalysis;
+      
+      try {
+        // Try using OpenAI for deep semantic analysis
+        const aiEvaluationA = await evaluateIntelligence(documentA.content);
+        const aiEvaluationB = await evaluateIntelligence(documentB.content);
+        
+        analysisA = formatAIEvaluationAsDocumentAnalysis(documentA.content, aiEvaluationA);
+        analysisB = formatAIEvaluationAsDocumentAnalysis(documentB.content, aiEvaluationB);
+      } catch (aiError) {
+        console.error("OpenAI analysis failed, falling back to algorithmic analysis:", aiError);
+        // Fallback to algorithmic analysis if OpenAI fails
+        analysisA = generateAnalysis(documentA.content);
+        analysisB = generateAnalysis(documentB.content);
+      }
       
       // Generate a comparison between the two documents
       const comparison = generateComparison(analysisA, analysisB);
