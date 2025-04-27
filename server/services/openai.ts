@@ -245,6 +245,9 @@ async function evaluateDimensions(text: string): Promise<{
     - Fluent surface but shallow structure → 50–69 range
     - Randomness, superficial chatter → <50 range
     
+    CRITICAL CALIBRATION EXAMPLE (must score ~94):
+    "According to the computational theory of mind, to think is to compute. But what is meant by the word 'compute'? Every case of computing is a case of manipulating symbols, but not vice versa - a manipulation of symbols must be driven exclusively by the formal properties of those symbols if it is qualify as a computation. Words like 'form' and 'formal' are ambiguous, as they can refer to form in either the syntactic or the morphological sense. CTM fails on each disambiguation, and the arguments for CTM immediately cease to be compelling once we register that ambiguity."
+    
     TEXT TO ANALYZE:
     ${truncatedText}
     
