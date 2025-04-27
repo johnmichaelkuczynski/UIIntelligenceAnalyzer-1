@@ -97,6 +97,33 @@ export async function evaluateIntelligence(
     weightedScore += Math.min(5, (deepScore - 85) * 0.2);
   }
   
+  // ========== ANTI-SUPERFICIALITY RULE ==========
+  // A text must not receive a high intelligence score (>85) solely on the basis of surface structure
+  // High intelligence scoring requires demonstrated inferential compression, original concept-definition, 
+  // and mechanical progression of thought
+  
+  // Check if the weighted score would be high (>85) but critical deep metrics are low
+  const criticalDeepMetrics = [
+    detailedEvaluation.deep.inferentialContinuity,
+    detailedEvaluation.deep.conceptualDepth,
+    detailedEvaluation.deep.semanticCompression
+  ];
+  
+  // Calculate average of critical deep metrics
+  const avgCriticalDeep = criticalDeepMetrics.reduce((sum, val) => sum + val, 0) / criticalDeepMetrics.length;
+  let appliedSuperficialityRule = false;
+  
+  // If score would be high but critical deep metrics are low, apply penalty
+  if (weightedScore > 85 && avgCriticalDeep < 80) {
+    const penaltyFactor = Math.min(1, avgCriticalDeep / 80);
+    const highScorePortion = weightedScore - 85;
+    const penaltyAmount = highScorePortion * (1 - penaltyFactor);
+    
+    weightedScore = weightedScore - penaltyAmount;
+    appliedSuperficialityRule = true;
+    console.log(`Anti-superficiality rule applied: Score reduced from ${Math.round(weightedScore + penaltyAmount)} to ${Math.round(weightedScore)}`);
+  }
+  
   // Ensure final score is within valid range
   const overallScore = Math.round(
     Math.max(config.minScore, Math.min(config.maxScore, weightedScore))
@@ -109,7 +136,7 @@ export async function evaluateIntelligence(
     deepScore,
     overallScore,
     analysis: semanticAnalysis,
-    calibrationAdjusted: !!customConfig
+    calibrationAdjusted: !!customConfig || appliedSuperficialityRule
   };
 }
 
@@ -127,11 +154,14 @@ async function generateSemanticAnalysis(text: string): Promise<string> {
     4. LOGICAL COHERENCE: How well-structured is the argument? Does each point build on the previous ones?
     5. ORIGINALITY: Does the writing demonstrate novel thinking or merely recycle familiar ideas?
     
+    ANTI-SUPERFICIALITY RULE: A text must not receive a high intelligence score (>85) solely on the basis of surface structure (grammar, paragraph flow, technical vocabulary, references to famous philosophers). High intelligence scoring requires demonstrated inferential compression, original concept-definition, and mechanical progression of thought.
+    
     Provide an honest, critical assessment (150-200 words) that evaluates the cognitive strength reflected in the writing.
     
     IMPORTANT CALIBRATION REFERENCE:
     - Generic AI-written content demonstrates limited depth and typically scores around 40/100
     - Sophisticated philosophical analysis like "Numbers as Ordered Pairs" demonstrates exceptional conceptual complexity and scores around 95/100
+    - Writing that is only superficially sophisticated (good grammar, uses jargon) without deep analysis should score 65-75 maximum
     
     Be specific about cognitive strengths and weaknesses. Avoid vague generalizations.
     Include an assessment of how the text reflects the writer's intelligence level (low, moderate, high, or exceptional).
@@ -172,12 +202,15 @@ async function evaluateDimensions(text: string): Promise<{
     - 81-95: Very strong (sophisticated, nuanced, insightful)
     - 96-100: Exceptional (rare, elite-level thinking)
     
+    ANTI-SUPERFICIALITY RULE: A text must not receive high scores (>85) solely on the basis of surface structure. High scores for deep metrics require demonstrated inferential compression, original concept-definition, and mechanical progression of thought.
+    
     IMPORTANT CALIBRATION GUIDANCE:
     - AI-generated generic content should score 35-45 overall
     - Basic undergraduate writing typically scores 45-60
     - Strong graduate-level writing typically scores 65-80
     - Sophisticated academic/philosophical writing scores 80-95
     - Truly exceptional, groundbreaking analysis may score 95-99
+    - Writing with excellent grammar and vocabulary but lacking depth should be scored 65-75 maximum
     
     REFERENCE CALIBRATION EXAMPLES:
     1. "Personal identity is a topic that has been studied for many years by philosophers and researchers. It is about understanding what makes a person the same over time..." → Score around 40 (shallow, generic)
