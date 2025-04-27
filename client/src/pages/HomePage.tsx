@@ -4,7 +4,7 @@ import DocumentInput from "@/components/DocumentInput";
 import DocumentResults from "@/components/DocumentResults";
 import ComparativeResults from "@/components/ComparativeResults";
 import AIDetectionModal from "@/components/AIDetectionModal";
-import ScoringInfoBanner from "@/components/ScoringInfoBanner";
+
 import { Button } from "@/components/ui/button";
 import { Brain } from "lucide-react";
 import { analyzeDocument, compareDocuments, checkForAI } from "@/lib/analysis";
@@ -114,8 +114,6 @@ const HomePage: React.FC = () => {
         <p className="text-gray-600">Analyze and compare writing samples for deep conceptual intelligence assessment</p>
       </header>
       
-      {/* Scoring Info Banner */}
-      <ScoringInfoBanner />
 
       {/* Analysis Mode Selector */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
