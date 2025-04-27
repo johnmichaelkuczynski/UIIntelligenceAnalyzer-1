@@ -106,12 +106,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Send email using SendGrid
-      const result = await sendAnalysisViaEmail(emailData);
-      
-      if (result) {
+      try {
+        await sendAnalysisViaEmail(emailData);
         res.json({ success: true, message: "Email sent successfully" });
-      } else {
-        res.status(500).json({ success: false, message: "Failed to send email" });
+      } catch (sendError: any) {
+        const errorMessage = sendError.response?.body?.errors?.[0]?.message || 
+                           sendError.message || 
+                           "Failed to send email";
+        res.status(500).json({ success: false, message: errorMessage });
       }
     } catch (error: any) {
       console.error("Error sharing via email:", error);

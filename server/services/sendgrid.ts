@@ -184,8 +184,14 @@ export async function sendAnalysisViaEmail(
     // Send email
     await mailService.send(msg);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('SendGrid email error:', error);
-    return false;
+    
+    // Log more details if it's an API response error
+    if (error.response && error.response.body && error.response.body.errors) {
+      console.error('SendGrid API errors:', JSON.stringify(error.response.body.errors));
+    }
+    
+    throw error;
   }
 }

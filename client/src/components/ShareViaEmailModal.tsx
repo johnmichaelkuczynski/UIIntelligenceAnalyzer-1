@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Mail, X, Send, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DocumentAnalysis, DocumentComparison, ShareViaEmailRequest } from "@/lib/types";
-import { apiRequest } from "@/lib/queryClient";
 
 interface ShareViaEmailModalProps {
   isOpen: boolean;
@@ -79,12 +78,16 @@ const ShareViaEmailModal: React.FC<ShareViaEmailModalProps> = ({
         });
         onClose();
       } else {
-        throw new Error(result.message || "Failed to send email");
+        toast({
+          title: "Error sending email",
+          description: result.message || "Failed to send email",
+          variant: "destructive"
+        });
       }
     } catch (error: any) {
       toast({
         title: "Error sending email",
-        description: error.message || "An error occurred while sharing the analysis.",
+        description: error.message || "An unexpected error occurred while sharing the analysis.",
         variant: "destructive"
       });
     } finally {
