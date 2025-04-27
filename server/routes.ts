@@ -390,78 +390,164 @@ function getTopDimension(analysis: DocumentAnalysis): string {
 }
 
 // Helper function to get a rating from a score
-function getRatingFromScore(score: number): "Strong" | "Moderate" | "Weak" {
-  // Use a more varied scale for dimension ratings
-  if (score >= 80) return "Strong";
+function getRatingFromScore(score: number): DimensionRating {
+  // Use a more granular rating scale based on score
+  if (score >= 95) return "Exceptional";
+  if (score >= 85) return "Very Strong";
+  if (score >= 75) return "Strong";
   if (score >= 65) return "Moderate";
-  return "Weak";
+  if (score >= 50) return "Basic";
+  if (score >= 35) return "Weak";
+  if (score >= 20) return "Very Weak";
+  return "Critically Deficient";
 }
 
 // Helper function to format the AI evaluation result as DocumentAnalysis
 function formatAIEvaluationAsDocumentAnalysis(content: string, aiEvaluation: any): DocumentAnalysis {
-  // Extract the scores from AI evaluation
-  const overallScore = aiEvaluation.overallScore;
+  // Calculate overall score using the weighted formula (40% surface, 60% deep)
+  const surfaceScore = (
+    aiEvaluation.surface.grammar +
+    aiEvaluation.surface.structure + 
+    aiEvaluation.surface.jargonUsage +
+    aiEvaluation.surface.surfaceFluency
+  ) / 4;
+  
+  const deepScore = (
+    aiEvaluation.deep.conceptualDepth +
+    aiEvaluation.deep.inferentialContinuity +
+    aiEvaluation.deep.claimNecessity +
+    aiEvaluation.deep.semanticCompression +
+    aiEvaluation.deep.logicalLaddering +
+    aiEvaluation.deep.depthFluency +
+    aiEvaluation.deep.originality
+  ) / 7;
+  
+  // Calculate weighted final score
+  const overallScore = Math.round(surfaceScore * 0.4 + deepScore * 0.6);
   
   // Determine cognitive level based on the overall score
   let cognitiveLevel = "";
-  if (overallScore >= 85) {
+  if (overallScore >= 90) {
     cognitiveLevel = "exceptional";
-  } else if (overallScore >= 75) {
+  } else if (overallScore >= 80) {
     cognitiveLevel = "advanced";
   } else if (overallScore >= 65) {
     cognitiveLevel = "moderate";
-  } else if (overallScore >= 55) {
+  } else if (overallScore >= 45) {
     cognitiveLevel = "developing";
-  } else {
+  } else if (overallScore >= 25) {
     cognitiveLevel = "basic";
+  } else {
+    cognitiveLevel = "limited";
+  }
+  
+  // Generate descriptions based on dimension scores
+  function getDimensionDescription(dimensionName: string, score: number): string {
+    if (dimensionName === "definitionCoherence") {
+      if (score >= 90) return "Exceptional definition coherence with precise, consistent terminology. Terms are expertly defined before use, establishing clear conceptual boundaries.";
+      if (score >= 75) return "Strong definition coherence throughout the text. Key terms are consistently defined before use, creating clear conceptual boundaries.";
+      if (score >= 60) return "Moderate definition coherence. Most terms are adequately defined, though some conceptual boundaries could be clearer.";
+      if (score >= 40) return "Basic definition coherence. Some terms are defined, but many conceptual boundaries remain unclear.";
+      return "Limited definition coherence. Terms are rarely defined, creating ambiguity and confusion.";
+    }
+    
+    if (dimensionName === "claimFormation") {
+      if (score >= 90) return "Exceptional claim formation with precise, nuanced assertions that are clearly testable and specific. Claims are expertly distinguished from evidence.";
+      if (score >= 75) return "Strong claim formation. The document makes substantive claims that are testable and specific. Claims are clearly distinguished from evidence.";
+      if (score >= 60) return "Moderate claim formation. Most claims are identifiable and reasonably specific, though some lack precision.";
+      if (score >= 40) return "Basic claim formation. Claims are present but often lack specificity or testability.";
+      return "Limited claim formation. Few clear claims are made, and those present are vague or untestable.";
+    }
+    
+    if (dimensionName === "inferentialContinuity") {
+      if (score >= 90) return "Exceptional inferential continuity with flawless logical progression. Conclusions follow necessarily from premises with robust causal relationships.";
+      if (score >= 75) return "Strong inferential continuity. The logical progression between ideas is sound, with conclusions following naturally from premises.";
+      if (score >= 60) return "Moderate inferential continuity. Most ideas connect logically, though some inferential jumps exist.";
+      if (score >= 40) return "Basic inferential continuity. Some logical connections exist, but many inferences are missing or flawed.";
+      return "Limited inferential continuity. Ideas appear disconnected with few logical relationships between them.";
+    }
+    
+    if (dimensionName === "semanticLoad") {
+      if (score >= 90) return "Exceptionally high semantic load with maximally efficient expression. Every term carries precise meaning with no wasted language.";
+      if (score >= 75) return "High semantic load. Terms carry precise meaning with efficient semantic compression throughout the document.";
+      if (score >= 60) return "Moderate semantic load. Most terms carry meaningful content, though some passages could be more semantically dense.";
+      if (score >= 40) return "Basic semantic load. Some terms carry meaning, but much of the text uses semantically thin language.";
+      return "Low semantic load. The text relies heavily on semantically empty phrases and repetition.";
+    }
+    
+    if (dimensionName === "jargonDetection") {
+      if (score >= 90) return "Exceptional use of technical language. Specialized terms are introduced with perfect context and explanation when needed.";
+      if (score >= 75) return "Strong use of technical language. Specialized terms are introduced with proper context and explanation.";
+      if (score >= 60) return "Moderate use of technical language. Most specialized terms are adequately explained, though some could be clearer.";
+      if (score >= 40) return "Basic use of technical language. Some specialized terms are explained, but many lack sufficient context.";
+      return "Problematic use of technical language. Specialized terms appear without explanation or are used incorrectly.";
+    }
+    
+    if (dimensionName === "surfaceComplexity") {
+      if (score >= 90) return "Exceptional organization with flawless structure, seamless transitions, and professional formatting throughout.";
+      if (score >= 75) return "Strong organization with clear structure, appropriate section transitions, and professional formatting.";
+      if (score >= 60) return "Moderate organization. The structure is generally clear, though some transitions could be improved.";
+      if (score >= 40) return "Basic organization. A structure is present but often unclear, with abrupt transitions.";
+      return "Limited organization. The text lacks clear structure or consistent formatting.";
+    }
+    
+    if (dimensionName === "deepComplexity") {
+      if (score >= 90) return "Exceptional conceptual depth with highly sophisticated ideas and novel theoretical frameworks. Creates meaningful connections between complex concepts.";
+      if (score >= 75) return "Strong conceptual depth. The document engages with sophisticated concepts and creates novel connections between ideas.";
+      if (score >= 60) return "Moderate conceptual depth. Some complex ideas are present, though theoretical frameworks could be more developed.";
+      if (score >= 40) return "Basic conceptual depth. Ideas remain mostly at the surface level with limited theoretical engagement.";
+      return "Limited conceptual depth. The text deals only with surface-level concepts without deeper analysis.";
+    }
+    
+    return "Assessment unavailable.";
   }
   
   // Map dimension scores to dimension ratings
   return {
-    summary: `This document demonstrates ${cognitiveLevel} cognitive structuring with ${overallScore >= 75 ? "well-defined" : "developing"} patterns of conceptual development. AI-powered semantic analysis reveals sophisticated thought patterns throughout the text.`,
+    summary: `This document demonstrates ${cognitiveLevel} cognitive structuring with ${overallScore >= 75 ? "well-defined" : "developing"} patterns of conceptual development. AI-powered semantic analysis reveals ${overallScore >= 65 ? "sophisticated" : "basic"} thought patterns throughout the text.`,
     overallScore,
-    overallAssessment: aiEvaluation.analysis,
+    overallAssessment: aiEvaluation.analysis || `The writing demonstrates ${cognitiveLevel} cognitive abilities with an overall intelligence score of ${overallScore}/100. The analysis reveals particular strengths in ${aiEvaluation.deep.conceptualDepth > 70 ? "conceptual depth" : aiEvaluation.deep.inferentialContinuity > 70 ? "inferential continuity" : aiEvaluation.surface.structure > 70 ? "structural organization" : "basic comprehensibility"}.`,
     dimensions: {
       definitionCoherence: {
         name: "Definition Coherence",
         rating: getRatingFromScore(aiEvaluation.deep.logicalLaddering),
-        description: "Key terms are consistently defined before use, establishing clear conceptual boundaries. The document shows well-structured definition coherence.",
+        description: getDimensionDescription("definitionCoherence", aiEvaluation.deep.logicalLaddering),
         quote: extractQuote(content, 15),
       },
       claimFormation: {
         name: "Claim Formation",
         rating: getRatingFromScore(aiEvaluation.deep.claimNecessity),
-        description: "The document makes substantive claims that are testable and specific. Claims are clearly distinguished from evidence and conjecture.",
+        description: getDimensionDescription("claimFormation", aiEvaluation.deep.claimNecessity),
         quote: extractQuote(content, 25),
       },
       inferentialContinuity: {
         name: "Inferential Continuity",
         rating: getRatingFromScore(aiEvaluation.deep.inferentialContinuity),
-        description: "The logical progression between ideas is sound, with conclusions following naturally from premises. Causal relationships are well-established and reasoning chains remain intact.",
+        description: getDimensionDescription("inferentialContinuity", aiEvaluation.deep.inferentialContinuity),
         quote: extractQuote(content, 35),
       },
       semanticLoad: {
         name: "Semantic Load",
         rating: getRatingFromScore(aiEvaluation.deep.semanticCompression),
-        description: "Terms carry precise meaning, with efficient semantic compression throughout the document. The text balances complexity with clarity.",
+        description: getDimensionDescription("semanticLoad", aiEvaluation.deep.semanticCompression),
         quote: extractQuote(content, 45),
       },
       jargonDetection: {
         name: "Jargon Detection",
         rating: getRatingFromScore(aiEvaluation.surface.jargonUsage),
-        description: "Technical language is used appropriately, with specialized terms introduced with proper context and explanation.",
+        description: getDimensionDescription("jargonDetection", aiEvaluation.surface.jargonUsage),
         quote: extractQuote(content, 55),
       },
       surfaceComplexity: {
         name: "Surface Complexity",
         rating: getRatingFromScore(aiEvaluation.surface.surfaceFluency),
-        description: "The document demonstrates strong organization with clear structure, appropriate section transitions, and professional formatting.",
+        description: getDimensionDescription("surfaceComplexity", aiEvaluation.surface.surfaceFluency),
         quote: extractQuote(content, 65),
       },
       deepComplexity: {
         name: "Deep Complexity",
         rating: getRatingFromScore(aiEvaluation.deep.conceptualDepth),
-        description: "The document engages with sophisticated concepts and creates novel connections between ideas. It shows conceptual depth beyond surface-level organization.",
+        description: getDimensionDescription("deepComplexity", aiEvaluation.deep.conceptualDepth),
         quote: extractQuote(content, 75),
       },
     },

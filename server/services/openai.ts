@@ -70,13 +70,21 @@ export async function evaluateIntelligence(text: string): Promise<IntelligenceEv
 }
 
 /**
- * Generate a short semantic analysis of the text using GPT-4
- * This is not shown to the user but used for internal scoring
+ * Generate a detailed semantic analysis of the text using GPT-4
+ * This becomes part of the assessment shown to the user
  */
 async function generateSemanticAnalysis(text: string): Promise<string> {
   try {
-    const prompt = `Analyze the following text for its semantic qualities. Focus on meaning, complexity, coherence, and originality. 
-    Provide a concise analysis (about 100 words) that evaluates the intelligence reflected in the writing:
+    const prompt = `Analyze the following text for its intellectual qualities. Focus on conceptual depth, inferential continuity, semantic compression, logical structure, and originality.
+    
+    Provide a detailed analysis (150-200 words) that evaluates the intelligence reflected in the writing. Be specific about strengths and weaknesses, avoiding vague generalizations.
+    
+    Your analysis should discuss:
+    1. The conceptual sophistication of the ideas
+    2. The logical connections between claims
+    3. The efficiency and precision of expression
+    4. The originality of the thinking
+    5. An overall assessment of the intellectual level demonstrated
     
     TEXT TO ANALYZE:
     ${text.substring(0, 8000)} ${text.length > 8000 ? '... [text truncated due to length]' : ''}`;
@@ -84,7 +92,7 @@ async function generateSemanticAnalysis(text: string): Promise<string> {
     const response = await openai.chat.completions.create({
       model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 300,
+      max_tokens: 500,
       temperature: 0.3, // Lower temperature for more consistent analysis
     });
     
@@ -109,6 +117,13 @@ async function evaluateDimensions(text: string): Promise<{
     For each dimension, provide a score from 0-100, where 0 is extremely poor and 100 is exceptional.
     Use the full range of scores (0-100) based on the quality, avoiding clustering all scores in a narrow range.
     Don't be afraid to give very low or very high scores when deserved.
+    
+    IMPORTANT CALIBRATION GUIDANCE:
+    - Very poor, incoherent writing typically scores 15-25 overall
+    - Basic, simplistic writing typically scores 35-45 overall
+    - Solid, coherent writing typically scores 65-75 overall
+    - Sophisticated, deep writing typically scores 85-90 overall
+    - Exceptional, elite writing may score 95-99 overall
     
     TEXT TO ANALYZE:
     ${truncatedText}

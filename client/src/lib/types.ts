@@ -6,7 +6,7 @@ export interface DocumentInput {
 
 export type AnalysisMode = 'single' | 'compare';
 
-export type DimensionRating = 'Strong' | 'Moderate' | 'Weak';
+export type DimensionRating = 'Exceptional' | 'Very Strong' | 'Strong' | 'Moderate' | 'Basic' | 'Weak' | 'Very Weak' | 'Critically Deficient';
 
 export interface AnalysisDimension {
   name: string;
