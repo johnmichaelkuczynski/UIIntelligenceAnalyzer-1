@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import multer from "multer";
 import { extractTextFromFile } from "./api/documentParser";
 import { checkForAI } from "./api/gptZero";
-import { DocumentAnalysis, DocumentComparison, ShareViaEmailRequest } from "@/lib/types";
+import { DocumentAnalysis, DocumentComparison, ShareViaEmailRequest, DimensionRating } from "../client/src/lib/types";
 import { sendAnalysisViaEmail } from "./services/sendgrid";
 import { evaluateIntelligence } from "./services/openai";
 
