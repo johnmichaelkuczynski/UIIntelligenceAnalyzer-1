@@ -133,15 +133,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
 function generateAnalysis(content: string): DocumentAnalysis {
   // Content length affects the overall score for this demo
   const contentLength = content.length;
-  let overallScore = Math.min(Math.max(Math.floor(contentLength / 100), 50), 95);
   
-  // Adjust score to be between 65-95 based on content length
-  overallScore = Math.max(65, Math.min(95, overallScore));
+  // Analyze characteristics that contribute to score
+  const wordCount = content.split(/\s+/).length;
+  const avgWordLength = contentLength / Math.max(wordCount, 1);
+  const sentenceCount = content.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+  const avgSentenceLength = wordCount / Math.max(sentenceCount, 1);
+  
+  // Calculate a base score from multiple factors
+  const lengthScore = Math.min(Math.max(Math.floor(contentLength / 200), 30), 90);
+  const complexityScore = Math.min(Math.max(Math.floor(avgWordLength * 10), 40), 95);
+  const structureScore = Math.min(Math.max(Math.floor(avgSentenceLength), 50), 95);
+  
+  // Add some randomness to create more varied scores
+  const randomFactor = Math.floor(Math.random() * 15) - 7; // -7 to +7 range
+  
+  // Combine scores with different weights
+  let overallScore = (lengthScore * 0.4) + (complexityScore * 0.3) + (structureScore * 0.3) + randomFactor;
+  
+  // Ensure score is within 50-95 range
+  overallScore = Math.floor(Math.min(Math.max(overallScore, 50), 95));
+  
+  // Generate more varied summary and assessment based on score ranges
+  let cognitiveLevel = "";
+  let performanceAssessment = "";
+  let improvementAreas = "";
+  
+  // Determine cognitive level
+  if (overallScore >= 85) {
+    cognitiveLevel = "exceptional";
+  } else if (overallScore >= 75) {
+    cognitiveLevel = "advanced";
+  } else if (overallScore >= 65) {
+    cognitiveLevel = "moderate";
+  } else if (overallScore >= 55) {
+    cognitiveLevel = "developing";
+  } else {
+    cognitiveLevel = "basic";
+  }
+  
+  // Determine performance description
+  if (overallScore >= 85) {
+    performanceAssessment = "outstanding performance across most dimensions, particularly in inferential continuity and claim formation";
+  } else if (overallScore >= 75) {
+    performanceAssessment = "strong performance in several key areas, with notable strengths in inferential continuity and claim formation";
+  } else if (overallScore >= 65) {
+    performanceAssessment = "solid performance in some dimensions, with reasonable handling of inferential continuity and claim formation";
+  } else if (overallScore >= 55) {
+    performanceAssessment = "adequate performance in basic dimensions, with some evidence of structured thinking";
+  } else {
+    performanceAssessment = "foundational cognitive abilities that require further development";
+  }
+  
+  // Determine improvement suggestions
+  if (overallScore >= 85) {
+    improvementAreas = "The semantic load and jargon usage are well-managed throughout the text, with only minor areas for potential enhancement.";
+  } else if (overallScore >= 75) {
+    improvementAreas = "The semantic load and jargon usage are generally well-handled, though some refinement could strengthen the overall presentation.";
+  } else if (overallScore >= 65) {
+    improvementAreas = "There is room for improvement in semantic load and precision of language usage throughout the document.";
+  } else if (overallScore >= 55) {
+    improvementAreas = "Significant improvement could be made in semantic clarity, jargon usage, and overall conceptual precision.";
+  } else {
+    improvementAreas = "Substantial development is needed in all major dimensions, particularly in semantic coherence and technical precision.";
+  }
   
   return {
-    summary: `This document contains approximately ${contentLength} characters discussing various topics. The text demonstrates ${overallScore > 80 ? "advanced" : "moderate"} cognitive structuring with defined patterns of conceptual development.`,
+    summary: `This document contains approximately ${contentLength} characters discussing various topics. The text demonstrates ${cognitiveLevel} cognitive structuring with ${overallScore >= 75 ? "well-defined" : "developing"} patterns of conceptual development.`,
     overallScore,
-    overallAssessment: `The writing demonstrates ${overallScore > 80 ? "advanced" : "moderate"} cognitive abilities, with ${overallScore > 80 ? "particularly strong" : "reasonable"} performance in inferential continuity and claim formation. ${overallScore < 80 ? "There is room for improvement in semantic load and jargon usage." : "The semantic load and jargon usage are well-managed throughout the text."}`,
+    overallAssessment: `The writing demonstrates ${cognitiveLevel} cognitive abilities, with ${performanceAssessment}. ${improvementAreas}`,
     dimensions: {
       definitionCoherence: {
         name: "Definition Coherence",
@@ -229,25 +289,35 @@ function generateComparison(analysisA: DocumentAnalysis, analysisB: DocumentAnal
     },
   ];
 
-  // Generate style characteristics based on scores
+  // Generate style characteristics based on scores with more granularity
   const getStyleCharacteristics = (score: number): string[] => {
     const styles = [];
     
-    if (score > 85) {
+    if (score >= 85) {
       styles.push("Academic style with formal tone");
       styles.push("Strong theoretical foundation");
       styles.push("Extensive use of evidence and citations");
       styles.push("Conceptual approach to topic");
-    } else if (score > 75) {
+    } else if (score >= 75) {
       styles.push("Technical writing style");
       styles.push("Practical and application-focused");
       styles.push("Use of case studies and examples");
       styles.push("Solution-oriented approach");
-    } else {
+    } else if (score >= 65) {
       styles.push("Clear and accessible writing style");
       styles.push("Balanced theoretical and practical elements");
       styles.push("Moderate use of supporting evidence");
       styles.push("Topic-centered approach");
+    } else if (score >= 55) {
+      styles.push("Straightforward communication style");
+      styles.push("Basic organizational structure");
+      styles.push("Limited supporting evidence");
+      styles.push("Descriptive rather than analytical");
+    } else {
+      styles.push("Simple communication style");
+      styles.push("Minimal organizational structure");
+      styles.push("Sparse supporting elements");
+      styles.push("Direct informational approach");
     }
     
     return styles;
@@ -305,8 +375,9 @@ function getTopDimension(analysis: DocumentAnalysis): string {
 
 // Helper function to get a rating from a score
 function getRatingFromScore(score: number): "Strong" | "Moderate" | "Weak" {
+  // Use a more varied scale for dimension ratings
   if (score >= 80) return "Strong";
-  if (score >= 60) return "Moderate";
+  if (score >= 65) return "Moderate";
   return "Weak";
 }
 
