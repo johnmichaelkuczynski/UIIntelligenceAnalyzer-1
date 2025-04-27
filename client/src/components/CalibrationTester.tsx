@@ -150,10 +150,21 @@ const CalibrationTester: React.FC = () => {
       </div>
       
       <div className="border-t border-gray-200 py-4">
-        <p className="text-gray-700 mb-4">
-          Run calibration tests to verify the intelligence evaluation algorithm is correctly calibrated
-          against known writing samples.
-        </p>
+        <div className="mb-4">
+          <h3 className="text-sm font-medium text-gray-700 mb-2">About Calibration Testing</h3>
+          <p className="text-gray-700 text-sm mb-2">
+            Calibration testing evaluates our scoring algorithm against reference documents with known expected scores:
+          </p>
+          <ul className="text-sm text-gray-600 list-disc pl-5 mb-3 space-y-1">
+            <li><span className="font-medium">Philosophical Analysis</span> (Expected: 92) - Deep conceptual analysis with exceptional inferential continuity</li>
+            <li><span className="font-medium">Pragmatism Paper</span> (Expected: 94) - Strong philosophical reasoning with exceptional arguments</li>
+            <li><span className="font-medium">Brain Engineering Ideas</span> (Expected: 94) - Deep conceptual analysis with exceptional innovation</li>
+            <li><span className="font-medium">AI-Generated Text</span> (Expected: 42) - Generic content with low semantic density</li>
+          </ul>
+          <p className="text-gray-700 text-sm italic">
+            The test helps ensure deep, original writing scores 90+ while shallow writing scores 20-50.
+          </p>
+        </div>
         
         <Button
           onClick={runCalibrationTests}
