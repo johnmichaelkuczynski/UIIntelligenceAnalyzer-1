@@ -437,13 +437,25 @@ function getTopDimension(analysis: DocumentAnalysis): string {
 // Helper function to get a rating from a score
 function getRatingFromScore(score: number): DimensionRating {
   // Use a more granular rating scale based on score
-  if (score >= 95) return "Exceptional";
-  if (score >= 85) return "Very Strong";
-  if (score >= 75) return "Strong";
-  if (score >= 65) return "Moderate";
+  // Adjusted thresholds to better reflect the intelligence scoring model
+  // This ensures visual indicators match the expected intelligence levels
+  
+  // For exceptional writing (90-96 range)
+  if (score >= 90) return "Exceptional";
+  
+  // For advanced writing (75-89 range)
+  if (score >= 80) return "Very Strong";
+  if (score >= 70) return "Strong";
+  
+  // For intermediate writing (50-74 range)
+  if (score >= 60) return "Moderate";
   if (score >= 50) return "Basic";
+  
+  // For shallow writing (20-49 range)
   if (score >= 35) return "Weak";
   if (score >= 20) return "Very Weak";
+  
+  // Below 20
   return "Critically Deficient";
 }
 
