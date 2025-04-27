@@ -31,11 +31,11 @@ export interface IntelligenceEvaluation {
   calibrationAdjusted?: boolean;
 }
 
-// Scoring configuration (adjusted to focus on conceptual depth)
+// Scoring configuration for pure cognitive fingerprinting
 const scoringConfig = {
-  surfaceWeight: 0.20, // 20% weight for surface features (reduced from 35%)
-  deepWeight: 0.80,    // 80% weight for deep features (increased from 65%)
-  scoreAdjustment: -5,  // Baseline adjustment to avoid clustering in 70-80 range
+  surfaceWeight: 0.10, // 10% weight for surface features (minimized - just for basic readability)
+  deepWeight: 0.90,    // 90% weight for deep features (now dominant factor)
+  scoreAdjustment: 0,  // No baseline adjustment - let the true cognitive fingerprint emerge
   maxScore: 100,       // Maximum possible score
   minScore: 0          // Minimum possible score
 };
@@ -85,16 +85,18 @@ export async function evaluateIntelligence(
   // Apply baseline adjustment to avoid clustering in middle ranges
   weightedScore += config.scoreAdjustment;
   
-  // Apply additional adjustment for very low scores to prevent clustering
+  // Apply stronger delineation for very low scores (shallow content)
   if (deepScore < 50) {
-    // For obviously shallow content, push scores lower
-    weightedScore -= Math.max(0, (50 - deepScore) * 0.3);
+    // For obviously shallow content, push scores significantly lower
+    weightedScore -= Math.max(0, (50 - deepScore) * 0.5);
   }
   
-  // Apply stretch adjustment for very high scores to better differentiate excellent work
-  if (deepScore > 85) {
-    // For exceptionally deep content, push scores higher
-    weightedScore += Math.min(5, (deepScore - 85) * 0.2);
+  // Apply stretch adjustment for high scores to properly reward conceptual power
+  if (deepScore > 80) {
+    // For conceptually dense content, push scores higher
+    // This creates clearer separation between "good writing" and "true conceptual innovation"
+    const elevationFactor = Math.min(15, (deepScore - 80) * 0.3); 
+    weightedScore += elevationFactor;
   }
   
   // ========== ANTI-SUPERFICIALITY RULE ==========
@@ -147,36 +149,39 @@ export async function evaluateIntelligence(
  */
 async function generateSemanticAnalysis(text: string): Promise<string> {
   try {
-    const prompt = `You are an archaeologist examining an ancient manuscript fragment - NOT grading a complete essay.
+    const prompt = `You are an intelligence fingerprint reader analyzing a cognitive sample - NOT grading a paper.
 
-    CRITICAL: This app is NOT a paper grader. You do not score for completeness, polish, surface formality, or topic prestige.
+    FUNDAMENTAL PRINCIPLE: This is an intelligence fingerprint reader, not a paper grader.
     
-    CRITICAL: Judge ONLY the conceptual properties of the text, however fragmentary it is.
-    
-    KEY COGNITIVE METRICS (FOCUS EXCLUSIVELY ON THESE):
-    
+    SCORE EXCLUSIVELY ON INTERNAL COGNITIVE FEATURES:
     1. SEMANTIC COMPRESSION: How much deep meaning is compressed into a small amount of language?
     2. ORIGINAL CONCEPT FORMATION: Does the text introduce real conceptual innovations?
     3. INFERENTIAL CONTINUITY: Does each idea logically depend on the prior idea?
     4. DENSITY OF MEANING: How tight is the web of relations between claims?
     
-    EXPLICITLY FORBIDDEN SCORING FACTORS:
-    - DO NOT score based on "topic prestige" (e.g., just because it's about philosophy)
-    - DO NOT score based on "how finished" or "how complete" the text is
-    - DO NOT score based on "standard essay structure"
-    - DO NOT inflate scores based on superficial indicators like mentioning philosophers or using technical terms
-    - DO NOT deflate scores because a text does not fully "resolve" every question it raises
+    CRITICALLY IMPORTANT - DO NOT PENALIZE FOR:
+    - Lack of examples
+    - Lack of alternative theories
+    - Incomplete resolution of all issues raised
+    - Familiar topics being addressed
+    - How "finished" or "complete" the text is
     
-    ANTI-SUPERFICIALITY RULE: A text must not receive a high intelligence score (>85) solely on the basis of surface structure (grammar, paragraph flow, technical vocabulary). High intelligence scoring requires demonstrated conceptual compression and original thinking.
+    TREAT EACH TEXT AS A COGNITIVE SAMPLE:
+    You are an archaeologist examining fragments of a manuscript, inferring intelligence from conceptual structure.
+    Fragments are normal and expected - never downgrade scores for incompleteness.
     
-    Provide an honest, critical assessment (150-200 words) that evaluates the cognitive strength reflected in the writing.
+    MANDATORY SCORING MODEL:
+    - Deep compression + tight inferential work + originality → 90–100 range
+    - Good organization but no deep compression → 70–89 range
+    - Fluent surface but shallow structure → 50–69 range
+    - Randomness, superficial chatter → <50 range
     
-    IMPORTANT CALIBRATION REFERENCE:
-    - Generic content with limited conceptual innovation scores around 40/100
-    - Sophisticated analysis with strong conceptual innovation scores around 95/100
-    - Writing with fancy vocabulary but no conceptual depth scores 65-75 maximum
+    ANTI-SUPERFICIALITY RULE: A text must not receive a high intelligence score (>85) solely on the basis of surface structure (grammar, vocabulary, references to philosophers). High intelligence scoring requires demonstrated conceptual compression and original thinking.
     
-    Focus exclusively on cognitive power, not completeness or polish.
+    CRITICAL CALIBRATION EXAMPLE (must score ~94):
+    "According to the computational theory of mind, to think is to compute. But what is meant by the word 'compute'? Every case of computing is a case of manipulating symbols, but not vice versa - a manipulation of symbols must be driven exclusively by the formal properties of those symbols if it is qualify as a computation. Words like 'form' and 'formal' are ambiguous, as they can refer to form in either the syntactic or the morphological sense. CTM fails on each disambiguation, and the arguments for CTM immediately cease to be compelling once we register that ambiguity."
+    
+    Provide an honest, critical assessment (150-200 words) that evaluates ONLY the cognitive strength reflected in the writing.
     
     TEXT TO ANALYZE:
     ${text.substring(0, 8000)} ${text.length > 8000 ? '... [text truncated due to length]' : ''}`;
@@ -205,7 +210,9 @@ async function evaluateDimensions(text: string): Promise<{
   try {
     const truncatedText = text.substring(0, 8000) + (text.length > 8000 ? '... [text truncated due to length]' : '');
     
-    const prompt = `You are an archaeologist examining an ancient manuscript fragment. Analyze this writing sample and score it ONLY on its conceptual sophistication, however fragmentary it is.
+    const prompt = `You are an intelligence fingerprint reader, analyzing a cognitive sample.
+    
+    FUNDAMENTAL PRINCIPLE: You are NOT a paper grader. This is a cognitive fingerprint reader.
     
     For each dimension, provide a score from 0-100 where:
     - 0-20: Critically deficient (extremely poor, incoherent, simplistic)
@@ -215,37 +222,41 @@ async function evaluateDimensions(text: string): Promise<{
     - 81-95: Very strong (sophisticated, nuanced, insightful)
     - 96-100: Exceptional (rare, elite-level thinking)
     
-    CRITICAL: This is NOT a paper grader. You are NOT scoring for completeness, polish, or how "finished" the text is.
+    MANDATORY SCORING CRITERIA - ONLY SCORE BASED ON:
+    1. SEMANTIC COMPRESSION - density of meaning packed into language
+    2. CONCEPTUAL ORIGINALITY - novel thinking, not just rehashing
+    3. INFERENTIAL CONTINUITY - logical progression between ideas
+    4. MEANING-DENSITY - richness of the web of relations between claims
     
-    MANDATORY SCORING RULES:
-    1. Judge ONLY the conceptual sophistication of the text, not its completeness
-    2. Ignore whether the text is "complete" - partial fragments are expected and normal
-    3. Score ONLY based on conceptual compression, originality, inferential continuity, and structural density
-    4. DO NOT inflate scores based on superficial indicators like mentioning philosophers or using technical terms
-    5. DO NOT deflate scores because a text does not fully "resolve" every question it raises
+    CRITICALLY IMPORTANT - YOU MUST NOT PENALIZE FOR:
+    - Lack of examples
+    - Lack of alternative theories
+    - Incomplete resolution of all issues
+    - Familiar topics being addressed
+    - How "finished" or "complete" the text is
     
-    EXPLICITLY FORBIDDEN SCORING FACTORS:
-    - DO NOT score based on "topic prestige" (e.g., just because it's about philosophy)
-    - DO NOT score based on "how finished" or "how complete" the text is
-    - DO NOT score based on "standard essay structure"
+    TREAT EACH TEXT AS A COGNITIVE SAMPLE:
+    You are examining fragments, just as an archaeologist infers intelligence from a broken manuscript.
+    Fragments are normal and expected - NEVER downgrade scores for incompleteness.
     
-    CALIBRATION REFERENCE:
-    - Generic content with limited conceptual innovation scores around 40/100
-    - Sophisticated analysis with strong conceptual innovation scores around 95/100
-    - Writing with fancy vocabulary but no conceptual depth scores 65-75 maximum
+    MANDATORY SCORING MODEL:
+    - Deep compression + tight inferential work + originality → 90–100 range
+    - Good organization but no deep compression → 70–89 range
+    - Fluent surface but shallow structure → 50–69 range
+    - Randomness, superficial chatter → <50 range
     
     TEXT TO ANALYZE:
     ${truncatedText}
     
     Score the following dimensions and USE THE FULL RANGE (0-100):
     
-    SURFACE FEATURES (20% of total weight - less important):
+    SURFACE FEATURES (10% of total weight - minimal importance):
     1. Grammar and Mechanics (correctness of grammar, spelling, punctuation)
     2. Structure and Organization (logical flow, paragraph organization)
     3. Jargon Usage (appropriate use of technical terms when needed)
     4. Surface Fluency (basic sentence formation, readability)
     
-    DEEP FEATURES (80% of total weight - critically important):
+    DEEP FEATURES (90% of total weight - dominant importance):
     5. Conceptual Depth (sophistication of ideas, complexity of thought)
     6. Inferential Continuity (logical connections between ideas)
     7. Claim-to-Claim Necessity (each claim builds coherently on previous claims)
