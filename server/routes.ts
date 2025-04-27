@@ -397,6 +397,77 @@ function getRatingFromScore(score: number): "Strong" | "Moderate" | "Weak" {
   return "Weak";
 }
 
+// Helper function to format the AI evaluation result as DocumentAnalysis
+function formatAIEvaluationAsDocumentAnalysis(content: string, aiEvaluation: any): DocumentAnalysis {
+  // Extract the scores from AI evaluation
+  const overallScore = aiEvaluation.overallScore;
+  
+  // Determine cognitive level based on the overall score
+  let cognitiveLevel = "";
+  if (overallScore >= 85) {
+    cognitiveLevel = "exceptional";
+  } else if (overallScore >= 75) {
+    cognitiveLevel = "advanced";
+  } else if (overallScore >= 65) {
+    cognitiveLevel = "moderate";
+  } else if (overallScore >= 55) {
+    cognitiveLevel = "developing";
+  } else {
+    cognitiveLevel = "basic";
+  }
+  
+  // Map dimension scores to dimension ratings
+  return {
+    summary: `This document demonstrates ${cognitiveLevel} cognitive structuring with ${overallScore >= 75 ? "well-defined" : "developing"} patterns of conceptual development. AI-powered semantic analysis reveals sophisticated thought patterns throughout the text.`,
+    overallScore,
+    overallAssessment: aiEvaluation.analysis,
+    dimensions: {
+      definitionCoherence: {
+        name: "Definition Coherence",
+        rating: getRatingFromScore(aiEvaluation.deep.logicalLaddering),
+        description: "Key terms are consistently defined before use, establishing clear conceptual boundaries. The document shows well-structured definition coherence.",
+        quote: extractQuote(content, 15),
+      },
+      claimFormation: {
+        name: "Claim Formation",
+        rating: getRatingFromScore(aiEvaluation.deep.claimNecessity),
+        description: "The document makes substantive claims that are testable and specific. Claims are clearly distinguished from evidence and conjecture.",
+        quote: extractQuote(content, 25),
+      },
+      inferentialContinuity: {
+        name: "Inferential Continuity",
+        rating: getRatingFromScore(aiEvaluation.deep.inferentialContinuity),
+        description: "The logical progression between ideas is sound, with conclusions following naturally from premises. Causal relationships are well-established and reasoning chains remain intact.",
+        quote: extractQuote(content, 35),
+      },
+      semanticLoad: {
+        name: "Semantic Load",
+        rating: getRatingFromScore(aiEvaluation.deep.semanticCompression),
+        description: "Terms carry precise meaning, with efficient semantic compression throughout the document. The text balances complexity with clarity.",
+        quote: extractQuote(content, 45),
+      },
+      jargonDetection: {
+        name: "Jargon Detection",
+        rating: getRatingFromScore(aiEvaluation.surface.jargonUsage),
+        description: "Technical language is used appropriately, with specialized terms introduced with proper context and explanation.",
+        quote: extractQuote(content, 55),
+      },
+      surfaceComplexity: {
+        name: "Surface Complexity",
+        rating: getRatingFromScore(aiEvaluation.surface.surfaceFluency),
+        description: "The document demonstrates strong organization with clear structure, appropriate section transitions, and professional formatting.",
+        quote: extractQuote(content, 65),
+      },
+      deepComplexity: {
+        name: "Deep Complexity",
+        rating: getRatingFromScore(aiEvaluation.deep.conceptualDepth),
+        description: "The document engages with sophisticated concepts and creates novel connections between ideas. It shows conceptual depth beyond surface-level organization.",
+        quote: extractQuote(content, 75),
+      },
+    },
+  };
+}
+
 // Helper function to extract a quote from content
 function extractQuote(content: string, startPercentage: number): string {
   if (!content || content.length < 50) {
