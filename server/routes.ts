@@ -134,25 +134,20 @@ function generateAnalysis(content: string): DocumentAnalysis {
   // Content length affects the overall score for this demo
   const contentLength = content.length;
   
-  // Analyze characteristics that contribute to score
-  const wordCount = content.split(/\s+/).length;
-  const avgWordLength = contentLength / Math.max(wordCount, 1);
-  const sentenceCount = content.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
-  const avgSentenceLength = wordCount / Math.max(sentenceCount, 1);
+  // Simpler scoring method with wide range and randomness for demo purposes
+  // In a real app, we'd use actual NLP algorithms
   
-  // Calculate a base score from multiple factors
-  const lengthScore = Math.min(Math.max(Math.floor(contentLength / 200), 30), 90);
-  const complexityScore = Math.min(Math.max(Math.floor(avgWordLength * 10), 40), 95);
-  const structureScore = Math.min(Math.max(Math.floor(avgSentenceLength), 50), 95);
+  // Base score that will scale based on content length
+  const baseScore = 50 + Math.min(contentLength / 100, 30);
   
-  // Add some randomness to create more varied scores
-  const randomFactor = Math.floor(Math.random() * 15) - 7; // -7 to +7 range
+  // Add significant randomness to demonstrate varied scores
+  const randomFactor = Math.floor(Math.random() * 30) - 5; // -5 to +25 range
   
-  // Combine scores with different weights
-  let overallScore = (lengthScore * 0.4) + (complexityScore * 0.3) + (structureScore * 0.3) + randomFactor;
+  // Combine for final score
+  let overallScore = baseScore + randomFactor;
   
-  // Ensure score is within 50-95 range
-  overallScore = Math.floor(Math.min(Math.max(overallScore, 50), 95));
+  // Ensure score is within 45-95 range
+  overallScore = Math.floor(Math.min(Math.max(overallScore, 45), 95));
   
   // Generate more varied summary and assessment based on score ranges
   let cognitiveLevel = "";
@@ -205,43 +200,43 @@ function generateAnalysis(content: string): DocumentAnalysis {
     dimensions: {
       definitionCoherence: {
         name: "Definition Coherence",
-        rating: getRatingFromScore(overallScore + getRandom(-10, 10)),
+        rating: getRatingFromScore(overallScore + getRandom(-25, 25)),
         description: "Key terms are consistently defined before use, establishing clear conceptual boundaries. The document shows strong definition coherence throughout.",
         quote: extractQuote(content, 15),
       },
       claimFormation: {
         name: "Claim Formation",
-        rating: getRatingFromScore(overallScore + getRandom(-10, 10)),
+        rating: getRatingFromScore(overallScore + getRandom(-25, 25)),
         description: "The document makes substantive claims that are testable and specific. Claims are clearly distinguished from evidence and conjecture.",
         quote: extractQuote(content, 25),
       },
       inferentialContinuity: {
         name: "Inferential Continuity",
-        rating: getRatingFromScore(overallScore + getRandom(-10, 10)),
+        rating: getRatingFromScore(overallScore + getRandom(-25, 25)),
         description: "The logical progression between ideas is sound, with conclusions following naturally from premises. Causal relationships are well-established and reasoning chains remain intact.",
         quote: extractQuote(content, 35),
       },
       semanticLoad: {
         name: "Semantic Load",
-        rating: getRatingFromScore(overallScore + getRandom(-15, 5)),
+        rating: getRatingFromScore(overallScore + getRandom(-30, 20)),
         description: "Most terms carry precise meaning, though occasional passages rely on semantically thin language. The document generally avoids hollow phrasing.",
         quote: extractQuote(content, 45),
       },
       jargonDetection: {
         name: "Jargon Detection",
-        rating: getRatingFromScore(overallScore + getRandom(-15, 5)),
+        rating: getRatingFromScore(overallScore + getRandom(-30, 20)),
         description: "Technical language is generally used appropriately, though some specialized terms appear without sufficient context or explanation.",
         quote: extractQuote(content, 55),
       },
       surfaceComplexity: {
         name: "Surface Complexity",
-        rating: getRatingFromScore(overallScore + getRandom(-5, 15)),
+        rating: getRatingFromScore(overallScore + getRandom(-20, 30)),
         description: "The document demonstrates excellent organization with clear structure, appropriate section transitions, and professional formatting.",
         quote: extractQuote(content, 65),
       },
       deepComplexity: {
         name: "Deep Complexity",
-        rating: getRatingFromScore(overallScore + getRandom(-10, 10)),
+        rating: getRatingFromScore(overallScore + getRandom(-25, 25)),
         description: "The document engages with sophisticated concepts and creates novel connections between ideas. It shows conceptual depth beyond surface-level organization.",
         quote: extractQuote(content, 75),
       },
