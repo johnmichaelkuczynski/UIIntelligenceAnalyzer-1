@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { DocumentAnalysis } from "@/lib/types";
 import AnalysisDimension from "./AnalysisDimension";
 import { Badge } from "@/components/ui/badge";
-import { Bot } from "lucide-react";
+import { Bot, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import ShareViaEmailModal from "./ShareViaEmailModal";
 
 interface DocumentResultsProps {
   id: "A" | "B";
@@ -10,6 +12,8 @@ interface DocumentResultsProps {
 }
 
 const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis }) => {
+  const [showShareModal, setShowShareModal] = useState(false);
+  
   const dimensions = [
     analysis.dimensions.definitionCoherence,
     analysis.dimensions.claimFormation,
@@ -22,7 +26,18 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Document {id} Analysis</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-gray-800">Document {id} Analysis</h2>
+        <Button 
+          size="sm" 
+          variant="outline" 
+          className="flex items-center gap-2"
+          onClick={() => setShowShareModal(true)}
+        >
+          <Share2 className="h-4 w-4" />
+          Share via Email
+        </Button>
+      </div>
       
       {/* Summary Card */}
       <div className="mb-6 bg-blue-50 p-4 rounded-md">

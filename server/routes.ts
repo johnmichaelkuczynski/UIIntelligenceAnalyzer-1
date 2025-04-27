@@ -4,7 +4,8 @@ import { storage } from "./storage";
 import multer from "multer";
 import { extractTextFromFile } from "./api/documentParser";
 import { checkForAI } from "./api/gptZero";
-import { DocumentAnalysis, DocumentComparison } from "@/lib/types";
+import { DocumentAnalysis, DocumentComparison, ShareViaEmailRequest } from "@/lib/types";
+import { sendAnalysisViaEmail } from "./services/sendgrid";
 
 // Configure multer for file uploads - store in memory
 const upload = multer({ 
@@ -92,6 +93,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error comparing documents:", error);
       res.status(500).json({ message: error.message || "Error comparing documents" });
+    }
+  });
+
+  // Share analysis results via email
+  app.post("/api/share-via-email", async (req: Request, res: Response) => {
+    try {
+      const emailData: ShareViaEmailRequest = req.body;
+      
+      if (!emailData.recipientEmail || !emailData.subject || !emailData.analysisA) {
+        return res.status(400).json({ message: "Missing required email fields" });
+      }
+      
+      // Send email using SendGrid
+      const result = await sendAnalysisViaEmail(emailData);
+      
+      if (result) {
+        res.json({ success: true, message: "Email sent successfully" });
+      } else {
+        res.status(500).json({ success: false, message: "Failed to send email" });
+      }
+    } catch (error: any) {
+      console.error("Error sharing via email:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Error sharing results via email" 
+      });
     }
   });
 
