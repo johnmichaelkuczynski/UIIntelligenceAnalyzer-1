@@ -4,7 +4,6 @@ import DocumentInput from "@/components/DocumentInput";
 import DocumentResults from "@/components/DocumentResults";
 import ComparativeResults from "@/components/ComparativeResults";
 import AIDetectionModal from "@/components/AIDetectionModal";
-import CalibrationTester from "@/components/CalibrationTester";
 import ScoringInfoBanner from "@/components/ScoringInfoBanner";
 import { Button } from "@/components/ui/button";
 import { Brain } from "lucide-react";
@@ -125,9 +124,6 @@ const HomePage: React.FC = () => {
           <ModeToggle mode={mode} setMode={setMode} />
         </div>
       </div>
-
-      {/* Calibration Testing */}
-      <CalibrationTester />
 
       {/* Document Input Section */}
       <div className="mb-8">
