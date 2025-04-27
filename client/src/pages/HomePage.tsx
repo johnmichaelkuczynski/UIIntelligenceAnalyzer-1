@@ -5,6 +5,7 @@ import DocumentResults from "@/components/DocumentResults";
 import ComparativeResults from "@/components/ComparativeResults";
 import AIDetectionModal from "@/components/AIDetectionModal";
 import CalibrationTester from "@/components/CalibrationTester";
+import ScoringInfoBanner from "@/components/ScoringInfoBanner";
 import { Button } from "@/components/ui/button";
 import { Brain } from "lucide-react";
 import { analyzeDocument, compareDocuments, checkForAI } from "@/lib/analysis";
@@ -113,6 +114,9 @@ const HomePage: React.FC = () => {
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Intelligence Analysis Tool</h1>
         <p className="text-gray-600">Analyze and compare writing samples for deep conceptual intelligence assessment</p>
       </header>
+      
+      {/* Scoring Info Banner */}
+      <ScoringInfoBanner />
 
       {/* Analysis Mode Selector */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
@@ -121,6 +125,9 @@ const HomePage: React.FC = () => {
           <ModeToggle mode={mode} setMode={setMode} />
         </div>
       </div>
+
+      {/* Calibration Testing */}
+      <CalibrationTester />
 
       {/* Document Input Section */}
       <div className="mb-8">
