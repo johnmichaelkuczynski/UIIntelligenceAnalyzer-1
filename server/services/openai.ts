@@ -26,21 +26,35 @@ export interface IntelligenceEvaluation {
   deep: DeepAnalysis;
   overallScore: number;
   analysis: string;
+  surfaceScore: number;
+  deepScore: number;
+  calibrationAdjusted?: boolean;
 }
+
+// Scoring configuration (can be adjusted based on calibration)
+const scoringConfig = {
+  surfaceWeight: 0.35, // 35% weight for surface features (lowered from 40%)
+  deepWeight: 0.65,    // 65% weight for deep features (increased from 60%)
+  scoreAdjustment: -5,  // Baseline adjustment to avoid clustering in 70-80 range
+  maxScore: 100,       // Maximum possible score
+  minScore: 0          // Minimum possible score
+};
 
 /**
  * Evaluate writing sample for intelligence using GPT-4
- * Applies both surface and deep semantic analysis
+ * Applies both surface and deep semantic analysis with calibrated weights
  */
-export async function evaluateIntelligence(text: string): Promise<IntelligenceEvaluation> {
+export async function evaluateIntelligence(
+  text: string, 
+  customConfig?: Partial<typeof scoringConfig>
+): Promise<IntelligenceEvaluation> {
   // First, generate a semantic analysis using GPT-4
   const semanticAnalysis = await generateSemanticAnalysis(text);
   
   // Then, get detailed evaluation of specific dimensions
   const detailedEvaluation = await evaluateDimensions(text);
   
-  // Calculate overall score - weighting surface vs. deep features
-  // 40% surface, 60% deep meaning
+  // Calculate surface score (grammar, structure, etc.)
   const surfaceScore = (
     detailedEvaluation.surface.grammar +
     detailedEvaluation.surface.structure + 
@@ -48,6 +62,7 @@ export async function evaluateIntelligence(text: string): Promise<IntelligenceEv
     detailedEvaluation.surface.surfaceFluency
   ) / 4;
   
+  // Calculate deep score (conceptual depth, inferential continuity, etc.)
   const deepScore = (
     detailedEvaluation.deep.conceptualDepth +
     detailedEvaluation.deep.inferentialContinuity +
@@ -58,14 +73,43 @@ export async function evaluateIntelligence(text: string): Promise<IntelligenceEv
     detailedEvaluation.deep.originality
   ) / 7;
   
-  // Weighted final score
-  const overallScore = Math.round(surfaceScore * 0.4 + deepScore * 0.6);
+  // Use custom config if provided, otherwise use default
+  const config = { ...scoringConfig, ...(customConfig || {}) };
+  
+  // Apply weights with increased emphasis on deep semantic analysis
+  let weightedScore = (
+    surfaceScore * config.surfaceWeight + 
+    deepScore * config.deepWeight
+  );
+  
+  // Apply baseline adjustment to avoid clustering in middle ranges
+  weightedScore += config.scoreAdjustment;
+  
+  // Apply additional adjustment for very low scores to prevent clustering
+  if (deepScore < 50) {
+    // For obviously shallow content, push scores lower
+    weightedScore -= Math.max(0, (50 - deepScore) * 0.3);
+  }
+  
+  // Apply stretch adjustment for very high scores to better differentiate excellent work
+  if (deepScore > 85) {
+    // For exceptionally deep content, push scores higher
+    weightedScore += Math.min(5, (deepScore - 85) * 0.2);
+  }
+  
+  // Ensure final score is within valid range
+  const overallScore = Math.round(
+    Math.max(config.minScore, Math.min(config.maxScore, weightedScore))
+  );
   
   return {
     surface: detailedEvaluation.surface,
     deep: detailedEvaluation.deep,
+    surfaceScore,
+    deepScore,
     overallScore,
-    analysis: semanticAnalysis
+    analysis: semanticAnalysis,
+    calibrationAdjusted: !!customConfig
   };
 }
 
@@ -75,16 +119,22 @@ export async function evaluateIntelligence(text: string): Promise<IntelligenceEv
  */
 async function generateSemanticAnalysis(text: string): Promise<string> {
   try {
-    const prompt = `Analyze the following text for its intellectual qualities. Focus on conceptual depth, inferential continuity, semantic compression, logical structure, and originality.
+    const prompt = `You are an expert cognitive assessor examining the intellectual quality of writing. Analyze the following text, focusing on:
+
+    1. CONCEPTUAL DEPTH: How sophisticated are the ideas? Is the thinking shallow, moderate, or profound?
+    2. INFERENTIAL STRUCTURE: How well do logical connections flow between claims? Are there gaps in reasoning?
+    3. SEMANTIC DENSITY: How much meaningful content is packed into the text? Is it semantically thin or rich?
+    4. LOGICAL COHERENCE: How well-structured is the argument? Does each point build on the previous ones?
+    5. ORIGINALITY: Does the writing demonstrate novel thinking or merely recycle familiar ideas?
     
-    Provide a detailed analysis (150-200 words) that evaluates the intelligence reflected in the writing. Be specific about strengths and weaknesses, avoiding vague generalizations.
+    Provide an honest, critical assessment (150-200 words) that evaluates the cognitive strength reflected in the writing.
     
-    Your analysis should discuss:
-    1. The conceptual sophistication of the ideas
-    2. The logical connections between claims
-    3. The efficiency and precision of expression
-    4. The originality of the thinking
-    5. An overall assessment of the intellectual level demonstrated
+    IMPORTANT CALIBRATION REFERENCE:
+    - Generic AI-written content demonstrates limited depth and typically scores around 40/100
+    - Sophisticated philosophical analysis like "Numbers as Ordered Pairs" demonstrates exceptional conceptual complexity and scores around 95/100
+    
+    Be specific about cognitive strengths and weaknesses. Avoid vague generalizations.
+    Include an assessment of how the text reflects the writer's intelligence level (low, moderate, high, or exceptional).
     
     TEXT TO ANALYZE:
     ${text.substring(0, 8000)} ${text.length > 8000 ? '... [text truncated due to length]' : ''}`;
@@ -113,30 +163,38 @@ async function evaluateDimensions(text: string): Promise<{
   try {
     const truncatedText = text.substring(0, 8000) + (text.length > 8000 ? '... [text truncated due to length]' : '');
     
-    const prompt = `Analyze this writing sample and score it on several dimensions of intelligence.
-    For each dimension, provide a score from 0-100, where 0 is extremely poor and 100 is exceptional.
-    Use the full range of scores (0-100) based on the quality, avoiding clustering all scores in a narrow range.
-    Don't be afraid to give very low or very high scores when deserved.
+    const prompt = `Analyze this writing sample and score it on several dimensions of intellectual capability.
+    For each dimension, provide a score from 0-100 where:
+    - 0-20: Critically deficient (extremely poor, incoherent, simplistic)
+    - 21-40: Basic (rudimentary, shallow, limited)
+    - 41-60: Moderate (average, serviceable but unremarkable)
+    - 61-80: Strong (well-developed, clear, coherent)
+    - 81-95: Very strong (sophisticated, nuanced, insightful)
+    - 96-100: Exceptional (rare, elite-level thinking)
     
     IMPORTANT CALIBRATION GUIDANCE:
-    - Very poor, incoherent writing typically scores 15-25 overall
-    - Basic, simplistic writing typically scores 35-45 overall
-    - Solid, coherent writing typically scores 65-75 overall
-    - Sophisticated, deep writing typically scores 85-90 overall
-    - Exceptional, elite writing may score 95-99 overall
+    - AI-generated generic content should score 35-45 overall
+    - Basic undergraduate writing typically scores 45-60
+    - Strong graduate-level writing typically scores 65-80
+    - Sophisticated academic/philosophical writing scores 80-95
+    - Truly exceptional, groundbreaking analysis may score 95-99
+    
+    REFERENCE CALIBRATION EXAMPLES:
+    1. "Personal identity is a topic that has been studied for many years by philosophers and researchers. It is about understanding what makes a person the same over time..." → Score around 40 (shallow, generic)
+    2. "Numbers as ordered pairs... These analyses are prima facie incompatible with each other, given that Kn≠Kpn, for n>0. In the present paper it is shown that these analyses are in fact compatible..." → Score around 95-97 (exceptional logical complexity)
     
     TEXT TO ANALYZE:
     ${truncatedText}
     
-    Score the following dimensions:
+    Score the following dimensions and USE THE FULL RANGE (0-100):
     
-    SURFACE FEATURES (40% of total weight):
+    SURFACE FEATURES (35% of total weight):
     1. Grammar and Mechanics (correctness of grammar, spelling, punctuation)
     2. Structure and Organization (logical flow, paragraph organization)
     3. Jargon Usage (appropriate use of technical terms when needed)
     4. Surface Fluency (basic sentence formation, readability)
     
-    DEEP FEATURES (60% of total weight):
+    DEEP FEATURES (65% of total weight):
     5. Conceptual Depth (sophistication of ideas, complexity of thought)
     6. Inferential Continuity (logical connections between ideas)
     7. Claim-to-Claim Necessity (each claim builds coherently on previous claims)

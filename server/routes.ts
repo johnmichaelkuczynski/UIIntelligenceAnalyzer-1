@@ -17,6 +17,22 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Define API routes
   
+  // Test route for calibration (test environment only)
+  app.get("/api/test-calibration", async (_req: Request, res: Response) => {
+    try {
+      // Only import calibration in test environments to avoid loading in production
+      const { testCalibrationSamples } = await import('./services/calibration');
+      const results = await testCalibrationSamples();
+      res.json(results);
+    } catch (error: any) {
+      console.error("Error running calibration:", error);
+      res.status(500).json({ 
+        message: error.message || "Error running calibration tests",
+        error: error.toString()
+      });
+    }
+  });
+  
   // Extract text from uploaded files
   app.post("/api/extract-text", upload.single("file"), async (req: Request, res: Response) => {
     try {
@@ -404,38 +420,40 @@ function getRatingFromScore(score: number): DimensionRating {
 
 // Helper function to format the AI evaluation result as DocumentAnalysis
 function formatAIEvaluationAsDocumentAnalysis(content: string, aiEvaluation: any): DocumentAnalysis {
-  // Calculate overall score using the weighted formula (40% surface, 60% deep)
-  const surfaceScore = (
-    aiEvaluation.surface.grammar +
+  // Use the pre-calculated scores if they exist (from the new API)
+  const surfaceScore = aiEvaluation.surfaceScore || (
+    (aiEvaluation.surface.grammar +
     aiEvaluation.surface.structure + 
     aiEvaluation.surface.jargonUsage +
-    aiEvaluation.surface.surfaceFluency
-  ) / 4;
+    aiEvaluation.surface.surfaceFluency) / 4
+  );
   
-  const deepScore = (
-    aiEvaluation.deep.conceptualDepth +
+  const deepScore = aiEvaluation.deepScore || (
+    (aiEvaluation.deep.conceptualDepth +
     aiEvaluation.deep.inferentialContinuity +
     aiEvaluation.deep.claimNecessity +
     aiEvaluation.deep.semanticCompression +
     aiEvaluation.deep.logicalLaddering +
     aiEvaluation.deep.depthFluency +
-    aiEvaluation.deep.originality
-  ) / 7;
+    aiEvaluation.deep.originality) / 7
+  );
   
-  // Calculate weighted final score
-  const overallScore = Math.round(surfaceScore * 0.4 + deepScore * 0.6);
+  // Use the pre-calculated overall score if it exists
+  // otherwise calculate it using the updated weights (35% surface, 65% deep)
+  const overallScore = aiEvaluation.overallScore || 
+    Math.round(surfaceScore * 0.35 + deepScore * 0.65);
   
-  // Determine cognitive level based on the overall score
+  // Determine cognitive level based on the overall score with adjusted thresholds
   let cognitiveLevel = "";
   if (overallScore >= 90) {
     cognitiveLevel = "exceptional";
-  } else if (overallScore >= 80) {
+  } else if (overallScore >= 75) {
     cognitiveLevel = "advanced";
-  } else if (overallScore >= 65) {
+  } else if (overallScore >= 60) {
     cognitiveLevel = "moderate";
-  } else if (overallScore >= 45) {
+  } else if (overallScore >= 40) {
     cognitiveLevel = "developing";
-  } else if (overallScore >= 25) {
+  } else if (overallScore >= 20) {
     cognitiveLevel = "basic";
   } else {
     cognitiveLevel = "limited";

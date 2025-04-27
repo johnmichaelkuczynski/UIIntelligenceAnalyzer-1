@@ -4,6 +4,7 @@ import DocumentInput from "@/components/DocumentInput";
 import DocumentResults from "@/components/DocumentResults";
 import ComparativeResults from "@/components/ComparativeResults";
 import AIDetectionModal from "@/components/AIDetectionModal";
+import CalibrationTester from "@/components/CalibrationTester";
 import { Button } from "@/components/ui/button";
 import { Brain } from "lucide-react";
 import { analyzeDocument, compareDocuments, checkForAI } from "@/lib/analysis";
