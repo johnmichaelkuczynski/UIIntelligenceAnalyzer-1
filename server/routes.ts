@@ -33,6 +33,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Test OpenAI connection
+  app.get("/api/check-api", async (_req: Request, res: Response) => {
+    try {
+      const openai = new (await import('openai')).default({
+        apiKey: process.env.OPENAI_API_KEY
+      });
+      
+      // Test with a simple completion request
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: "Hello, this is a test message. Please respond with 'API is working.'" }],
+        max_tokens: 10
+      });
+      
+      res.json({
+        status: "success",
+        message: "OpenAI API connection successful",
+        response: response.choices[0].message.content
+      });
+    } catch (error: any) {
+      console.error("Error testing API connection:", error);
+      res.status(500).json({
+        status: "error",
+        message: error.message || "Error connecting to OpenAI API",
+        error: error.toString()
+      });
+    }
+  });
+  
   // Extract text from uploaded files
   app.post("/api/extract-text", upload.single("file"), async (req: Request, res: Response) => {
     try {

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Beaker } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { CheckCircle, XCircle, AlertTriangle, Play } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
 
 interface CalibrationResult {
   sample: string;
@@ -10,99 +12,189 @@ interface CalibrationResult {
   evaluation: any;
 }
 
-const CalibrationTester: React.FC = () => {
-  const [results, setResults] = useState<CalibrationResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+interface ApiStatus {
+  isChecking: boolean;
+  isConnected: boolean;
+  message: string;
+}
 
-  const runCalibration = async () => {
-    setIsLoading(true);
-    setError(null);
-    
+const CalibrationTester: React.FC = () => {
+  const [isRunningTests, setIsRunningTests] = useState(false);
+  const [results, setResults] = useState<CalibrationResult[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [apiStatus, setApiStatus] = useState<ApiStatus>({
+    isChecking: false,
+    isConnected: false,
+    message: ''
+  });
+
+  // Check the API connection status on component mount
+  useEffect(() => {
+    checkApiConnection();
+  }, []);
+
+  const checkApiConnection = async () => {
+    setApiStatus({
+      isChecking: true,
+      isConnected: false,
+      message: 'Checking OpenAI API connection...'
+    });
+
     try {
-      const response = await fetch('/api/test-calibration');
-      
-      if (!response.ok) {
-        throw new Error(`Calibration test failed: ${response.statusText}`);
+      const response = await apiRequest({
+        url: '/api/check-api',
+        method: 'GET'
+      });
+
+      if (response && response.status === 'success') {
+        setApiStatus({
+          isChecking: false,
+          isConnected: true,
+          message: `${response.message}: ${response.response}`
+        });
+      } else {
+        throw new Error('API connection failed');
       }
-      
-      const data = await response.json();
-      setResults(data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to run calibration tests');
-      console.error('Calibration error:', err);
+    } catch (err) {
+      setApiStatus({
+        isChecking: false,
+        isConnected: false,
+        message: err instanceof Error 
+          ? `API connection error: ${err.message}` 
+          : 'Unknown API connection error'
+      });
+    }
+  };
+
+  const runCalibrationTests = async () => {
+    setIsRunningTests(true);
+    setError(null);
+
+    try {
+      const calibrationResults = await apiRequest({
+        url: '/api/test-calibration',
+        method: 'GET'
+      });
+
+      if (calibrationResults && Array.isArray(calibrationResults.results)) {
+        setResults(calibrationResults.results);
+      } else {
+        throw new Error('Invalid response format from calibration API');
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? `Error running calibration tests: ${err.message}`
+          : 'Unknown error running calibration tests'
+      );
     } finally {
-      setIsLoading(false);
+      setIsRunningTests(false);
     }
   };
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">Calibration Tester</h2>
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">System Calibration</h2>
+      
+      {/* API Connection Status */}
+      <div className="mb-4">
+        <div className="flex items-center mb-2">
+          <span className="font-medium mr-2">API Connection:</span>
+          {apiStatus.isChecking ? (
+            <div className="flex items-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent mr-2"></div>
+              <span className="text-gray-600">Checking...</span>
+            </div>
+          ) : apiStatus.isConnected ? (
+            <div className="flex items-center text-green-600">
+              <CheckCircle className="h-5 w-5 mr-1" />
+              <span>Connected</span>
+            </div>
+          ) : (
+            <div className="flex items-center text-red-600">
+              <XCircle className="h-5 w-5 mr-1" />
+              <span>Disconnected</span>
+            </div>
+          )}
+        </div>
+        
+        {apiStatus.message && (
+          <p className={`text-sm ${apiStatus.isConnected ? 'text-green-600' : 'text-gray-600'}`}>
+            {apiStatus.message}
+          </p>
+        )}
+        
         <Button 
-          onClick={runCalibration} 
-          disabled={isLoading}
-          className="bg-purple-600 hover:bg-purple-700"
+          variant="outline" 
+          size="sm" 
+          onClick={checkApiConnection}
+          disabled={apiStatus.isChecking}
+          className="mt-2"
         >
-          <Beaker className="mr-2 h-4 w-4" />
-          Run Calibration Tests
+          Check API Connection
         </Button>
       </div>
       
+      <div className="border-t border-gray-200 py-4">
+        <p className="text-gray-700 mb-4">
+          Run calibration tests to verify the intelligence evaluation algorithm is correctly calibrated
+          against known writing samples.
+        </p>
+        
+        <Button
+          onClick={runCalibrationTests}
+          disabled={isRunningTests || !apiStatus.isConnected}
+          className="flex items-center"
+          variant={apiStatus.isConnected ? "default" : "outline"}
+        >
+          {isRunningTests ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2"></div>
+              Running Tests...
+            </>
+          ) : (
+            <>
+              <Play className="h-4 w-4 mr-2" />
+              Run Calibration Tests
+            </>
+          )}
+        </Button>
+      </div>
+
       {error && (
-        <div className="bg-red-50 text-red-700 p-4 rounded-md mb-4">
-          {error}
-        </div>
+        <Alert variant="destructive" className="mt-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
-      
-      {isLoading && (
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
-          <span className="ml-3">Running calibration tests...</span>
-        </div>
-      )}
-      
+
       {results.length > 0 && (
-        <div>
-          <h3 className="text-lg font-medium text-gray-800 mb-2">Calibration Results</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sample</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expected Score</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actual Score</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Difference</th>
+        <div className="mt-4">
+          <h3 className="font-medium text-gray-800 mb-2">Calibration Results</h3>
+          <div className="bg-gray-50 rounded-md p-4 max-h-80 overflow-y-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="text-left text-gray-500">
+                  <th className="pb-2">Sample</th>
+                  <th className="pb-2">Expected</th>
+                  <th className="pb-2">Actual</th>
+                  <th className="pb-2">Diff</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody>
                 {results.map((result, index) => (
-                  <tr key={index} className={Math.abs(result.difference) > 10 ? "bg-red-50" : Math.abs(result.difference) < 5 ? "bg-green-50" : ""}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{result.sample}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{result.expectedScore}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{result.actualScore}</td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm ${result.difference > 0 ? 'text-red-500' : result.difference < 0 ? 'text-blue-500' : 'text-gray-500'}`}>
-                      {result.difference > 0 ? `+${result.difference}` : result.difference}
+                  <tr key={index} className="border-t border-gray-200">
+                    <td className="py-2 pr-4 font-medium">{result.sample}</td>
+                    <td className="py-2 pr-4">{result.expectedScore}</td>
+                    <td className="py-2 pr-4">{result.actualScore.toFixed(1)}</td>
+                    <td className={`py-2 ${Math.abs(result.difference) > 10 ? 'text-red-600' : 'text-green-600'}`}>
+                      {result.difference > 0 ? '+' : ''}{result.difference.toFixed(1)}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-          
-          <div className="mt-4">
-            <h4 className="text-md font-medium text-gray-800 mb-2">Calibration Summary</h4>
-            <p className="text-sm text-gray-600">
-              Average Difference: {
-                Math.round(results.reduce((sum, r) => sum + Math.abs(r.difference), 0) / results.length * 10) / 10
-              } points
-            </p>
-            <p className="text-sm text-gray-600">
-              Maximum Deviation: {
-                Math.max(...results.map(r => Math.abs(r.difference)))
-              } points
-            </p>
           </div>
         </div>
       )}
