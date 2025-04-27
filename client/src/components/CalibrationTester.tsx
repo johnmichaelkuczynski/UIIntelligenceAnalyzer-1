@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CheckCircle, XCircle, AlertTriangle, Play } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest } from '@/hooks/use-api';
 
 interface CalibrationResult {
   sample: string;
@@ -16,6 +16,20 @@ interface ApiStatus {
   isChecking: boolean;
   isConnected: boolean;
   message: string;
+}
+
+interface ApiCheckResponse {
+  status: string;
+  message: string;
+  response: string;
+}
+
+interface CalibrationResponse {
+  results: CalibrationResult[];
+  summary: {
+    averageDifference: number;
+    adjustments: Record<string, number>;
+  };
 }
 
 const CalibrationTester: React.FC = () => {
@@ -41,7 +55,7 @@ const CalibrationTester: React.FC = () => {
     });
 
     try {
-      const response = await apiRequest({
+      const response = await apiRequest<ApiCheckResponse>({
         url: '/api/check-api',
         method: 'GET'
       });
@@ -71,7 +85,7 @@ const CalibrationTester: React.FC = () => {
     setError(null);
 
     try {
-      const calibrationResults = await apiRequest({
+      const calibrationResults = await apiRequest<CalibrationResponse>({
         url: '/api/test-calibration',
         method: 'GET'
       });
