@@ -61,7 +61,7 @@ const ShareViaEmailModal: React.FC<ShareViaEmailModalProps> = ({
 
     try {
       // Send the API request
-      const response = await apiRequest('/api/share-via-email', {
+      const response = await fetch('/api/share-via-email', {
         method: 'POST',
         body: JSON.stringify(emailData),
         headers: {

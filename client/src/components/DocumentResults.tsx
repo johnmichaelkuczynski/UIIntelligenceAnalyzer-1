@@ -87,6 +87,13 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis }) => {
           </div>
         </div>
       )}
+      
+      {/* Share via Email Modal */}
+      <ShareViaEmailModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        analysisA={analysis}
+      />
     </div>
   );
 };

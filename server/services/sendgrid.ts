@@ -148,14 +148,20 @@ function generateComparisonEmailHtml(data: ShareViaEmailRequest): string {
 export async function sendAnalysisViaEmail(
   data: ShareViaEmailRequest
 ): Promise<boolean> {
-  // Set API key for SendGrid
+  // Check for required SendGrid environment variables
   if (!process.env.SENDGRID_API_KEY) {
     throw new Error("SENDGRID_API_KEY environment variable must be set");
   }
+  if (!process.env.SENDGRID_VERIFIED_SENDER) {
+    throw new Error("SENDGRID_VERIFIED_SENDER environment variable must be set");
+  }
+  
+  // Set API key for SendGrid
   mailService.setApiKey(process.env.SENDGRID_API_KEY);
 
   // Determine a default sender email if not provided
-  const senderEmail = data.senderEmail || 'no-reply@intelligenceanalysis.app';
+  // Make sure we have a valid string for the sender email (not undefined)
+  const senderEmail = data.senderEmail || process.env.SENDGRID_VERIFIED_SENDER || '';
   const senderName = data.senderName || 'Intelligence Analysis Tool';
 
   try {

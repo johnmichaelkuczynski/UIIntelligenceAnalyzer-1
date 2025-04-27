@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { DocumentAnalysis, DocumentComparison } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Share2 } from "lucide-react";
+import ShareViaEmailModal from "./ShareViaEmailModal";
 
 interface ComparativeResultsProps {
   analysisA: DocumentAnalysis;
@@ -13,6 +16,8 @@ const ComparativeResults: React.FC<ComparativeResultsProps> = ({
   analysisB,
   comparison,
 }) => {
+  const [showShareModal, setShowShareModal] = useState(false);
+  
   // Helper function to get badge variant
   const getBadgeVariant = (rating: string) => {
     switch (rating) {
@@ -29,7 +34,18 @@ const ComparativeResults: React.FC<ComparativeResultsProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Comparative Analysis</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-gray-800">Comparative Analysis</h2>
+        <Button 
+          size="sm" 
+          variant="outline" 
+          className="flex items-center gap-2"
+          onClick={() => setShowShareModal(true)}
+        >
+          <Share2 className="h-4 w-4" />
+          Share via Email
+        </Button>
+      </div>
       
       {/* Intelligence Comparison */}
       <div className="mb-6">
@@ -134,6 +150,15 @@ const ComparativeResults: React.FC<ComparativeResultsProps> = ({
         <h3 className="font-semibold text-gray-800 mb-2">Final Judgment</h3>
         <p className="text-gray-700">{comparison.finalJudgment}</p>
       </div>
+      
+      {/* Share via Email Modal */}
+      <ShareViaEmailModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        analysisA={analysisA}
+        analysisB={analysisB}
+        comparison={comparison}
+      />
     </div>
   );
 };
