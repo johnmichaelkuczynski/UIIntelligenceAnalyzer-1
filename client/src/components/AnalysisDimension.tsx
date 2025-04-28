@@ -15,15 +15,25 @@ const AnalysisDimension: React.FC<AnalysisDimensionProps> = ({ dimension }) => {
     setIsExpanded(!isExpanded);
   };
 
-  // Determine the badge variant based on the rating
+  // Determine the badge variant based on the calibrated rating system
   const getBadgeVariant = (rating: string) => {
     switch (rating) {
+      case "Exceptional":
+        return "exceptional"; // Blueprint-grade (95-98)
+      case "Very Strong":
+        return "veryStrong"; // Blueprint-grade (90-94)
       case "Strong":
-        return "strong";
+        return "strong"; // Advanced critique (85-89)
       case "Moderate":
-        return "moderate";
+        return "moderate"; // Advanced critique (80-84)
+      case "Basic":
+        return "basic"; // Surface polish (70-79)
       case "Weak":
-        return "weak";
+        return "weak"; // Surface polish (60-69)
+      case "Very Weak":
+        return "veryWeak"; // Fluent but shallow (40-59)
+      case "Critically Deficient":
+        return "criticallyDeficient"; // Random noise (0-39)
       default:
         return "default";
     }

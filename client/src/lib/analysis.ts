@@ -73,15 +73,25 @@ export async function extractTextFromFile(
   }
 }
 
-// Helper function to determine rating color class
+// Helper function to determine rating color class based on calibrated scoring
 export function getRatingColorClass(rating: string): string {
   switch (rating) {
+    case "Exceptional":
+      return "bg-purple-100 text-purple-900"; // Blueprint-grade (95-98)
+    case "Very Strong":
+      return "bg-indigo-100 text-indigo-900"; // Blueprint-grade (90-94)
     case "Strong":
-      return "bg-green-100 text-green-800";
+      return "bg-blue-100 text-blue-800"; // Advanced critique (85-89)
     case "Moderate":
-      return "bg-amber-100 text-amber-800";
+      return "bg-teal-100 text-teal-800"; // Advanced critique (80-84)
+    case "Basic":
+      return "bg-green-100 text-green-800"; // Surface polish (70-79)
     case "Weak":
-      return "bg-red-100 text-red-800";
+      return "bg-amber-100 text-amber-800"; // Surface polish (60-69)
+    case "Very Weak":
+      return "bg-orange-100 text-orange-800"; // Fluent but shallow (40-59)
+    case "Critically Deficient":
+      return "bg-red-100 text-red-800"; // Random noise (0-39)
     default:
       return "bg-gray-100 text-gray-800";
   }

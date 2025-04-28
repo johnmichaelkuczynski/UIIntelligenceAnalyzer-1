@@ -15,9 +15,24 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
-        strong: "border-transparent bg-green-100 text-green-800",
-        moderate: "border-transparent bg-amber-100 text-amber-800",
-        weak: "border-transparent bg-red-100 text-red-800",
+        
+        // Blueprint-grade ratings (90-98)
+        exceptional: "border-transparent bg-purple-100 text-purple-900",
+        veryStrong: "border-transparent bg-indigo-100 text-indigo-900",
+        
+        // Advanced critique ratings (80-89)
+        strong: "border-transparent bg-blue-100 text-blue-800",
+        moderate: "border-transparent bg-teal-100 text-teal-800",
+        
+        // Surface polish ratings (60-79)
+        basic: "border-transparent bg-green-100 text-green-800",
+        weak: "border-transparent bg-amber-100 text-amber-800",
+        
+        // Fluent but shallow ratings (40-59)
+        veryWeak: "border-transparent bg-orange-100 text-orange-800",
+        
+        // Random noise ratings (0-39)
+        criticallyDeficient: "border-transparent bg-red-100 text-red-800",
       },
     },
     defaultVariants: {
