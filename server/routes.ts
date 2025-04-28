@@ -578,11 +578,54 @@ function formatAIEvaluationAsDocumentAnalysis(content: string, aiEvaluation: any
     return "Assessment unavailable.";
   }
   
+  // Post-process the analysis to remove any numeric references that don't match our final score
+  let processedAnalysis = aiEvaluation.analysis || "";
+  
+  // Scan for score range mentions and remove or replace them
+  const scoreRangeRegexes = [
+    /in the (low|mid|high) \d0s/gi,        // "in the high 80s"
+    /around \d{1,2}-\d{1,2}/gi,            // "around 88-89"
+    /score of \d{1,2}(-\d{1,2})?/gi,       // "score of 88" or "score of 88-89"
+    /scores? (in|of|around) \d{1,2}/gi,    // "score in/of/around 88" 
+    /\d{1,2}(-\d{1,2})? points?/gi,        // "88 points" or "88-89 points"
+    /score range of \d{1,2}-\d{1,2}/gi,    // "score range of 80-89"
+    /appropriate score is (in|of|around|about) .{1,15}\d{1,2}/gi,  // "appropriate score is in the high 80s"
+    /therefore.*score.*\d{1,2}/gi          // "Therefore, the appropriate score is..."
+  ];
+  
+  // Process analysis to remove numeric scores that don't match our calculated score
+  scoreRangeRegexes.forEach(regex => {
+    processedAnalysis = processedAnalysis.replace(regex, (match: string) => {
+      // Extract any numbers from the match
+      const numbers = match.match(/\d{1,2}/g);
+      if (!numbers) return match;
+      
+      // Check if any of the numbers are significantly different from our score
+      const isDifferent = numbers.some((num: string) => Math.abs(parseInt(num) - overallScore) > 5);
+      
+      if (isDifferent) {
+        // Replace the score mention with appropriate cognitive level description
+        if (overallScore >= 90) {
+          return "blueprint-grade characteristics";
+        } else if (overallScore >= 85) {
+          return "high advanced-critique characteristics";
+        } else if (overallScore >= 80) {
+          return "advanced-critique characteristics";
+        } else if (overallScore >= 60) {
+          return "surface-polish characteristics";
+        } else {
+          return "basic cognitive characteristics";
+        }
+      }
+      return match;
+    });
+  });
+  
   // Map dimension scores to dimension ratings
   return {
     summary: `This document demonstrates ${cognitiveLevel} cognitive fingerprints with an intelligence score of ${overallScore}/100. Our analysis reveals ${overallScore >= 90 ? "exceptional semantic compression and original inferential architecture" : overallScore >= 80 ? "strong conceptual development and coherent reasoning" : overallScore >= 65 ? "structured thinking with moderate inferential continuity" : "basic fluency without significant cognitive density"}.`,
     overallScore,
-    overallAssessment: aiEvaluation.analysis || `Cognitive fingerprint analysis indicates ${cognitiveLevel} thinking patterns with an intelligence score of ${overallScore}/100. This sample shows particular strengths in ${aiEvaluation.deep.semanticCompression > 85 ? "semantic compression" : aiEvaluation.deep.inferentialContinuity > 85 ? "inferential continuity" : aiEvaluation.deep.conceptualDepth > 85 ? "conceptual architecture" : aiEvaluation.deep.originality > 85 ? "cognitive innovation" : overallScore >= 80 ? "advanced cognitive organization" : "basic conceptual structuring"}.`,
+    overallAssessment: processedAnalysis || `Cognitive fingerprint analysis indicates ${cognitiveLevel} thinking patterns with an intelligence score of ${overallScore}/100. This sample shows particular strengths in ${aiEvaluation.deep.semanticCompression > 85 ? "semantic compression" : aiEvaluation.deep.inferentialContinuity > 85 ? "inferential continuity" : aiEvaluation.deep.conceptualDepth > 85 ? "conceptual architecture" : aiEvaluation.deep.originality > 85 ? "cognitive innovation" : overallScore >= 80 ? "advanced cognitive organization" : "basic conceptual structuring"}.`,
     dimensions: {
       definitionCoherence: {
         name: "Definition Coherence",

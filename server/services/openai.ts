@@ -350,9 +350,12 @@ async function generateSemanticAnalysis(text: string): Promise<string> {
     - Grammar or style quality
     - Presence of citations or references
     
-    CRITICAL: Your analysis text MUST be consistent with the final score. If you suggest a score of 
-    "high 80s" or "around 88-90" in your analysis, make sure to explicitly state this is an 
-    advanced critique (85-89) rather than blueprint-grade (90+).
+    CRITICAL INSTRUCTION: DO NOT SPECIFY A SCORE RANGE in your analysis at all. Do not mention numbers 
+    like "high 80s" or "around 88-90". Instead, describe the cognitive qualities you observe and use 
+    qualitative terms like "blueprint-grade", "advanced critique", etc. 
+    
+    The system will calculate the exact score based on deep cognitive fingerprints, and your 
+    analysis must focus on qualitative assessment without making specific numeric score claims.
     
     MANDATORY SCORING LAW:
     - Blueprint fingerprint detected → 90–98 
