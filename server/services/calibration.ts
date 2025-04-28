@@ -10,42 +10,63 @@ interface CalibrationSample {
   sampleText: string; // Sample text for testing
 }
 
-// Define calibration samples with expected intelligence scores
+// Define calibration samples with expected scores based on the final calibration pack
 const calibrationSamples: CalibrationSample[] = [
   {
-    name: "Philosophical Analysis (High)",
-    filePath: "../attached_assets/Numbers as Ordered Pairs.docx",
+    name: "Sample 8: Pragmatism Paper Excerpt (Blueprint-Grade)",
+    filePath: "",
+    expectedScore: 95, // 94-96 in calibration examples
+    reason: "Blueprint-level compression and reframing of pragmatism. Deep recursive structure and high originality.",
+    sampleText: "Pragmatism has tremendous value—as a description, not of truth per se, but of our knowledge of it—and, more precisely, of our acquisition of that knowledge. [...] Truth per se is discovered, not made. But knowledge is indeed made."
+  },
+  {
+    name: "Sample 7: The Will to Project (Blueprint-Grade)",
+    filePath: "",
+    expectedScore: 94,
+    reason: "Major compression of psychological and metaphysical concepts into a recursive explanatory model. Demonstrates blueprint-grade cognitive structure.",
+    sampleText: "A projected being is ipso facto supernatural. A hallucinated Mr. Spock—in other words, a Mr. Spock who is a case of pure projection—can walk on water, fly like a bird, and walk through walls. A Spock who is projected onto an actual person—a Max-Spock, in other words—is more limited but is still supernatural."
+  },
+  {
+    name: "Sample 5: CTM Critique (Blueprint-Grade)",
+    filePath: "",
+    expectedScore: 94,
+    reason: "Deep structural critique of CTM based on linguistic precision. Major compression and original reframing.",
+    sampleText: "Words like 'form' and 'formal' are ambiguous, as they can refer to form in either the syntactic or the morphological sense. CTM fails on each disambiguation, and the arguments for CTM immediately cease to be compelling once we register that ambiguity."
+  },
+  {
+    name: "Sample 6: Revised Dianetics Book Review (Blueprint-Grade)",
+    filePath: "",
     expectedScore: 92,
-    reason: "Deep conceptual analysis with exceptional inferential continuity and semantic compression",
-    sampleText: `Numbers as Ordered Pairs
-A number of analyses of numbers have been offered. For example, Frege took numbers to be extensions of concepts. This analysis, however, has the disadvantage of leaving numbers vulnerable to Russell's paradox. Other analyses include the set-theoretic approaches of Russell, Zermelo, and Von Neumann. On these approaches, each natural number is identified with a particular set. These analyses are prima facie incompatible with each other, given that Kn≠Kpn, for n>0. In the present paper it is shown that these analyses are in fact compatible.
-Let us say that a system is a set S, together with a designated 0 element and a successor function. We assume the Peano Postulates, though of course we don't need the Postulate which identifies the numbers with a specific series of sets.`
+    reason: "Shows independent sociological framing. Strong semantic compression and inferential continuity.",
+    sampleText: "In Urban's view, practically everything about the Church is ambiguous. It is ambiguous whether it benefits its own members. It is also ambiguous what it is exactly. In some respects, it is a religion; in others, a corporation. However, Urban contends, it ultimately isn't exactly either; each of those identities was forced on it."
   },
   {
-    name: "Pragmatism Paper (High)",
-    filePath: "../attached_assets/Pragmatism Paper Metaphysics Posing as Epistemology.docx",
-    expectedScore: 94,
-    reason: "Strong philosophical reasoning, exceptional arguments, high semantic load",
-    sampleText: `Metaphysics Posing as Epistemology: The Central Defect in Pragmatism
-Pragmatism as a philosophical approach contains an unresolved tension between its epistemological claims and its metaphysical commitments. While ostensibly offering a theory of knowledge that privileges practical consequences over abstract truth, pragmatism subtly transforms epistemological claims into metaphysical assertions about the nature of reality itself. This paper argues that this conversion—from claims about how we know to claims about what exists—constitutes the central defect in pragmatist philosophy.
-The Peircean formulation that we should consider the "practical bearings" of our conceptions neglects the possibility that practical bearings themselves can only be identified relative to pre-existing theoretical frameworks. The application of practical consequences as a criterion for meaning presupposes a framework for determining what constitutes a "practical consequence" in the first place.`
+    name: "Sample 4: Ninety Paradoxes (Blueprint-Grade)",
+    filePath: "", 
+    expectedScore: 90,
+    reason: "Original pattern recognition compressed into a sharp conceptual tool. High inferential compression across examples.",
+    sampleText: "The more useless a given employee is to the organization that employs her, the more unstintingly she will toe that organization's line. This is a corollary of the loser paradox."
   },
   {
-    name: "AI-Generated Text (Low)",
-    filePath: "../attached_assets/AI Text.docx",
-    expectedScore: 42,
-    reason: "Generic content with low semantic density, poor inferential continuity",
-    sampleText: `Artificial intelligence (AI) has become an increasingly important topic in today's technological landscape. It refers to the simulation of human intelligence in machines that are programmed to think and learn like humans. The concept of AI encompasses various technologies such as machine learning, natural language processing, and computer vision.
-In recent years, AI has made significant advancements and is now integrated into many aspects of our daily lives. From virtual assistants like Siri and Alexa to recommendation systems on streaming platforms, AI is continuously shaping how we interact with technology. These systems analyze vast amounts of data to recognize patterns and make predictions, which allows them to provide personalized experiences and improve over time.`
+    name: "Sample 3: Market Efficiency Meta-Critique (Strong Analysis)",
+    filePath: "",
+    expectedScore: 78,
+    reason: "Shows solid compression and reframing (meta-predictions destabilizing efficiency), but not full blueprint-grade recursion or density.",
+    sampleText: "In economic theory, market efficiency is often idealized as the natural outcome of rational actors optimizing their resources. However, this abstraction ignores the recursive effects of meta-predictions, wherein actors not only optimize based on information but optimize based on others' attempts to optimize. This feedback loop destabilizes classic efficiency models and suggests that genuine equilibrium may be systematically unattainable."
   },
   {
-    name: "Brain Engineering Ideas (High)",
-    filePath: "../attached_assets/reverse brain engineering ideas.docx",
-    expectedScore: 94,
-    reason: "Deep conceptual analysis with exceptional innovation and semantic density",
-    sampleText: `Reverse Brain Engineering: Reconstructing Cognitive Architectures Through Functional Decomposition
-The cerebral cortex's information processing mechanisms exhibit a striking efficiency in parallel computation that remains inaccessible to our current computational architectures. This paper presents a novel framework for reverse-engineering these cognitive mechanisms through a methodical functional decomposition approach. By treating cognitive capacities as emergent properties arising from the interaction of specialized subsystems, we can systematically map the functional architecture without necessitating complete neurophysiological understanding at the outset.
-The standard approach to understanding brain function has typically followed bottom-up trajectories, beginning with molecular and cellular properties and attempting to extrapolate to higher cognitive functions. I propose instead a top-down functional decomposition method that identifies cognitive invariants – computational primitives that appear consistently across different cognitive domains and species. These invariants represent fundamental processing capabilities that have been evolutionarily conserved due to their computational efficiency.`
+    name: "Sample 2: Free Will Bias Paragraph (Moderate Analysis)",
+    filePath: "",
+    expectedScore: 55,
+    reason: "Basic inferential step is made (action vs. will), but compression is low and structure is relatively flat. Moderate but not blueprint-level thinking.",
+    sampleText: "Free will is often said to mean acting without external compulsion. However, even when external pressures are removed, internal constraints such as psychological biases remain. Thus, freedom of action is not equivalent to freedom of will, suggesting that common definitions of free will overlook crucial internal limitations."
+  },
+  {
+    name: "Sample 1: AI-Generated Paragraph (Low Structure)",
+    filePath: "",
+    expectedScore: 40,
+    reason: "Random surface fluency without any conceptual compression or inferential continuity. No meaningful claims or structure.",
+    sampleText: "Life is like really strange because like sometimes you just don't know what's happening and sometimes it's good and sometimes it's bad but it's just like that's how it is you know and we just kind of go along with it even though it's crazy and confusing."
   }
 ];
 
@@ -134,40 +155,50 @@ export function calculateScoringAdjustments(calibrationResults: any[]): {
   lowScoreAdjustment: number;
   highScoreAdjustment: number;
 } {
-  // Default weights and adjustments
-  let surfaceWeight = 0.35; // 35% weight for surface analysis
-  let deepWeight = 0.65;    // 65% weight for deep semantic analysis
-  let lowScoreAdjustment = 0.0;  // Adjustment factor for scores below 50
-  let highScoreAdjustment = 0.0; // Adjustment factor for scores above 80
+  // Fixed weights based on calibration pack requirements - NO SMOOTHING TO 80 ALLOWED
+  // 100% weight for deep cognitive features
+  let surfaceWeight = 0.00; // 0% weight for surface features
+  let deepWeight = 1.00;    // 100% weight for deep features
+  let lowScoreAdjustment = 0.0;  // No adjustment for lower scores
+  let highScoreAdjustment = 0.0; // No adjustment for higher scores
   
-  // Analyze the calibration results to determine if adjustments are needed
+  // Analyze specific calibration range mismatches
   if (calibrationResults.length > 0) {
-    const highSamples = calibrationResults.filter(r => r.expectedScore >= 80);
-    const lowSamples = calibrationResults.filter(r => r.expectedScore <= 50);
+    // Group samples by score ranges
+    const blueprintSamples = calibrationResults.filter(r => r.expectedScore >= 90);
+    const advancedCritiqueSamples = calibrationResults.filter(r => r.expectedScore >= 80 && r.expectedScore < 90);
+    const surfacePolishSamples = calibrationResults.filter(r => r.expectedScore >= 60 && r.expectedScore < 80);
+    const fluentShallowSamples = calibrationResults.filter(r => r.expectedScore >= 40 && r.expectedScore < 60);
+    const randomNoiseSamples = calibrationResults.filter(r => r.expectedScore < 40);
     
-    // Check if high-quality samples are consistently underscored
-    if (highSamples.length > 0) {
-      const highScoreAvgDiff = highSamples.reduce((sum, r) => sum + r.difference, 0) / highSamples.length;
-      if (highScoreAvgDiff > 5) {
-        // If high samples are underscored, increase the deep analysis weight
-        highScoreAdjustment = Math.min(highScoreAvgDiff / 20, 0.1);  // Max 10% adjustment
-        deepWeight = Math.min(deepWeight + 0.05, 0.75);  // Max 75% weight for deep analysis
-      }
+    // Calculate average scoring differences for each range
+    const calculateRangeDifference = (samples: any[]): number => {
+      if (samples.length === 0) return 0;
+      return samples.reduce((sum, r) => sum + r.difference, 0) / samples.length;
+    };
+    
+    const blueprintDiff = calculateRangeDifference(blueprintSamples);
+    const advancedCritiqueDiff = calculateRangeDifference(advancedCritiqueSamples);
+    const surfacePolishDiff = calculateRangeDifference(surfacePolishSamples);
+    const fluentShallowDiff = calculateRangeDifference(fluentShallowSamples);
+    const randomNoiseDiff = calculateRangeDifference(randomNoiseSamples);
+    
+    console.log(`Calibration differences: Blueprint=${blueprintDiff.toFixed(2)}, AdvancedCritique=${advancedCritiqueDiff.toFixed(2)}, SurfacePolish=${surfacePolishDiff.toFixed(2)}, FluentShallow=${fluentShallowDiff.toFixed(2)}, RandomNoise=${randomNoiseDiff.toFixed(2)}`);
+    
+    // Apply specific adjustments only if substantial differences remain after pattern matching
+    if (Math.abs(blueprintDiff) > 3) {
+      // Blueprint samples are critical to get right - adjust specifically for this range
+      // A small positive boost for blueprint-grade papers specifically
+      highScoreAdjustment = 0.02;
+      console.log(`Applied blueprint adjustment of ${highScoreAdjustment}`);
     }
     
-    // Check if low-quality samples are consistently overscored
-    if (lowSamples.length > 0) {
-      const lowScoreAvgDiff = lowSamples.reduce((sum, r) => sum + r.difference, 0) / lowSamples.length;
-      if (lowScoreAvgDiff < -5) {
-        // If low samples are overscored, increase penalty for low semantic scores
-        lowScoreAdjustment = Math.min(Math.abs(lowScoreAvgDiff) / 20, 0.1);  // Max 10% adjustment
-      }
-    }
+    // We don't adjust the core weights because the calibrated pattern detection is the primary method
   }
   
   return {
-    surfaceWeight,
-    deepWeight,
+    surfaceWeight,   // Always 0% - no surface features influence the score
+    deepWeight,      // Always 100% - only deep cognitive features count
     lowScoreAdjustment,
     highScoreAdjustment
   };

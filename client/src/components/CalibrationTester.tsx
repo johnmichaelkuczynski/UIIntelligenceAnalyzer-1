@@ -153,16 +153,20 @@ const CalibrationTester: React.FC = () => {
         <div className="mb-4">
           <h3 className="text-sm font-medium text-gray-700 mb-2">About Calibration Testing</h3>
           <p className="text-gray-700 text-sm mb-2">
-            Calibration testing evaluates our scoring algorithm against reference documents with known expected scores:
+            Calibration testing evaluates our scoring algorithm against the final calibration pack with known expected scores:
           </p>
           <ul className="text-sm text-gray-600 list-disc pl-5 mb-3 space-y-1">
-            <li><span className="font-medium">Philosophical Analysis</span> (Expected: 92) - Deep conceptual analysis with exceptional inferential continuity</li>
-            <li><span className="font-medium">Pragmatism Paper</span> (Expected: 94) - Strong philosophical reasoning with exceptional arguments</li>
-            <li><span className="font-medium">Brain Engineering Ideas</span> (Expected: 94) - Deep conceptual analysis with exceptional innovation</li>
-            <li><span className="font-medium">AI-Generated Text</span> (Expected: 42) - Generic content with low semantic density</li>
+            <li><span className="font-medium">Pragmatism Paper</span> (Expected: 95) - Blueprint-level compression and reframing with deep recursive structure</li>
+            <li><span className="font-medium">The Will to Project</span> (Expected: 94) - Major compression of psychological concepts into a recursive model</li>
+            <li><span className="font-medium">CTM Critique</span> (Expected: 94) - Deep structural critique with major compression and original reframing</li>
+            <li><span className="font-medium">Revised Dianetics Review</span> (Expected: 92) - Independent sociological framing with strong semantic compression</li>
+            <li><span className="font-medium">Ninety Paradoxes</span> (Expected: 90) - Original pattern recognition with high inferential compression</li>
+            <li><span className="font-medium">Market Efficiency Critique</span> (Expected: 78) - Solid compression but not blueprint-grade recursion</li>
+            <li><span className="font-medium">Free Will Paragraph</span> (Expected: 55) - Basic inferential step with low compression</li>
+            <li><span className="font-medium">AI-Generated Text</span> (Expected: 40) - Random surface fluency without conceptual compression</li>
           </ul>
           <p className="text-gray-700 text-sm italic">
-            The test helps ensure deep, original writing scores 90+ while shallow writing scores 20-50.
+            The test ensures precise scoring: blueprint-grade writing scores 90-98, advanced critique 80-89, surface polish 60-79, fluent but shallow 40-59, random noise below 40.
           </p>
         </div>
         
