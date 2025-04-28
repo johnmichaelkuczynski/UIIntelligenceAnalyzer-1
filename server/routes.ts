@@ -436,26 +436,27 @@ function getTopDimension(analysis: DocumentAnalysis): string {
 
 // Helper function to get a rating from a score
 function getRatingFromScore(score: number): DimensionRating {
-  // Updated rating scale to match the intelligence scoring law
-  // This represents the exact scoring ranges specified in the requirements
+  // Updated rating scale to match the calibration-based intelligence scoring law
   
-  // For blueprint-grade thinking (90-98 range)
-  if (score >= 90) return "Exceptional";
+  // Blueprint-grade thinking (90-98 range)
+  if (score >= 95) return "Exceptional";      // 95-98: Top-tier blueprint (Pragmatism Paper calibration)
+  if (score >= 92) return "Very Strong";      // 92-94: Strong blueprint (CTM/Will to Project calibration)
+  if (score >= 90) return "Very Strong";      // 90-91: Minimal blueprint (Paradoxes calibration)
   
-  // For serious graduate-level commentary (80-89 range)
-  if (score >= 85) return "Very Strong";
-  if (score >= 80) return "Strong";
+  // Advanced critique without blueprinting (80-89 range)
+  if (score >= 85) return "Strong";           // 85-89: High advanced critique 
+  if (score >= 80) return "Moderate";         // 80-84: Standard advanced critique
   
-  // For undergraduate-level structured thinking (65-79 range)
-  if (score >= 70) return "Moderate";
-  if (score >= 65) return "Basic";
+  // Surface polish without compression (60-79 range)
+  if (score >= 75) return "Basic";            // 75-79: High surface polish (Market critique calibration)
+  if (score >= 60) return "Weak";             // 60-74: Standard surface polish
   
-  // For fluent surface without inferential density (50-64 range)
-  if (score >= 55) return "Weak";
-  if (score >= 50) return "Very Weak";
+  // Fluent but shallow (40-59 range)
+  if (score >= 50) return "Very Weak";        // 50-59: Higher fluent-shallow range
+  if (score >= 40) return "Very Weak";        // 40-49: Lower fluent-shallow range (Free will calibration)
   
-  // For disorganized or random chatter (<50 range)
-  return "Critically Deficient";
+  // Random noise (<40 range)
+  return "Critically Deficient";              // 0-39: Random noise (AI paragraph calibration)
 }
 
 // Helper function to format the AI evaluation result as DocumentAnalysis
@@ -483,18 +484,37 @@ function formatAIEvaluationAsDocumentAnalysis(content: string, aiEvaluation: any
   const overallScore = aiEvaluation.overallScore || 
     Math.round(surfaceScore * 0.05 + deepScore * 0.95);
   
-  // Determine cognitive level based on the exact scoring law specified
+  // Determine cognitive level based on the updated calibration scoring law
   let cognitiveLevel = "";
   if (overallScore >= 90) {
-    cognitiveLevel = "blueprint-grade";  // Blueprint-capable cognitive performance: 90–98
+    // Blueprint-grade thinking pattern categories (90-98)
+    if (overallScore >= 95) {
+      cognitiveLevel = "top-tier blueprint-grade"; // 95-98: Pragmatism Paper level
+    } else if (overallScore >= 92) {
+      cognitiveLevel = "strong blueprint-grade"; // 92-94: CTM/Will to Project level
+    } else {
+      cognitiveLevel = "minimal blueprint-grade"; // 90-91: Paradoxes level
+    }
   } else if (overallScore >= 80) {
-    cognitiveLevel = "graduate-level"; // Serious graduate-level commentary: 80-89
-  } else if (overallScore >= 65) {
-    cognitiveLevel = "undergraduate-level"; // Undergraduate-level structured thinking: 65-79
-  } else if (overallScore >= 50) {
-    cognitiveLevel = "surface-fluent"; // Fluent surface without inferential density: 50-64
+    // Advanced critique without blueprinting (80-89)
+    if (overallScore >= 85) {
+      cognitiveLevel = "high advanced-critique"; // 85-89: High advanced critique
+    } else {
+      cognitiveLevel = "standard advanced-critique"; // 80-84: Standard advanced critique
+    }
+  } else if (overallScore >= 60) {
+    // Surface polish without compression (60-79)
+    if (overallScore >= 75) {
+      cognitiveLevel = "high surface-polish"; // 75-79: Market critique level
+    } else {
+      cognitiveLevel = "standard surface-polish"; // 60-74: Standard surface polish
+    }
+  } else if (overallScore >= 40) {
+    // Fluent but shallow (40-59)
+    cognitiveLevel = "fluent-shallow"; // 40-59: Free will paragraph level
   } else {
-    cognitiveLevel = "disorganized"; // Disorganized or random chatter: <50
+    // Random noise (0-39)
+    cognitiveLevel = "random-noise"; // 0-39: AI paragraph level
   }
   
   // Generate descriptions based on dimension scores

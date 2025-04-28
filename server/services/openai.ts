@@ -185,10 +185,15 @@ export async function evaluateIntelligence(
      originalityScore * 1.0) / 5.0;
   
   // DETECTION: Advanced Critique Without Blueprinting (80-89)
-  const advancedCritiquePattern1 = semanticCompressionScore >= 75 && inferentialContinuityScore >= 75 && 
-                                  semanticCompressionScore < 90 && inferentialContinuityScore < 90;
-  const advancedCritiquePattern2 = (semanticCompressionScore + inferentialContinuityScore + originalityScore) / 3 >= 75 &&
-                                  (semanticCompressionScore + inferentialContinuityScore + originalityScore) / 3 < 90;
+  // Added more refined criteria to distinguish between upper and lower ranges of advanced critique
+  const highAdvancedCritiquePattern = semanticCompressionScore >= 85 && inferentialContinuityScore >= 82 && 
+                                    semanticCompressionScore < 90 && (originalityScore >= 80 || conceptualDepthScore >= 82);
+  
+  const midAdvancedCritiquePattern = semanticCompressionScore >= 80 && inferentialContinuityScore >= 78 && 
+                                    semanticCompressionScore < 90 && inferentialContinuityScore < 90;
+  
+  const basicAdvancedCritiquePattern = (semanticCompressionScore + inferentialContinuityScore + originalityScore) / 3 >= 75 &&
+                                      (semanticCompressionScore + inferentialContinuityScore + originalityScore) / 3 < 90;
   
   // DETECTION: Surface Polish (60-79)
   const surfacePolishPattern = (semanticCompressionScore + inferentialContinuityScore + conceptualDepthScore) / 3 >= 55 &&
@@ -232,12 +237,32 @@ export async function evaluateIntelligence(
       console.log(`Blueprint pattern (${calibrationPattern}) detected: Score calibrated from ${Math.round(originalScore)} to ${targetScore}`);
     }
   }
-  // Advanced critique pattern (80-89)
-  else if (advancedCritiquePattern1 || advancedCritiquePattern2) {
-    // There's a gap in the calibration samples (no 80-89 examples)
-    // Use algorithmic approach for this range
-    targetScore = Math.max(80, Math.min(89, Math.round((semanticCompressionScore + inferentialContinuityScore + originalityScore) / 3)));
-    calibrationPattern = "Advanced critique";
+  // High Advanced critique pattern (85-89) - Upper tier of advanced critique
+  else if (highAdvancedCritiquePattern) {
+    // Calculate a score in the high 80s range (85-89)
+    // This addresses the inconsistency in the example where analysis text suggested high 80s
+    // but the score showed lower
+    targetScore = Math.max(85, Math.min(89, Math.round(
+      (semanticCompressionScore * 0.4) + 
+      (inferentialContinuityScore * 0.35) + 
+      (originalityScore * 0.25)
+    )));
+    calibrationPattern = "High advanced critique";
+    
+    // Always apply the adjustment for high advanced critique to ensure consistency
+    weightedScore = targetScore;
+    appliedSuperficialityRule = true;
+    console.log(`High advanced critique pattern detected: Score calibrated from ${Math.round(originalScore)} to ${targetScore}`);
+  }
+  // Mid-tier Advanced critique pattern (80-84)
+  else if (midAdvancedCritiquePattern || basicAdvancedCritiquePattern) {
+    // Calculate a score in the 80-84 range for standard advanced critique
+    targetScore = Math.max(80, Math.min(84, Math.round(
+      (semanticCompressionScore * 0.4) + 
+      (inferentialContinuityScore * 0.35) + 
+      (originalityScore * 0.25)
+    )));
+    calibrationPattern = "Standard advanced critique";
     
     // Apply adjustment if needed
     if (Math.abs(weightedScore - targetScore) > 3) {
@@ -324,6 +349,10 @@ async function generateSemanticAnalysis(text: string): Promise<string> {
     - Topic prestige or familiarity
     - Grammar or style quality
     - Presence of citations or references
+    
+    CRITICAL: Your analysis text MUST be consistent with the final score. If you suggest a score of 
+    "high 80s" or "around 88-90" in your analysis, make sure to explicitly state this is an 
+    advanced critique (85-89) rather than blueprint-grade (90+).
     
     MANDATORY SCORING LAW:
     - Blueprint fingerprint detected → 90–98 
