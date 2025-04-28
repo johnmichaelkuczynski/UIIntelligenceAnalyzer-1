@@ -162,6 +162,31 @@ export async function evaluateIntelligence(
   const inferentialContinuityScore = detailedEvaluation.deep.inferentialContinuity;
   const conceptualDepthScore = detailedEvaluation.deep.conceptualDepth;
   const originalityScore = detailedEvaluation.deep.originality;
+  const claimNecessityScore = detailedEvaluation.deep.claimNecessity;
+  const logicalLadderingScore = detailedEvaluation.deep.logicalLaddering;
+  const depthFluencyScore = detailedEvaluation.deep.depthFluency;
+  
+  // NEW: Calculate additional calibration metrics to detect blueprinting in example-heavy text
+  // These metrics are designed to identify blueprint-grade thinking that's embedded within technical examples
+  
+  // Conceptual architecture score - ability to create new explanatory frameworks
+  const conceptualArchitectureScore = 
+    (originalityScore * 0.4) +
+    (conceptualDepthScore * 0.3) +
+    (logicalLadderingScore * 0.3);
+    
+  // Example-resilient blueprint score - can detect blueprint thinking even when examples are extensive
+  const exampleResilientBlueprintScore = 
+    (semanticCompressionScore * 0.3) + 
+    (inferentialContinuityScore * 0.25) + 
+    (originalityScore * 0.25) +
+    (conceptualDepthScore * 0.2);
+    
+  // Framework creation score - measures the ability to establish new conceptual frameworks
+  const frameworkCreationScore =
+    (originalityScore * 0.35) +
+    (semanticCompressionScore * 0.35) +
+    (conceptualDepthScore * 0.3);
   
   // DETECTION FUNCTION: Blueprint-Grade Thinking (90-98)
   // These patterns match the calibration examples for blueprint-grade thinking
@@ -176,6 +201,20 @@ export async function evaluateIntelligence(
     inferentialContinuityScore >= 85 && 
     originalityScore >= 85 &&
     (semanticCompressionScore + inferentialContinuityScore + originalityScore) / 3 >= 88;
+    
+  // NEW PATTERN: The "example-embedded blueprint" pattern
+  // This pattern detects blueprint-grade thinking that uses examples or technical details to build its case
+  const exampleEmbeddedBlueprintPattern = 
+    frameworkCreationScore >= 90 &&
+    (semanticCompressionScore >= 83 || inferentialContinuityScore >= 83) &&
+    exampleResilientBlueprintScore >= 87;
+    
+  // NEW PATTERN: The "conceptual reframing" pattern
+  // This pattern identifies blueprint-level reframing even if surrounded by examples or illustrations
+  const conceptualReframingPattern = 
+    conceptualArchitectureScore >= 90 &&
+    semanticCompressionScore >= 80 &&
+    (depthFluencyScore >= 85 || claimNecessityScore >= 85);
   
   // Core blueprint metrics average (weighted toward compression and inference)
   const coreBlueprintScore = 
@@ -212,20 +251,42 @@ export async function evaluateIntelligence(
   let calibrationPattern = "";
   
   // Blueprint-grade patterns (90-98)
-  if (blueprintPattern1 || blueprintPattern2 || blueprintPattern3 || blueprintPattern4 || advancedBlueprintPattern || coreBlueprintScore >= 90) {
+  if (blueprintPattern1 || blueprintPattern2 || blueprintPattern3 || blueprintPattern4 || 
+      advancedBlueprintPattern || coreBlueprintScore >= 90 || 
+      exampleEmbeddedBlueprintPattern || conceptualReframingPattern) { // Added new patterns
+    
     // Determine precise placement within 90-98 range based on specifics
     if (semanticCompressionScore >= 94 && inferentialContinuityScore >= 92 && originalityScore >= 94) {
       targetScore = 95; // Top of range (Pragmatism Paper calibration)
       calibrationPattern = "Top-tier blueprint";
     } 
+    // Example-embedded blueprint with high reframing value (94)
+    else if (exampleEmbeddedBlueprintPattern && frameworkCreationScore >= 94) {
+      targetScore = 94; // CTM critique / Will to Project calibration
+      calibrationPattern = "Strong example-embedded blueprint";
+    }
+    // Strong blueprint pattern with traditional indicators
     else if (semanticCompressionScore >= 92 && inferentialContinuityScore >= 90) {
       targetScore = 94; // CTM critique / Will to Project calibration
       calibrationPattern = "Strong blueprint";
     }
+    // Strong conceptual reframing with moderate expression
+    else if (conceptualReframingPattern && conceptualArchitectureScore >= 92) {
+      targetScore = 92; // Dianetics review calibration
+      calibrationPattern = "Strong conceptual reframing";
+    }
+    // Traditional blueprint pattern with moderate strength
     else if (semanticCompressionScore >= 90 && inferentialContinuityScore >= 87) {
       targetScore = 92; // Dianetics review calibration
       calibrationPattern = "Clear blueprint";
     }
+    // Minimal example-embedded blueprint pattern
+    else if ((exampleEmbeddedBlueprintPattern || conceptualReframingPattern) && 
+            (frameworkCreationScore >= 88 || conceptualArchitectureScore >= 88)) {
+      targetScore = 90; // Minimum blueprint threshold with examples
+      calibrationPattern = "Minimal blueprint with examples";
+    }
+    // Minimum threshold for basic blueprints
     else {
       targetScore = 90; // Minimum blueprint threshold (Paradoxes calibration)
       calibrationPattern = "Minimal blueprint";
@@ -350,6 +411,13 @@ async function generateSemanticAnalysis(text: string): Promise<string> {
     - Grammar or style quality
     - Presence of citations or references
     
+    CRITICAL CALIBRATION INSTRUCTION:
+    Blueprint-grade thinking (90-98) can be embedded within technical examples or longer 
+    illustrations. Do not downgrade a text merely because it uses examples, technical language, 
+    or illustrations. Look for deep reframing and original conceptual architecture that might be 
+    expressed through technical examples. A text that builds a new explanatory framework, even 
+    if illustrated with dense examples, is blueprint-grade.
+    
     CRITICAL INSTRUCTION: DO NOT SPECIFY A SCORE RANGE in your analysis at all. Do not mention numbers 
     like "high 80s" or "around 88-90". Instead, describe the cognitive qualities you observe and use 
     qualitative terms like "blueprint-grade", "advanced critique", etc. 
@@ -438,15 +506,20 @@ async function evaluateDimensions(text: string): Promise<{
     
     SCORE ONLY BASED ON THESE FINGERPRINTS:
     1. SEMANTIC COMPRESSION: How much meaning packed into minimal language?
-    2. INFERENTIAL CONTINUITY: Logical necessity between claims?
+    2. INFERENTIAL CONTINUITY: Logical necessity between claims? 
     3. CONCEPTUAL ORIGINALITY: Creation of new frameworks?
     4. DENSITY OF MEANING: Rich web of relations between concepts?
+    
+    CRITICAL CALIBRATION INSTRUCTION: 
+    Blueprint-grade thinking can be embedded within technical examples or longer illustrations. 
+    When evaluating, look for deep reframing and conceptual innovation that might be disguised
+    by technical language or examples. Original frameworks can be constructed through examples.
     
     DO NOT SCORE BASED ON:
     - Polish or grammar quality
     - Completeness
     - Topic prestige
-    - Presence of examples
+    - Mere presence of examples (but DO detect blueprint patterns WITHIN examples)
     - References or citations
     
     CRITICAL CALIBRATION EXAMPLES - MATCH THESE SCORES:
