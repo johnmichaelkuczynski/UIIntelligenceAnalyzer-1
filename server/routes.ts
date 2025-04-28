@@ -436,26 +436,25 @@ function getTopDimension(analysis: DocumentAnalysis): string {
 
 // Helper function to get a rating from a score
 function getRatingFromScore(score: number): DimensionRating {
-  // Use a more granular rating scale based on score
-  // Adjusted thresholds to better reflect the intelligence scoring model
-  // This ensures visual indicators match the expected intelligence levels
+  // Updated rating scale to match the intelligence scoring law
+  // This represents the exact scoring ranges specified in the requirements
   
-  // For exceptional writing (90-96 range)
+  // For blueprint-grade thinking (90-98 range)
   if (score >= 90) return "Exceptional";
   
-  // For advanced writing (75-89 range)
-  if (score >= 80) return "Very Strong";
-  if (score >= 70) return "Strong";
+  // For serious graduate-level commentary (80-89 range)
+  if (score >= 85) return "Very Strong";
+  if (score >= 80) return "Strong";
   
-  // For intermediate writing (50-74 range)
-  if (score >= 60) return "Moderate";
-  if (score >= 50) return "Basic";
+  // For undergraduate-level structured thinking (65-79 range)
+  if (score >= 70) return "Moderate";
+  if (score >= 65) return "Basic";
   
-  // For shallow writing (20-49 range)
-  if (score >= 35) return "Weak";
-  if (score >= 20) return "Very Weak";
+  // For fluent surface without inferential density (50-64 range)
+  if (score >= 55) return "Weak";
+  if (score >= 50) return "Very Weak";
   
-  // Below 20
+  // For disorganized or random chatter (<50 range)
   return "Critically Deficient";
 }
 
@@ -480,24 +479,22 @@ function formatAIEvaluationAsDocumentAnalysis(content: string, aiEvaluation: any
   );
   
   // Use the pre-calculated overall score if it exists
-  // otherwise calculate it using the updated weights (35% surface, 65% deep)
+  // otherwise calculate it using the exact weights from our configuration (5% surface, 95% deep)
   const overallScore = aiEvaluation.overallScore || 
-    Math.round(surfaceScore * 0.35 + deepScore * 0.65);
+    Math.round(surfaceScore * 0.05 + deepScore * 0.95);
   
-  // Determine cognitive level based on the overall score with adjusted thresholds
+  // Determine cognitive level based on the exact scoring law specified
   let cognitiveLevel = "";
   if (overallScore >= 90) {
-    cognitiveLevel = "exceptional";
-  } else if (overallScore >= 75) {
-    cognitiveLevel = "advanced";
-  } else if (overallScore >= 60) {
-    cognitiveLevel = "moderate";
-  } else if (overallScore >= 40) {
-    cognitiveLevel = "developing";
-  } else if (overallScore >= 20) {
-    cognitiveLevel = "basic";
+    cognitiveLevel = "blueprint-grade";  // Blueprint-capable cognitive performance: 90–98
+  } else if (overallScore >= 80) {
+    cognitiveLevel = "graduate-level"; // Serious graduate-level commentary: 80-89
+  } else if (overallScore >= 65) {
+    cognitiveLevel = "undergraduate-level"; // Undergraduate-level structured thinking: 65-79
+  } else if (overallScore >= 50) {
+    cognitiveLevel = "surface-fluent"; // Fluent surface without inferential density: 50-64
   } else {
-    cognitiveLevel = "limited";
+    cognitiveLevel = "disorganized"; // Disorganized or random chatter: <50
   }
   
   // Generate descriptions based on dimension scores
@@ -563,9 +560,9 @@ function formatAIEvaluationAsDocumentAnalysis(content: string, aiEvaluation: any
   
   // Map dimension scores to dimension ratings
   return {
-    summary: `This document demonstrates ${cognitiveLevel} cognitive structuring with ${overallScore >= 75 ? "well-defined" : "developing"} patterns of conceptual development. AI-powered semantic analysis reveals ${overallScore >= 65 ? "sophisticated" : "basic"} thought patterns throughout the text.`,
+    summary: `This document demonstrates ${cognitiveLevel} cognitive fingerprints with an intelligence score of ${overallScore}/100. Our analysis reveals ${overallScore >= 90 ? "exceptional semantic compression and original inferential architecture" : overallScore >= 80 ? "strong conceptual development and coherent reasoning" : overallScore >= 65 ? "structured thinking with moderate inferential continuity" : "basic fluency without significant cognitive density"}.`,
     overallScore,
-    overallAssessment: aiEvaluation.analysis || `The writing demonstrates ${cognitiveLevel} cognitive abilities with an overall intelligence score of ${overallScore}/100. The analysis reveals particular strengths in ${aiEvaluation.deep.conceptualDepth > 70 ? "conceptual depth" : aiEvaluation.deep.inferentialContinuity > 70 ? "inferential continuity" : aiEvaluation.surface.structure > 70 ? "structural organization" : "basic comprehensibility"}.`,
+    overallAssessment: aiEvaluation.analysis || `Cognitive fingerprint analysis indicates ${cognitiveLevel} thinking patterns with an intelligence score of ${overallScore}/100. This sample shows particular strengths in ${aiEvaluation.deep.semanticCompression > 85 ? "semantic compression" : aiEvaluation.deep.inferentialContinuity > 85 ? "inferential continuity" : aiEvaluation.deep.conceptualDepth > 85 ? "conceptual architecture" : aiEvaluation.deep.originality > 85 ? "cognitive innovation" : overallScore >= 80 ? "advanced cognitive organization" : "basic conceptual structuring"}.`,
     dimensions: {
       definitionCoherence: {
         name: "Definition Coherence",
