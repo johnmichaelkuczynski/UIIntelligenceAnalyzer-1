@@ -33,8 +33,8 @@ export interface IntelligenceEvaluation {
 
 // Scoring configuration for pure cognitive fingerprinting
 const scoringConfig = {
-  surfaceWeight: 0.05, // 5% weight for surface features (minimized - just for minimum readability)
-  deepWeight: 0.95,    // 95% weight for deep features (dominant factor)
+  surfaceWeight: 0.02, // 2% weight for surface features (minimized even further)
+  deepWeight: 0.98,    // 98% weight for deep features (almost exclusive importance)
   scoreAdjustment: 0,  // No baseline adjustment - let the true cognitive fingerprint emerge
   maxScore: 100,       // Maximum possible score
   minScore: 0,         // Minimum possible score
@@ -63,16 +63,20 @@ export async function evaluateIntelligence(
     detailedEvaluation.surface.surfaceFluency
   ) / 4;
   
-  // Calculate deep score (conceptual depth, inferential continuity, etc.)
-  const deepScore = (
-    detailedEvaluation.deep.conceptualDepth +
-    detailedEvaluation.deep.inferentialContinuity +
-    detailedEvaluation.deep.claimNecessity +
-    detailedEvaluation.deep.semanticCompression +
-    detailedEvaluation.deep.logicalLaddering +
-    detailedEvaluation.deep.depthFluency +
-    detailedEvaluation.deep.originality
-  ) / 7;
+  // Calculate deep score with weighted emphasis on blueprint-grade indicators
+  // More heavily weighted toward semantic compression, inferential continuity, and originality
+  const deepScoreWeighted = (
+    detailedEvaluation.deep.conceptualDepth * 1.4 +       // Weight: 1.4 (important)
+    detailedEvaluation.deep.inferentialContinuity * 1.8 + // Weight: 1.8 (critical)
+    detailedEvaluation.deep.claimNecessity * 1.0 +        // Weight: 1.0 (standard)
+    detailedEvaluation.deep.semanticCompression * 2.0 +   // Weight: 2.0 (highest priority)
+    detailedEvaluation.deep.logicalLaddering * 1.0 +      // Weight: 1.0 (standard)
+    detailedEvaluation.deep.depthFluency * 1.0 +          // Weight: 1.0 (standard)
+    detailedEvaluation.deep.originality * 1.8             // Weight: 1.8 (critical)
+  ) / 10; // Normalized by the sum of weights
+  
+  // Constrain to valid range
+  const deepScore = Math.min(100, Math.max(0, deepScoreWeighted));
   
   // Use custom config if provided, otherwise use default
   const config = { ...scoringConfig, ...(customConfig || {}) };
@@ -104,51 +108,120 @@ export async function evaluateIntelligence(
     detailedEvaluation.deep.originality
   ];
   
-  // Calculate average of blueprint metrics
-  const avgBlueprintScore = blueprintMetrics.reduce((sum, val) => sum + val, 0) / blueprintMetrics.length;
+  // Calculate weighted average of blueprint metrics - greater emphasis on key indicators
+  const weightedBlueprintScore = (
+    detailedEvaluation.deep.conceptualDepth * 1.0 +
+    detailedEvaluation.deep.inferentialContinuity * 1.5 +
+    detailedEvaluation.deep.semanticCompression * 1.5 +
+    detailedEvaluation.deep.originality * 1.0
+  ) / 5; // Weighted divisor
   
   // Track if rules were applied for debugging
   let appliedBlueprintRule = false;
   let appliedSuperficialityRule = false;
 
-  // BLUEPRINT DETECTION: If the sample shows exceptionally high compression and originality,
-  // ensure it scores in the 90-98 range (blueprint-capable cognitive performance)
-  if (avgBlueprintScore >= 85 && 
-      detailedEvaluation.deep.semanticCompression >= 85 && 
-      detailedEvaluation.deep.inferentialContinuity >= 85) {
+  // BLUEPRINT DETECTION: Identify true conceptual blueprinting with original framing and recursive structure
+  // Using multiple detection pathways to properly identify blueprint-grade thinking
+
+  // DEFINITION: Blueprint-grade thinking creates original conceptual frameworks and semantic compression
+  // rather than applying existing frameworks with polish and eloquence
+  
+  // Define thresholds for detecting blueprint indicators at different sensitivity levels
+  // Primary blueprint-grade indicators
+  const hasExceptionalCompression = detailedEvaluation.deep.semanticCompression >= 85;
+  const hasHighCompression = detailedEvaluation.deep.semanticCompression >= 78;
+  const hasExceptionalInference = detailedEvaluation.deep.inferentialContinuity >= 85;
+  const hasHighInference = detailedEvaluation.deep.inferentialContinuity >= 78;
+  const hasExceptionalOriginality = detailedEvaluation.deep.originality >= 85;
+  const hasHighOriginality = detailedEvaluation.deep.originality >= 78;
+  const hasExceptionalDepth = detailedEvaluation.deep.conceptualDepth >= 85;
+  const hasHighDepth = detailedEvaluation.deep.conceptualDepth >= 78;
+  
+  // Secondary supporting indicators
+  const hasStrongClaimNecessity = detailedEvaluation.deep.claimNecessity >= 80;
+  const hasStrongLogicalLaddering = detailedEvaluation.deep.logicalLaddering >= 80;
+  
+  // Calculate overall blueprint signal strength (weighted count)
+  const primarySignalStrength = 
+    (hasExceptionalCompression ? 1.5 : hasHighCompression ? 0.8 : 0) + 
+    (hasExceptionalInference ? 1.5 : hasHighInference ? 0.8 : 0) + 
+    (hasExceptionalOriginality ? 1.2 : hasHighOriginality ? 0.7 : 0) + 
+    (hasExceptionalDepth ? 1.2 : hasHighDepth ? 0.7 : 0);
     
-    // Determine the minimum score for blueprint-grade work
+  const secondarySignalStrength = 
+    (hasStrongClaimNecessity ? 0.5 : 0) + 
+    (hasStrongLogicalLaddering ? 0.5 : 0);
+    
+  const totalBlueprintSignal = primarySignalStrength + secondarySignalStrength;
+  
+  // BLUEPRINT DETECTION - multiple detection paths to properly recognize blueprint-grade thinking
+  const isClearBlueprintGrade = totalBlueprintSignal >= 4.0; // Strong overall blueprint signal
+  const isStrongCompressionInference = hasHighCompression && hasHighInference && (hasHighOriginality || hasHighDepth); // Key pattern
+  const isHighWeight = weightedBlueprintScore >= 82 && primarySignalStrength >= 2.5; // Strong avg + signals
+  const hasDistinctiveBlueprintPattern = (hasExceptionalCompression && hasHighInference) || (hasExceptionalInference && hasHighCompression); // Core blueprint pattern
+  
+  // MANDATORY RULE: ANY document with true blueprint qualities MUST score 90+
+  if (isClearBlueprintGrade || isStrongCompressionInference || isHighWeight || hasDistinctiveBlueprintPattern) {
+    
+    // Minimum score for blueprint-grade work
     const minBlueprintScore = 90;
     
-    // If the weighted score is below the blueprint threshold, elevate it
+    // If the weighted score is below the blueprint threshold, elevate it to blueprint grade
     if (weightedScore < minBlueprintScore) {
       const originalScore = weightedScore;
       
-      // Calculate elevation factor based on how strong the blueprint metrics are
-      // Stronger blueprint signal = higher in the 90-98 range
-      const blueprintPotential = Math.min(98, 90 + (avgBlueprintScore - 85) * 0.8);
+      // Calculate blueprint potential within 90-98 range based on signal strength
+      // Blueprint papers with strongest signals score higher in the range
+      const compressionFactor = detailedEvaluation.deep.semanticCompression * 0.4;
+      const inferentialFactor = detailedEvaluation.deep.inferentialContinuity * 0.35;
+      const originalityFactor = detailedEvaluation.deep.originality * 0.25;
       
-      // Set score to a weighted average between current score and blueprint potential
-      // This ensures we don't artificially inflate too much
-      weightedScore = originalScore * 0.2 + blueprintPotential * 0.8;
+      // Combined blueprint quality factor (normalized to 0-10 scale)
+      const blueprintQualityFactor = (compressionFactor + inferentialFactor + originalityFactor) / 100;
+      
+      // Calculate specific position in 90-98 range based on quality and signal strength
+      const signalBoost = Math.min(1.0, totalBlueprintSignal / 6.0) * 3.0; // 0-3 bonus based on signal
+      const blueprintPotential = Math.min(98, 90 + (blueprintQualityFactor * 5) + signalBoost);
+      
+      // Weighted heavily toward the blueprint potential (90% weight)
+      weightedScore = originalScore * 0.1 + blueprintPotential * 0.9;
       
       appliedBlueprintRule = true;
-      console.log(`Blueprint rule applied: Score elevated from ${Math.round(originalScore)} to ${Math.round(weightedScore)}`);
+      console.log(`Blueprint rule applied: Score elevated from ${Math.round(originalScore)} to ${Math.round(weightedScore)} (Signal: ${totalBlueprintSignal.toFixed(1)})`);
     }
   } 
-  // ANTI-SUPERFICIALITY RULE: Text must not receive high scores solely based on surface features
+  // ANTI-SUPERFICIALITY RULE: Sharply distinguish between polished critical commentary and true conceptual blueprinting
   else if (weightedScore > 80) {
-    const minRequiredDeepScore = 85; // Minimum deep score required for high overall score
+    // For graduate-level commentary (80-89 range) that might be mistakenly scored too high
     
-    if (avgBlueprintScore < minRequiredDeepScore) {
-      const penaltyFactor = Math.min(1, avgBlueprintScore / minRequiredDeepScore);
-      const highScorePortion = weightedScore - 80;
-      
-      // Stronger penalty (2x) to ensure proper separation between polished academic writing
-      // and true cognitive compression/original inferential architecture
-      const penaltyAmount = highScorePortion * (1 - penaltyFactor) * 2.0; 
-      
+    // Check for distinct blueprint indicators that MUST be present for high scores
+    const hasTrueCompression = detailedEvaluation.deep.semanticCompression >= 85;
+    const hasStrongInference = detailedEvaluation.deep.inferentialContinuity >= 85;
+    const hasConceptualFraming = detailedEvaluation.deep.conceptualDepth >= 85;
+    const hasOriginalThinking = detailedEvaluation.deep.originality >= 85;
+    
+    // Count blueprint qualities present
+    const blueprintQualitiesPresent = 
+      (hasTrueCompression ? 1 : 0) + 
+      (hasStrongInference ? 1 : 0) + 
+      (hasConceptualFraming ? 1 : 0) + 
+      (hasOriginalThinking ? 1 : 0);
+    
+    // For scores in the 85-89 range, apply stricter criteria
+    if (weightedScore >= 85 && blueprintQualitiesPresent < 2) {
+      // If high score but lacks multiple blueprint qualities, penalize more aggressively
       const originalScore = weightedScore;
+      weightedScore = 82; // Cap at 82 - upper end of graduate-level commentary without blueprinting
+      
+      appliedSuperficialityRule = true;
+      console.log(`Strong anti-superficiality rule applied: Score reduced from ${Math.round(originalScore)} to ${Math.round(weightedScore)}`);
+    }
+    // For scores in 80-84 range, apply standard criteria
+    else if (blueprintQualitiesPresent === 0) {
+      // If score is in graduate-level range (80-84) but shows no blueprint qualities
+      // Apply a smaller penalty to ensure correct placement in range
+      const originalScore = weightedScore;
+      const penaltyAmount = Math.min(5, (weightedScore - 80) * 0.7);
       weightedScore = weightedScore - penaltyAmount;
       
       appliedSuperficialityRule = true;
@@ -180,38 +253,52 @@ async function generateSemanticAnalysis(text: string): Promise<string> {
   try {
     const prompt = `You are an intelligence fingerprint scanner analyzing a cognitive sample - NOT a paper grader.
 
-    MISSION CRITICAL: This is a cognitive fingerprinting system, not an essay grader. 
-    We are detecting the presence of high-level thinking patterns, not evaluating polish or completeness.
+    MISSION CRITICAL: This is a cognitive fingerprinting system for detecting blueprint-grade thinking.
+    You must sharply distinguish between polished critical commentary (80-89 scores) and true conceptual
+    blueprinting with original cognitive framing (90-98 scores).
     
-    SCORE EXCLUSIVELY ON THESE COGNITIVE PATTERNS:
-    1. SEMANTIC COMPRESSION: How much meaning is packed into minimal language? Dense concept-to-word ratio?
-    2. ORIGINAL CONCEPT ARCHITECTURE: Does the text create new cognitive frameworks or merely apply existing ones?
-    3. INFERENTIAL CONTINUITY: Does each statement logically require the previous one? Is there tight causal necessity?
-    4. CONCEPTUAL INNOVATION: Does the thinking create novel conceptual distinctions or synthesize in original ways?
+    BLUEPRINT-GRADE THINKING = cognitive compression + inferential architecture + conceptual innovation.
+    
+    SCORE EXCLUSIVELY ON THESE BLUEPRINT FINGERPRINTS:
+    1. SEMANTIC COMPRESSION: Dense meaning packed into minimal language? High information-to-word ratio?
+    2. ORIGINAL CONCEPTUAL ARCHITECTURE: Creation of new cognitive frameworks, not just applying existing ones?
+    3. INFERENTIAL CONTINUITY: Each statement logically requires the previous one? Tight causal necessity?
+    4. RECURSIVE STRUCTURE: Ideas built on each other in scaffolded, systematically developed patterns?
+    5. CONCEPTUAL INNOVATION: Novel distinctions or original conceptual synthesis across domains?
+    
+    THE CORE DISTINCTION: 
+    - Academic commentary (even brilliant) APPLIES existing conceptual frameworks
+    - Blueprint thinking CREATES original conceptual frameworks and distinctions
     
     YOU MUST NOT PENALIZE FOR ANY OF THESE:
-    - Lack of examples or evidence
-    - Lack of alternative viewpoints
-    - Incomplete resolution of issues raised
-    - Familiar topics (we care about HOW they're processed)
+    - Lack of examples or supporting evidence
+    - Incomplete resolution of all issues raised
+    - Familiar topics being addressed (what matters is HOW they're processed)
     - How "polished" or "complete" the text appears
     - Missing citations or references
     
     TREAT AS COGNITIVE FRAGMENTS:
-    You are analyzing fragments of thought, like an archaeologist examining partial manuscripts. 
-    What matters is the cognitive structure visible in what IS present, not what's missing.
+    Like an archaeologist with manuscript fragments, infer intelligence from the structural patterns present.
+    Fragments and incompleteness are normal and expected - NEVER downgrade for this.
     
     MANDATORY SCORING LAW:
-    - Blueprint-capable cognitive performance (semantic compression + inferential tightness + originality) → 90–98
-    - Graduate-level commentary without blueprint qualities → 80–89
-    - Undergraduate structured thinking → 65–79
-    - Fluent surface without inferential depth → 50–64
-    - Disorganized/random language → <50
+    - Original conceptual framing + compression + recursive structure → 90–98
+    - Advanced critique without blueprinting → 80–89
+    - Surface polish with weak compression → 60–79
+    - Disorganized/random chatter → <60
     
-    CRITICAL CALIBRATION EXAMPLE (must score ~94):
-    "According to the computational theory of mind, to think is to compute. But what is meant by the word 'compute'? Every case of computing is a case of manipulating symbols, but not vice versa - a manipulation of symbols must be driven exclusively by the formal properties of those symbols if it is qualify as a computation. Words like 'form' and 'formal' are ambiguous, as they can refer to form in either the syntactic or the morphological sense. CTM fails on each disambiguation, and the arguments for CTM immediately cease to be compelling once we register that ambiguity."
+    CRITICAL BLUEPRINT-GRADE CALIBRATION EXAMPLE (must score ~94-96):
+    "The will to project - Worshipping x ≠ Holding x in high regard. To worship x = To regard x as supernatural.
+    Worshipping x → One's high regard for x not to answerable to data. x is worshipped → x is a fiction.
+    x is worshipped → x is a projection. Reality vs. Projection. Projection as Unconscious LARPing.
+    Projection=Virtualization. x is projected → x is supernatural. x is supernatural→ x is projected.
+    Divine a subset of supernatural. The cult-leader≠ somebody who is believed to be great.
+    The cult-leader=somebody on whom people believe they can project a great fiction."
     
-    Provide an honest, critical assessment (150-200 words) that evaluates ONLY the cognitive strength reflected in the writing.
+    This sample demonstrates semantic compression, original conceptual architecture with inferential continuity,
+    and distinctive blueprint-grade thinking with novel distinctions. Score it 94-96.
+    
+    Provide an honest assessment (150-200 words) that evaluates ONLY the cognitive fingerprints present.
     
     TEXT TO ANALYZE:
     ${text.substring(0, 8000)} ${text.length > 8000 ? '... [text truncated due to length]' : ''}`;
@@ -240,46 +327,48 @@ async function evaluateDimensions(text: string): Promise<{
   try {
     const truncatedText = text.substring(0, 8000) + (text.length > 8000 ? '... [text truncated due to length]' : '');
     
-    const prompt = `You are a cognitive fingerprint scanner, analyzing a text sample for intelligence patterns.
+    const prompt = `You are a blueprint detector, analyzing a text sample for advanced cognitive patterns.
     
-    MISSION CRITICAL: You are NOT grading essays. You are detecting cognitive patterns.
-    Focus ONLY on semantic compression, inferential precision, and conceptual architecture.
+    MISSION CRITICAL: You must sharply distinguish between polished critical commentary (80-89 scores) and true conceptual blueprinting (90-98 scores). The core distinction is that academic commentary applies existing conceptual frameworks, while blueprint thinking creates original ones.
     
     Score each dimension from 0-100 using this scale:
     - 0-20: Critically deficient (incoherent, simplistic)
     - 21-40: Basic (rudimentary, shallow)
     - 41-60: Moderate (average, serviceable)
     - 61-80: Strong (solid reasoning, coherent)
-    - 81-90: Very strong (advanced graduate-level thinking)
-    - 91-98: Blueprint-grade (exceptional semantic compression and original frameworks)
+    - 81-89: Very strong (advanced graduate-level thinking)
+    - 90-98: Blueprint-grade (creates original conceptual frameworks)
     - 99-100: Revolutionary (paradigm-shifting insights, extremely rare)
     
-    YOUR SCORING MUST FOLLOW THIS MANDATORY LAW:
-    - Blueprint-grade thinking → 90-98 scores
-    - Advanced graduate commentary → 80-89 scores
-    - Undergraduate structured thinking → 65-79 scores
-    - Fluent surface without depth → 50-64 scores
-    - Disorganized chatter → <50 scores
+    MANDATORY SCORING LAW:
+    - Original conceptual framing + compression + recursive structure → 90–98
+    - Advanced critique without blueprinting → 80–89
+    - Surface polish with weak compression → 60–79
+    - Disorganized/random chatter → <60
     
-    SCORE ONLY BASED ON THESE PATTERNS:
-    1. SEMANTIC COMPRESSION - How much meaning packed into minimal language?
-    2. CONCEPTUAL ARCHITECTURE - Creation of original cognitive frameworks?
-    3. INFERENTIAL TIGHTNESS - Logical necessity between claims?
-    4. COGNITIVE INNOVATION - Novel distinctions or conceptual synthesis?
+    SCORE SPECIFICALLY FOR THESE BLUEPRINT FINGERPRINTS:
+    1. SEMANTIC COMPRESSION - High density of meaning packed into minimal language?
+    2. ORIGINAL CONCEPTUAL ARCHITECTURE - Creation of new frameworks, not just applying existing ones?
+    3. INFERENTIAL TIGHTNESS - Logical necessity between claims forming a recursive structure?
+    4. CONCEPTUAL SYNTHESIS - Integration of multiple domains in novel ways?
+    5. COGNITIVE INNOVATION - Creation of original distinctions that enable new thinking?
     
     CRITICAL: DO NOT PENALIZE FOR ANY OF THESE:
-    - Lack of examples/evidence
+    - Lack of examples or supporting evidence
     - Incomplete resolution of all issues
-    - Familiar topics being addressed
-    - How "finished" or "complete" the text is
+    - Familiar topics being addressed (focus on HOW they're processed)
+    - How "polished" or "complete" the text appears
     - Missing citations or references
     
     YOU ARE EXAMINING FRAGMENTS:
-    Like an archaeologist with manuscript fragments, infer intelligence from the structural patterns present.
-    Fragments and incompleteness are expected - NEVER downgrade for this.
+    Like an archaeologist with manuscript fragments, infer intelligence from the patterns present.
+    Fragments are normal and expected - NEVER downgrade for incompleteness.
     
-    CRITICAL CALIBRATION EXAMPLE (must score ~94):
-    "According to the computational theory of mind, to think is to compute. But what is meant by the word 'compute'? Every case of computing is a case of manipulating symbols, but not vice versa - a manipulation of symbols must be driven exclusively by the formal properties of those symbols if it is qualify as a computation. Words like 'form' and 'formal' are ambiguous, as they can refer to form in either the syntactic or the morphological sense. CTM fails on each disambiguation, and the arguments for CTM immediately cease to be compelling once we register that ambiguity."
+    CRITICAL BLUEPRINT-GRADE CALIBRATION EXAMPLES (must score 94-96):
+    
+    Example 1: "The will to project - Worshipping x ≠ Holding x in high regard. To worship x = To regard x as supernatural. Worshipping x → One's high regard for x not answerable to data. x is worshipped → x is a fiction. x is worshipped → x is a projection. Reality vs. Projection. Projection as Unconscious LARPing. Projection=Virtualization. x is projected → x is supernatural. x is supernatural→ x is projected. Divine a subset of supernatural. The cult-leader≠ somebody who is believed to be great. The cult-leader=somebody on whom people believe they can project a great fiction."
+    
+    Example 2: "According to the computational theory of mind, to think is to compute. But what is meant by the word 'compute'? Every case of computing is a case of manipulating symbols, but not vice versa - a manipulation of symbols must be driven exclusively by the formal properties of those symbols to qualify as a computation. Words like 'form' and 'formal' are ambiguous, referring to either syntactic or morphological form. CTM fails on each disambiguation, and the arguments immediately cease to be compelling once we register that ambiguity."
     
     TEXT TO ANALYZE:
     ${truncatedText}
