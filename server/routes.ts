@@ -7,6 +7,7 @@ import { checkForAI } from "./api/gptZero";
 import { DocumentAnalysis, DocumentComparison, ShareViaEmailRequest, DimensionRating } from "../client/src/lib/types";
 import { sendAnalysisViaEmail } from "./services/sendgrid";
 import { evaluateIntelligence } from "./services/openai";
+import { translateLargeDocument } from "./services/translation";
 
 // Configure multer for file uploads - store in memory
 const upload = multer({ 
@@ -186,6 +187,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: error.message || "Error sharing results via email" 
+      });
+    }
+  });
+
+  // Translate large documents
+  app.post("/api/translate", async (req: Request, res: Response) => {
+    try {
+      const { content, options, filename } = req.body;
+      
+      if (!content || !options?.sourceLanguage || !options?.targetLanguage) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Missing required translation fields" 
+        });
+      }
+      
+      console.log(`Starting translation from ${options.sourceLanguage} to ${options.targetLanguage}`);
+      console.log(`Document size: ${content.length} characters`);
+      
+      // Set up Server-Sent Events for progress updates
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      
+      // Send progress updates to the client
+      const sendProgress = (progress: any) => {
+        res.write(`data: ${JSON.stringify(progress)}\n\n`);
+        
+        // If translation is completed or failed, end the response
+        if (progress.status === 'completed' || progress.status === 'failed') {
+          res.end();
+        }
+      };
+      
+      // Start the translation process
+      translateLargeDocument(content, options, sendProgress)
+        .then((result) => {
+          if (result.success) {
+            console.log('Translation completed successfully');
+          } else {
+            console.error('Translation failed:', result.error);
+          }
+        })
+        .catch((error) => {
+          console.error('Translation error:', error);
+          sendProgress({
+            currentChunk: 0,
+            totalChunks: 0,
+            status: 'failed',
+            error: error.message || 'Unknown translation error'
+          });
+        });
+    } catch (error: any) {
+      console.error("Error starting translation:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Error starting translation process" 
       });
     }
   });

@@ -68,3 +68,31 @@ export interface ShareViaEmailRequest {
   analysisB?: DocumentAnalysis;
   comparison?: DocumentComparison;
 }
+
+// Translation related types
+export interface TranslationOptions {
+  sourceLanguage: string;
+  targetLanguage: string;
+  model?: string;
+  useDeepL?: boolean;
+}
+
+export interface TranslationProgress {
+  currentChunk: number;
+  totalChunks: number;
+  status: 'processing' | 'completed' | 'failed';
+  translatedContent?: string;
+  error?: string;
+}
+
+export interface TranslationResult {
+  success: boolean;
+  translatedContent: string;
+  error?: string;
+}
+
+export interface TranslationRequest {
+  content: string;
+  filename?: string;
+  options: TranslationOptions;
+}
