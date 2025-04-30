@@ -1,5 +1,12 @@
 import { apiRequest } from "./queryClient";
-import { DocumentInput, AIDetectionResult, DocumentAnalysis, DocumentComparison } from "./types";
+import { 
+  DocumentInput, 
+  AIDetectionResult, 
+  DocumentAnalysis, 
+  DocumentComparison,
+  TranslationOptions,
+  TranslationResult
+} from "./types";
 
 // Function to analyze a single document
 export async function analyzeDocument(
@@ -69,6 +76,25 @@ export async function extractTextFromFile(
     return await response.json();
   } catch (error) {
     console.error("Error extracting text from file:", error);
+    throw error;
+  }
+}
+
+// Function to translate a document
+export async function translateDocument(
+  content: string,
+  options: TranslationOptions,
+  filename?: string
+): Promise<TranslationResult> {
+  try {
+    const response = await apiRequest("POST", "/api/translate", {
+      content,
+      options,
+      filename,
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Error translating document:", error);
     throw error;
   }
 }
