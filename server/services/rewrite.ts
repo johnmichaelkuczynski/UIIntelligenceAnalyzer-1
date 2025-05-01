@@ -16,6 +16,10 @@ try {
  * Performs a sanity check to verify the rewritten text doesn't degrade the quality of the original
  * Evaluates various dimensions like semantic density, logical structure, and definitional clarity
  */
+/**
+ * Performs a sanity check to verify the rewritten text doesn't degrade the quality of the original
+ * Evaluates various dimensions with specific focus on semantic compression as the primary metric
+ */
 async function performRewriteSanityCheck(originalText: string, rewrittenText: string): Promise<boolean> {
   try {
     // Limit input size for the check
@@ -39,44 +43,52 @@ async function performRewriteSanityCheck(originalText: string, rewrittenText: st
       messages: [
         {
           role: "system",
-          content: `You are an expert judge in cognitive intelligence assessment with the following task:
-          
-Compare ORIGINAL TEXT to REWRITTEN TEXT to determine if the rewrite preserves or improves the following qualities:
+          content: `You are a rigorous quality control system specifically designed to evaluate whether a rewritten text preserves or improves the cognitive qualities of the original.
 
-1. Semantic density (information per word)
-2. Logical structure (clear, recursive reasoning)
-3. Definitional clarity (precise operational definitions)
-4. Inferential continuity (coherent argument flow)
-5. Distinction-making (clear separation between related concepts)
+SEMANTIC COMPRESSION IS THE PRIMARY METRIC:
+The most intelligent writing packs maximum meaning into minimal language.
+Academic verbosity is the OPPOSITE of intelligence.
 
-Focus on substantive cognitive content, not style or readability. Identify cases where:
-- Original text has tight, clear formulations that were expanded unnecessarily
-- Original has recursive structures that were linearized
-- Original has clear distinctions that were made verbose
-- Rewrite added academic-style phrasing lacking new inferential content or cognitive value
+KEY FACTORS (WEIGHTED BY IMPORTANCE):
+1. SEMANTIC COMPRESSION (40%): meaning-per-word ratio - how much information is packed into how many words
+2. OPERATIONAL DEFINITIONS (25%): clarity and precision of concept definitions 
+3. INFERENTIAL STRUCTURE (20%): logical flow and necessity between claims
+4. RECURSIVE FRAMEWORKS (15%): how ideas build upon and reference each other
+
+CRITICAL DETECTION RULES:
+- If the original text has high semantic compression but the rewrite is more verbose without adding new information, this is a SERIOUS DEGRADATION
+- If the original has clear, simple definitions that were made unnecessarily complex, this is a SERIOUS DEGRADATION
+- If the original has tight logical structure that was obscured by added transitions, this is a DEGRADATION
+- If the rewrite added academic-style phrasing ("moreover," "furthermore," etc.) without new inferential content, this is a DEGRADATION
+
+INTELLIGENCE MARKERS TO PRESERVE:
+- Clear operational definitions that build on each other
+- Recursive argument structures 
+- High concept-to-word ratio with no extraneous language
+- Logical necessity between claims
 
 Respond with a JSON object only:
 {
-  "semanticDensity": {
+  "semanticCompression": {
     "originalScore": 1-10,
     "rewriteScore": 1-10,
     "preserved": true|false,
-    "reason": "brief explanation"
-  },
-  "logicalStructure": {
-    "originalScore": 1-10,
-    "rewriteScore": 1-10,
-    "preserved": true|false,
-    "reason": "brief explanation"
+    "reason": "brief explanation focusing on info-per-word ratio"
   },
   "definitionalClarity": {
     "originalScore": 1-10,
     "rewriteScore": 1-10,
     "preserved": true|false,
-    "reason": "brief explanation"
+    "reason": "brief explanation focusing on precision of concept definitions"
+  },
+  "logicalStructure": {
+    "originalScore": 1-10,
+    "rewriteScore": 1-10,
+    "preserved": true|false,
+    "reason": "brief explanation focusing on flow between claims"
   },
   "overallVerdict": true if rewrite preserves or improves quality, false if it degrades it,
-  "explanation": "brief explanation"
+  "explanation": "brief explanation focusing primarily on semantic compression"
 }`
         },
         {
@@ -167,17 +179,32 @@ export async function rewriteText(
 CORE FUNCTION:
 Your ONLY goal is to enhance real cognitive content. Never add words without adding genuine inferential value.
 
-CRITICAL REWRITE RULES (MANDATORY):
-- EXACT LENGTH ENFORCEMENT: Final rewritten text MUST maintain 98-100% of original character count. Never exceed original length.
-- PRESERVE ALL SEMANTIC COMPRESSION: If the original uses fewer words to express an idea clearly, never expand it.
-- MAINTAIN OR ENHANCE RECURSIVE STRUCTURES: Preserve any A→B→C→A* patterns in arguments.
-- PRESERVE DEFINITIONAL CLARITY: Sharp definitions are superior to stylistic exposition.
-- NO DISFLUENT TRANSITIONS: Never add "moreover," "furthermore," or similar academic padding.
-- MATCH ORIGINAL'S SENTENCE/PARAGRAPH LENGTH DISTRIBUTION: If original uses compact sentences, maintain that pattern.
+THE PRIMARY METRIC OF INTELLIGENCE IS SEMANTIC COMPRESSION:
+The most intelligent writing packs maximum meaning into minimal language.
+Academic verbosity is the OPPOSITE of intelligence and semantic compression.
 
-INTELLIGENCE ENHANCEMENT TECHNIQUES:
-- Replace imprecise claims with exact, empirically-grounded statements
-- Enhance operational definitions (how concepts work, not just what they are)
+CRITICAL REWRITE RULES (MANDATORY):
+- EXACT LENGTH ENFORCEMENT: Final rewritten text MUST maintain 95-100% of original character count. Never exceed original length by even 1%.
+- ENHANCE SEMANTIC COMPRESSION: Maximize the amount of meaning per word. Sharp, clear, precise formulations with high information density.
+- PRESERVE OR ENHANCE RECURSIVE STRUCTURES: Every high-intelligence text builds recursive frameworks (A→B→C→A*).
+- BUILD TIGHT OPERATIONAL DEFINITIONS: Clear distinctions between concepts with precision.
+- ELIMINATE ALL ACADEMIC FLUFF: Remove "furthermore," "moreover," "indeed," and all similar padding that adds no semantic value.
+- NEVER USE JARGON WITHOUT DEFINING IT: Jargon must always be defined when introduced.
+- PREFER CLARITY OVER SOPHISTICATION: Intelligent writing is crystal clear, not superficially complex.
+
+INTELLIGENCE PATTERNS TO SEEK AND AMPLIFY:
+1. Clear operational definitions that build on each other in tightly integrated ways
+2. Recursive argument structures where earlier points are referenced and extended 
+3. Inferential continuity where each claim leads necessarily to the next
+4. High concept-to-word ratio with no extraneous language
+
+DO NOT:
+- Add academic padding or verbosity
+- Use unnecessary complex syntax
+- Add citations or references not in original
+- Introduce unnecessary abstraction
+- Add meta-discourse (e.g., "In this essay, I will argue")
+- Replace simple, clear language with complex equivalents
 - Strengthen distinction-making between related concepts
 - Reveal implicit inferential structures (make reasoning chains explicit)
 - Ensure each sentence builds logically on preceding ones

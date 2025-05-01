@@ -274,8 +274,9 @@ export async function evaluateIntelligence(
   
   // Blueprint-grade patterns (90-98)
   if (blueprintPattern1 || blueprintPattern2 || blueprintPattern3 || blueprintPattern4 || 
+      didacticExcellencePattern || semanticCompressionBlueprintPattern || // New patterns for didactic texts
       advancedBlueprintPattern || coreBlueprintScore >= 90 || 
-      exampleEmbeddedBlueprintPattern || conceptualReframingPattern || dnModelCritiquePattern) { // Added DN model critique pattern
+      exampleEmbeddedBlueprintPattern || conceptualReframingPattern || dnModelCritiquePattern) {
     
     // Determine precise placement within 90-98 range based on specifics
     if (semanticCompressionScore >= 94 && inferentialContinuityScore >= 92 && originalityScore >= 94) {
