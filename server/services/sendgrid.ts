@@ -4,9 +4,9 @@ import { ShareViaEmailRequest } from '../../client/src/lib/types';
 // Create mail service instance
 const mailService = new MailService();
 
-// Email template for a single document analysis
+// Email template for a single document analysis (with optional rewrite)
 function generateSingleAnalysisEmailHtml(data: ShareViaEmailRequest): string {
-  const { analysisA } = data;
+  const { analysisA, rewrittenAnalysis } = data;
   
   return `
     <!DOCTYPE html>
@@ -22,12 +22,15 @@ function generateSingleAnalysisEmailHtml(data: ShareViaEmailRequest): string {
         .score { font-size: 18px; font-weight: bold; color: #4a6ee0; }
         h2 { color: #333; }
         .quote { font-style: italic; color: #666; border-left: 2px solid #ddd; padding-left: 10px; }
+        .rewrite { margin-top: 30px; padding: 20px; border: 1px solid #dee2e6; border-radius: 5px; background-color: #f8f9fa; }
+        .rewrite-header { background-color: #e9f7ef; padding: 10px; border-left: 3px solid #28a745; margin-bottom: 15px; }
+        .improved-score { color: #28a745; font-weight: bold; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>Document Analysis Results</h1>
+          <h1>${rewrittenAnalysis ? 'Document Analysis with Rewrite' : 'Document Analysis Results'}</h1>
         </div>
         <div class="content">
           <h2>Document Analysis Summary</h2>
@@ -50,6 +53,27 @@ function generateSingleAnalysisEmailHtml(data: ShareViaEmailRequest): string {
           ${analysisA.aiDetection ? `
             <h2>AI Detection Results</h2>
             <p>This document has a <strong>${analysisA.aiDetection.probability}% probability</strong> of being AI-generated.</p>
+          ` : ''}
+          
+          ${rewrittenAnalysis ? `
+            <div class="rewrite">
+              <div class="rewrite-header">
+                <h2>Intelligence-Enhanced Rewrite</h2>
+                <p>The document has been rewritten to improve semantic compression and logical structure.</p>
+              </div>
+              
+              <h3>Rewrite Intelligence Assessment</h3>
+              <p class="score">Rewrite Score: <span class="improved-score">${rewrittenAnalysis.overallScore}/100</span></p>
+              <p>${rewrittenAnalysis.summary}</p>
+              
+              <h3>Improvement Analysis</h3>
+              <p>Score change: <strong>${(rewrittenAnalysis.overallScore - analysisA.overallScore).toFixed(1)}</strong> points</p>
+              
+              ${rewrittenAnalysis.aiDetection ? `
+                <h3>AI Detection for Rewrite</h3>
+                <p>The rewritten text has a <strong>${rewrittenAnalysis.aiDetection.probability}% probability</strong> of being AI-generated.</p>
+              ` : ''}
+            </div>
           ` : ''}
         </div>
         <div class="footer">
@@ -166,9 +190,14 @@ export async function sendAnalysisViaEmail(
 
   try {
     // Generate the appropriate email HTML based on document type
-    const htmlContent = data.documentType === 'single' 
-      ? generateSingleAnalysisEmailHtml(data)
-      : generateComparisonEmailHtml(data);
+    let htmlContent;
+    if (data.documentType === 'comparison') {
+      htmlContent = generateComparisonEmailHtml(data);
+    } else {
+      // Both 'single' and 'rewrite' document types use the single analysis template
+      // The template will check for rewrittenAnalysis and include it if present
+      htmlContent = generateSingleAnalysisEmailHtml(data);
+    }
     
     // Define email message
     const msg = {

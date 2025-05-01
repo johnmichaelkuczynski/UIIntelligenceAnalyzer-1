@@ -428,6 +428,7 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
         analysisA={analysis}
+        rewrittenAnalysis={rewrittenAnalysis}
       />
       
       {/* Rewrite Dialog */}
