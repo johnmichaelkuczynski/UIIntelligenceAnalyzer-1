@@ -78,30 +78,72 @@ async function extractTextFromDocx(file: Express.Multer.File): Promise<DocumentI
  * Extract text from a PDF file using pdf-parse
  */
 async function extractTextFromPdf(file: Express.Multer.File): Promise<DocumentInput> {
+  let tempFilePath = '';
   try {
+    console.log(`Starting PDF extraction for file: ${file.originalname}, size: ${file.size} bytes`);
+    
+    // Make sure we have pdf-parse package
+    let pdfParse;
+    try {
+      pdfParse = await import('pdf-parse');
+      console.log("Successfully imported pdf-parse module");
+    } catch (importError) {
+      console.error("Failed to import pdf-parse:", importError);
+      throw new Error("PDF parsing module not available");
+    }
+    
     // Save buffer to temporary file
-    const tempFilePath = path.join(os.tmpdir(), `${Date.now()}-${file.originalname}`);
+    tempFilePath = path.join(os.tmpdir(), `${Date.now()}-${file.originalname}`);
     fs.writeFileSync(tempFilePath, file.buffer);
+    console.log(`Saved temporary file to: ${tempFilePath}`);
     
-    // Use dynamic import for pdf-parse (not a direct dependency)
-    const pdfParse = await import('pdf-parse');
-    
+    // Read file from disk
     const dataBuffer = fs.readFileSync(tempFilePath);
+    console.log(`Read ${dataBuffer.length} bytes from temporary file`);
+    
+    // Parse PDF
+    console.log("Starting PDF parsing...");
     const data = await pdfParse.default(dataBuffer);
+    console.log(`Successfully parsed PDF, extracted ${data.text.length} characters of text`);
     
     // Clean up temp file
-    fs.unlinkSync(tempFilePath);
+    if (fs.existsSync(tempFilePath)) {
+      fs.unlinkSync(tempFilePath);
+      console.log("Deleted temporary file");
+    }
     
+    // Validate that we actually got text content
+    if (!data.text || data.text.trim().length === 0) {
+      console.warn("PDF parsed successfully but no text was extracted");
+      return {
+        content: "The PDF was processed but no text could be extracted. The PDF may be scanned or image-based. Please try another file or paste the text directly.",
+        filename: file.originalname,
+        mimeType: file.mimetype
+      };
+    }
+    
+    console.log("PDF extraction completed successfully");
     return {
       content: data.text,
       filename: file.originalname,
       mimeType: file.mimetype
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error extracting text from PDF:", error);
-    // Fallback to basic text extraction
+    
+    // Clean up temp file if it exists
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      try {
+        fs.unlinkSync(tempFilePath);
+        console.log("Cleaned up temporary file after error");
+      } catch (cleanupError) {
+        console.error("Error cleaning up temporary file:", cleanupError);
+      }
+    }
+    
+    // Fallback to basic text extraction with more helpful error message
     return {
-      content: "Error extracting text from PDF file. Please try another format or paste the text directly.",
+      content: `Error extracting text from the PDF file: ${error.message || 'Unknown error'}. This may be due to the PDF being encrypted, damaged, or containing only images. Please try another file or paste the text directly.`,
       filename: file.originalname,
       mimeType: file.mimetype
     };

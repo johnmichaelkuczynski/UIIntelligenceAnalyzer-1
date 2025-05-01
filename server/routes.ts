@@ -2,6 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import multer from "multer";
+import * as path from 'path';
 import { extractTextFromFile } from "./api/documentParser";
 import { checkForAI } from "./api/gptZero";
 import { DocumentAnalysis, DocumentComparison, ShareViaEmailRequest, DimensionRating, RewriteOptions, RewriteRequest } from "../client/src/lib/types";
@@ -68,14 +69,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/extract-text", upload.single("file"), async (req: Request, res: Response) => {
     try {
       if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
+        console.error("No file received in request");
+        return res.status(400).json({ 
+          message: "No file uploaded",
+          success: false 
+        });
       }
       
+      console.log(`File upload received: ${req.file.originalname}, type: ${req.file.mimetype}, size: ${req.file.size} bytes`);
+      
+      // Check for supported file types
+      const fileExtension = path.extname(req.file.originalname).toLowerCase();
+      if (!['.txt', '.docx', '.pdf'].includes(fileExtension)) {
+        console.error(`Unsupported file type: ${fileExtension}`);
+        return res.status(400).json({
+          message: `Unsupported file type: ${fileExtension}. Only .txt, .docx, and .pdf files are supported.`,
+          success: false
+        });
+      }
+      
+      // Check file size
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (req.file.size > maxSize) {
+        console.error(`File too large: ${req.file.size} bytes (max: ${maxSize} bytes)`);
+        return res.status(400).json({
+          message: `File too large: ${Math.round(req.file.size / (1024 * 1024))}MB (max: 10MB)`,
+          success: false
+        });
+      }
+      
+      console.log(`Processing ${fileExtension} file...`);
       const result = await extractTextFromFile(req.file);
-      res.json(result);
+      
+      if (!result.content || result.content.trim().length === 0) {
+        console.warn("No text content extracted from file");
+        return res.status(422).json({
+          message: "The file was processed but no text could be extracted. The file may be corrupt, encrypted, or contain only images.",
+          success: false,
+          filename: req.file.originalname
+        });
+      }
+      
+      console.log(`Successfully extracted ${result.content.length} characters from ${req.file.originalname}`);
+      res.json({
+        ...result,
+        success: true
+      });
     } catch (error: any) {
       console.error("Error extracting text:", error);
-      res.status(500).json({ message: error.message || "Error extracting text from file" });
+      res.status(500).json({ 
+        message: error.message || "Error extracting text from file",
+        success: false,
+        error: error.toString()
+      });
     }
   });
 
