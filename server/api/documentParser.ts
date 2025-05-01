@@ -97,11 +97,16 @@ async function extractTextFromPdf(file: Express.Multer.File): Promise<DocumentIn
       
       // Extract plain text content that might be directly embedded
       const textMatches = bufferText.match(/\(([^)]+)\)/g) || [];
-      const possibleText = textMatches
+      let possibleText = textMatches
         .map(match => match.slice(1, -1))
         .filter(text => text.length > 3 && /[a-zA-Z]/.test(text))
         .join(' ');
         
+      // Clean up the text - replace non-printable characters with spaces
+      possibleText = possibleText.replace(/[^\x20-\x7E]/g, ' ');
+      // Replace multiple spaces with a single space
+      possibleText = possibleText.replace(/\s+/g, ' ');
+      
       if (possibleText && possibleText.length > 100) {
         console.log(`Extracted ${possibleText.length} characters using direct buffer analysis`);
         extractedText = possibleText;
@@ -142,9 +147,17 @@ async function extractTextFromPdf(file: Express.Multer.File): Promise<DocumentIn
       console.log("Deleted temporary file");
     }
     
-    console.log("PDF extraction completed");
+    // Final cleanup of the extracted text
+    // Remove non-printable characters and control characters
+    const cleanedText = extractedText
+      .replace(/[^\x20-\x7E\n\r\t]/g, ' ')  // Replace non-printable with space
+      .replace(/\s+/g, ' ')                 // Replace multiple spaces with one
+      .replace(/(\. )/g, '.\n')             // Add line breaks after periods for readability
+      .trim();
+      
+    console.log(`PDF extraction completed and cleaned text (${cleanedText.length} chars)`);
     return {
-      content: extractedText,
+      content: cleanedText,
       filename: file.originalname,
       mimeType: file.mimetype
     };
