@@ -13,6 +13,56 @@ try {
 }
 
 /**
+ * Calculate the Levenshtein distance between two strings
+ * This measures the minimum number of single-character edits required to change one string into another
+ */
+function levenshteinDistance(str1: string, str2: string): number {
+  const m = str1.length;
+  const n = str2.length;
+  
+  // Create a matrix of size (m+1) x (n+1)
+  const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+  
+  // Initialize the first row and column
+  for (let i = 0; i <= m; i++) {
+    dp[i][0] = i;
+  }
+  for (let j = 0; j <= n; j++) {
+    dp[0][j] = j;
+  }
+  
+  // Fill the matrix
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (str1[i - 1] === str2[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1];
+      } else {
+        dp[i][j] = 1 + Math.min(
+          dp[i - 1][j],     // deletion
+          dp[i][j - 1],     // insertion
+          dp[i - 1][j - 1]  // substitution
+        );
+      }
+    }
+  }
+  
+  return dp[m][n];
+}
+
+/**
+ * Calculate the similarity percentage between two strings using Levenshtein distance
+ * Returns a value between 0 (completely different) and 100 (identical)
+ */
+function calculateSimilarityPercentage(str1: string, str2: string): number {
+  if (str1 === str2) return 100;
+  if (str1.length === 0 || str2.length === 0) return 0;
+  
+  const distance = levenshteinDistance(str1, str2);
+  const maxLength = Math.max(str1.length, str2.length);
+  return Math.round((1 - distance / maxLength) * 100);
+}
+
+/**
  * Performs a sanity check to verify the rewritten text doesn't degrade the quality of the original
  * Evaluates various dimensions like semantic density, logical structure, and definitional clarity
  */
@@ -596,6 +646,27 @@ Provide ONLY the rewritten text without comments, explanations, or other text.`;
     // Calculate statistics
     const rewrittenLength = rewrittenText.length;
     const lengthChange = (rewrittenLength - originalLength) / originalLength;
+    
+    // Calculate similarity percentage between original and rewritten text
+    const similarityPercentage = calculateSimilarityPercentage(originalText, rewrittenText);
+    console.log(`Similarity between original and rewritten text: ${similarityPercentage}%`);
+    
+    // Reject if the rewritten text is too similar to the original (implement strict check)
+    const MAX_ALLOWED_SIMILARITY = 95; // 95% similarity threshold - configurable
+    
+    if (similarityPercentage > MAX_ALLOWED_SIMILARITY) {
+      console.log(`REWRITE REJECTED: Output is ${similarityPercentage}% similar to input (threshold: ${MAX_ALLOWED_SIMILARITY}%)`);
+      
+      return {
+        rewrittenText: originalText, // Return original text
+        stats: {
+          originalLength,
+          rewrittenLength: originalLength,
+          lengthChange: 0,
+          instructionFollowed: instruction + ` [REWRITE REJECTED: Output is ${similarityPercentage}% similar to input. This does not qualify as a valid rewrite. Please attempt a substantive rearticulation.]`
+        }
+      };
+    }
     
     // Perform sanity check on the rewritten text
     const sanityCheckPassed = await performRewriteSanityCheck(originalText, rewrittenText);
