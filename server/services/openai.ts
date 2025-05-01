@@ -238,12 +238,13 @@ export async function evaluateIntelligence(
     semanticCompressionScore >= 80 &&
     (depthFluencyScore >= 85 || claimNecessityScore >= 85);
   
-  // Core blueprint metrics average (weighted toward compression and inference)
+  // Core blueprint metrics average with EXTREMELY HEAVY weighting toward compression
+  // This prioritizes semantic density far above other factors
   const coreBlueprintScore = 
-    (semanticCompressionScore * 1.5 + 
-     inferentialContinuityScore * 1.5 + 
-     conceptualDepthScore * 1.0 + 
-     originalityScore * 1.0) / 5.0;
+    (semanticCompressionScore * 3.0 + 
+     inferentialContinuityScore * 1.0 + 
+     conceptualDepthScore * 0.75 + 
+     originalityScore * 0.25) / 5.0;
   
   // DETECTION: Advanced Critique Without Blueprinting (80-89)
   // Added more refined criteria to distinguish between upper and lower ranges of advanced critique

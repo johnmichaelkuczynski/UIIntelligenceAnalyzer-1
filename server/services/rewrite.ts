@@ -17,12 +17,61 @@ try {
  * Evaluates various dimensions like semantic density, logical structure, and definitional clarity
  */
 /**
- * Performs a sanity check to verify the rewritten text doesn't degrade the quality of the original
- * Evaluates various dimensions with specific focus on semantic compression as the primary metric
+ * Performs stringent quality verification to ensure the rewritten text preserves or enhances
+ * the semantic compression, definitional clarity, and logical structure of the original text.
+ * REJECTS any rewrite that degrades semantic density or definitional precision.
  */
 async function performRewriteSanityCheck(originalText: string, rewrittenText: string): Promise<boolean> {
   try {
-    // Limit input size for the check
+    // Basic checks first - reject obviously bad rewrites
+    
+    // Reject if rewrite is longer without adding value
+    if (rewrittenText.length > originalText.length * 1.02) {
+      console.warn("SANITY CHECK FAILED: Rewrite is significantly longer than original");
+      return false;
+    }
+    
+    // Simple degradation patterns check - immediate rejection for clear violations
+    const degradationPatterns = [
+      { original: "is", rewrite: "equates to" },
+      { original: "is", rewrite: "serves as" },
+      { original: "when", rewrite: "arises when" },
+      { original: "are", rewrite: "can be categorized as" },
+      { original: "means", rewrite: "signifies" },
+      { original: "uses", rewrite: "utilizes" },
+      { original: "shows", rewrite: "demonstrates" },
+      { original: "helps", rewrite: "facilitates" },
+      { original: "about", rewrite: "regarding" },
+      { original: "like", rewrite: "such as" },
+      { original: "need", rewrite: "require" },
+      { original: "make", rewrite: "construct" },
+      { original: "use", rewrite: "employ" }
+    ];
+    
+    // Check if simple modifications that reduce precision were made
+    let foundDegradation = false;
+    let degradationExample = "";
+    for (const pattern of degradationPatterns) {
+      // Use regex to find whole word matches only
+      const originalRegex = new RegExp(`\\b${pattern.original}\\b`, 'g');
+      const rewriteRegex = new RegExp(`\\b${pattern.rewrite}\\b`, 'g');
+      
+      // If the original used the simple form and the rewrite replaced it with the complex form
+      if (originalText.match(originalRegex) && 
+          !originalText.match(rewriteRegex) && 
+          rewrittenText.match(rewriteRegex)) {
+        foundDegradation = true;
+        degradationExample = `Original used "${pattern.original}" but rewrite replaced with "${pattern.rewrite}"`;
+        break;
+      }
+    }
+    
+    if (foundDegradation) {
+      console.warn(`SANITY CHECK FAILED: Degradation pattern detected. ${degradationExample}`);
+      return false;
+    }
+    
+    // Limit input size for the AI check
     const maxChars = 2500;
     const truncatedOriginal = originalText.length > maxChars ? originalText.substring(0, maxChars) : originalText;
     const truncatedRewrite = rewrittenText.length > maxChars ? rewrittenText.substring(0, maxChars) : rewrittenText;
@@ -30,7 +79,7 @@ async function performRewriteSanityCheck(originalText: string, rewrittenText: st
     // Get API key
     if (!process.env.OPENAI_API_KEY) {
       console.warn("OPENAI_API_KEY is missing for sanity check");
-      return true; // Skip check if no API key
+      return originalText === rewrittenText; // If no changes were made, accept it
     }
     
     // Ensure OpenAI instance is properly initialized
@@ -43,52 +92,53 @@ async function performRewriteSanityCheck(originalText: string, rewrittenText: st
       messages: [
         {
           role: "system",
-          content: `You are a rigorous quality control system specifically designed to evaluate whether a rewritten text preserves or improves the cognitive qualities of the original.
+          content: `You are SIGMA (Semantic Intelligence Grading and Measurement Analyzer), a specialized quality control system that evaluates whether rewrites preserve or improve cognitive quality.
 
-SEMANTIC COMPRESSION IS THE PRIMARY METRIC:
-The most intelligent writing packs maximum meaning into minimal language.
-Academic verbosity is the OPPOSITE of intelligence.
+YOUR MISSION: Detect any deterioration in semantic compression, definitional clarity, or logical flow from original to rewrite.
 
-KEY FACTORS (WEIGHTED BY IMPORTANCE):
-1. SEMANTIC COMPRESSION (40%): meaning-per-word ratio - how much information is packed into how many words
-2. OPERATIONAL DEFINITIONS (25%): clarity and precision of concept definitions 
-3. INFERENTIAL STRUCTURE (20%): logical flow and necessity between claims
-4. RECURSIVE FRAMEWORKS (15%): how ideas build upon and reference each other
+PRIMARY EVALUATION METRICS (in order of importance):
+1. SEMANTIC COMPRESSION RATIO (60%): Information content divided by word count 
+2. DEFINITIONAL PRECISION (25%): Clarity and operational specificity of key concepts
+3. LOGICAL FLOW (15%): Inferential necessity between adjacent claims
 
-CRITICAL DETECTION RULES:
-- If the original text has high semantic compression but the rewrite is more verbose without adding new information, this is a SERIOUS DEGRADATION
-- If the original has clear, simple definitions that were made unnecessarily complex, this is a SERIOUS DEGRADATION
-- If the original has tight logical structure that was obscured by added transitions, this is a DEGRADATION
-- If the rewrite added academic-style phrasing ("moreover," "furthermore," etc.) without new inferential content, this is a DEGRADATION
+AUTOMATIC REJECTION RULES:
+- If semantic compression decreased (rewrite uses more words for same information)
+- If clear definitions became fuzzy or verbose
+- If direct statements were made indirect 
+- If simple sentences became complex without adding content
+- If academic padding was added ("moreover," "furthermore," etc.)
 
-INTELLIGENCE MARKERS TO PRESERVE:
-- Clear operational definitions that build on each other
-- Recursive argument structures 
-- High concept-to-word ratio with no extraneous language
-- Logical necessity between claims
+SPECIFIC PATTERNS TO DETECT AS DEGRADATIONS:
+- "X is Y" → "X equates to Y" or "X serves as Y" (verbosity increase)
+- "When X" → "In situations where X" (unnecessary expansion)
+- "X means Y" → "X signifies/represents/indicates Y" (synonym bloat)
+- Simple direct definitions replaced with elaborate explanations
+- Addition of empty linking phrases between otherwise unchanged sentences
 
-Respond with a JSON object only:
+When evaluating, look specifically at sentence-by-sentence information density. Even a single instance of reduced semantic compression is grounds for rejection.
+
+Respond with a JSON object that looks EXACTLY like this:
 {
   "semanticCompression": {
-    "originalScore": 1-10,
-    "rewriteScore": 1-10,
-    "preserved": true|false,
-    "reason": "brief explanation focusing on info-per-word ratio"
+    "originalScore": <1-10>,
+    "rewriteScore": <1-10>,
+    "preserved": <true|false>,
+    "reason": "<explanation focusing on info-per-word ratio>"
   },
   "definitionalClarity": {
-    "originalScore": 1-10,
-    "rewriteScore": 1-10,
-    "preserved": true|false,
-    "reason": "brief explanation focusing on precision of concept definitions"
+    "originalScore": <1-10>,
+    "rewriteScore": <1-10>,
+    "preserved": <true|false>,
+    "reason": "<explanation focusing on concept definition precision>"
   },
   "logicalStructure": {
-    "originalScore": 1-10,
-    "rewriteScore": 1-10,
-    "preserved": true|false,
-    "reason": "brief explanation focusing on flow between claims"
+    "originalScore": <1-10>,
+    "rewriteScore": <1-10>,
+    "preserved": <true|false>,
+    "reason": "<explanation focusing on inference quality>"
   },
-  "overallVerdict": true if rewrite preserves or improves quality, false if it degrades it,
-  "explanation": "brief explanation focusing primarily on semantic compression"
+  "overallVerdict": <true if quality preserved/improved, false if degraded>,
+  "explanation": "<brief explanation of verdict>"
 }`
         },
         {
@@ -99,46 +149,59 @@ ${truncatedOriginal}
 REWRITTEN TEXT:
 ${truncatedRewrite}
 
-Evaluate whether the rewrite preserves or improves cognitive qualities of the original text.`
+Evaluate whether the rewrite preserves or improves the cognitive qualities of the original text with specific attention to semantic compression (meaning-per-word ratio).`
         }
       ],
       response_format: { type: "json_object" },
-      temperature: 0.3,
+      temperature: 0.2, // Lower temperature for more consistent evaluation
     });
     
     try {
       const result = JSON.parse(response.choices[0].message.content || "{}");
       
-      // Log the evaluation
-      console.log("Rewrite quality evaluation:", {
-        semanticDensity: {
-          originalScore: result.semanticDensity?.originalScore,
-          rewriteScore: result.semanticDensity?.rewriteScore,
-          preserved: result.semanticDensity?.preserved
-        },
-        logicalStructure: {
-          originalScore: result.logicalStructure?.originalScore,
-          rewriteScore: result.logicalStructure?.rewriteScore,
-          preserved: result.logicalStructure?.preserved
-        },
-        definitionalClarity: {
-          originalScore: result.definitionalClarity?.originalScore,
-          rewriteScore: result.definitionalClarity?.rewriteScore,
-          preserved: result.definitionalClarity?.preserved
-        },
-        overallVerdict: result.overallVerdict
-      });
+      // Log detailed evaluation results
+      console.log("Rewrite quality evaluation:", JSON.stringify(result, null, 2));
       
-      return result.overallVerdict === true;
+      // Check individual dimensions with stricter semantic compression requirement
+      const semanticCompressionPreserved = result.semanticCompression?.preserved === true;
+      const semanticCompressionImproved = semanticCompressionPreserved && 
+                                          result.semanticCompression?.rewriteScore > 
+                                          result.semanticCompression?.originalScore;
+      
+      const definitionalClarityPreserved = result.definitionalClarity?.preserved === true;
+      const logicalStructurePreserved = result.logicalStructure?.preserved === true;
+      
+      // Only accept if ALL dimensions are preserved AND semantic compression is maintained or improved
+      const verdict = semanticCompressionPreserved && 
+                     definitionalClarityPreserved && 
+                     logicalStructurePreserved &&
+                     result.overallVerdict === true;
+      
+      // If semantic compression is worse, automatic rejection regardless of other dimensions
+      if (!semanticCompressionPreserved) {
+        console.warn("SANITY CHECK FAILED: Semantic compression degraded");
+        return false;
+      }
+      
+      // If original scores are already high (8+ on semantic compression), 
+      // rewrite must improve or be rejected
+      if (result.semanticCompression?.originalScore >= 8 && !semanticCompressionImproved) {
+        console.warn("SANITY CHECK FAILED: Original has high semantic compression (8+) but rewrite didn't improve it");
+        return false;
+      }
+      
+      return verdict;
       
     } catch (error) {
       console.error("Error parsing sanity check response:", error);
-      return true; // Default to passing the check if parsing fails
+      // Default to REJECTING the rewrite if parsing fails - safer
+      return false;
     }
     
   } catch (error) {
     console.error("Error in rewrite sanity check:", error);
-    return true; // Default to passing the check if API call fails
+    // Default to REJECTING the rewrite if check fails - safer
+    return false;
   }
 }
 
@@ -174,37 +237,52 @@ export async function rewriteText(
   const originalLength = originalText.length;
   
   // Create a system prompt that enforces the rewrite rules
-  const systemPrompt = `You are an expert rewrite engine for enhancing the genuine intelligence of text. Your purpose is to improve logical structure, definitional clarity, and inferential depth WITHOUT any style inflation.
+  const systemPrompt = `You are SEMANTIC COMPRESSION OPTIMIZER, an engine that enhances writing intelligence through superior semantic density.
 
-CORE FUNCTION:
-Your ONLY goal is to enhance real cognitive content. Never add words without adding genuine inferential value.
+YOUR PRIME DIRECTIVE:
+NEVER MAKE CLEAN TEXT VERBOSE. Superior intelligence is expressed in maximum meaning with minimum words.
 
-THE PRIMARY METRIC OF INTELLIGENCE IS SEMANTIC COMPRESSION:
-The most intelligent writing packs maximum meaning into minimal language.
-Academic verbosity is the OPPOSITE of intelligence and semantic compression.
+INTELLIGENCE FINGERPRINT RULES (ABSOLUTELY MANDATORY):
+1. SEMANTIC DENSITY IS SUPREME: High-intelligence texts have 90%+ information density per word.
+2. SIMPLE SENTENCES EXPRESSING COMPLEX IDEAS ARE SUPERIOR to complex sentences expressing simple ideas.
+3. DIRECT DEFINITION > VERBOSE EXPLANATION: Sharp definitional clarity always beats elaborate exposition.
+4. ONLY REWRITE IF YOU CAN IMPROVE ACTUAL INTELLIGENCE: Many texts are already optimally compressed.
+5. OPERATIONAL DEFINITIONS BUILD FOUNDATION: If original uses clear operational definitions, preserve or sharpen them.
 
-CRITICAL REWRITE RULES (MANDATORY):
-- EXACT LENGTH ENFORCEMENT: Final rewritten text MUST maintain 95-100% of original character count. Never exceed original length by even 1%.
-- ENHANCE SEMANTIC COMPRESSION: Maximize the amount of meaning per word. Sharp, clear, precise formulations with high information density.
-- PRESERVE OR ENHANCE RECURSIVE STRUCTURES: Every high-intelligence text builds recursive frameworks (A→B→C→A*).
-- BUILD TIGHT OPERATIONAL DEFINITIONS: Clear distinctions between concepts with precision.
-- ELIMINATE ALL ACADEMIC FLUFF: Remove "furthermore," "moreover," "indeed," and all similar padding that adds no semantic value.
-- NEVER USE JARGON WITHOUT DEFINING IT: Jargon must always be defined when introduced.
-- PREFER CLARITY OVER SOPHISTICATION: Intelligent writing is crystal clear, not superficially complex.
+BEFORE EDITING ANY SENTENCE, RUN THIS CHECK:
+1. Does the original sentence have high semantic compression? (meaning-per-word ratio)
+2. Does the original sentence use clean, direct definition?
+3. Does the original connect logically to adjacent sentences?
+→ If YES to all three, DO NOT MODIFY THE SENTENCE AT ALL.
 
-INTELLIGENCE PATTERNS TO SEEK AND AMPLIFY:
-1. Clear operational definitions that build on each other in tightly integrated ways
-2. Recursive argument structures where earlier points are referenced and extended 
-3. Inferential continuity where each claim leads necessarily to the next
-4. High concept-to-word ratio with no extraneous language
+REWRITE LENGTH CONSTRAINT:
+- Final text MUST be 95-100% of original character count. NEVER longer.
+- If original text has exceptional density, output may be IDENTICAL to input.
 
-DO NOT:
-- Add academic padding or verbosity
-- Use unnecessary complex syntax
-- Add citations or references not in original
-- Introduce unnecessary abstraction
-- Add meta-discourse (e.g., "In this essay, I will argue")
-- Replace simple, clear language with complex equivalents
+FORBIDDEN TRANSFORMATIONS (AUTOMATIC FAILURE):
+- NEVER replace "X is Y" with "X equates to Y" or similar padding
+- NEVER replace direct statements with indirect ones
+- NEVER add transition words like "furthermore," "moreover," "indeed," etc.
+- NEVER replace simple words with complex synonyms
+- NEVER introduce abstractions to replace concrete statements
+- NEVER turn simple sentences into complex ones
+- NEVER replace sharp definitions with vague descriptions
+
+EXAMPLES OF DEGRADATION (NEVER DO THESE):
+
+ORIGINAL: "Currency is money. Money is a certificate of wealth that is not itself of any value."
+BAD REWRITE: "Currency equates to money, which serves as a representation of wealth without intrinsic value."
+WHY BAD: Added verbosity, reduced clarity, lost definitional precision.
+
+ORIGINAL: "A surplus is when you have more of something than you need."
+BAD REWRITE: "A surplus arises when there is an excess of a particular item beyond what is required."
+WHY BAD: Added words without adding meaning, increased processing time.
+
+INTELLIGENCE IMPROVEMENT TECHNIQUES (ONLY IF ORIGINAL NEEDS THEM):
+- Sharpen fuzzy definitions with precise operational boundaries
+- Connect disjoint ideas with minimal logical scaffolding
+- Replace circular reasoning with directional inference
+- Remove redundancies while preserving all unique content
 - Strengthen distinction-making between related concepts
 - Reveal implicit inferential structures (make reasoning chains explicit)
 - Ensure each sentence builds logically on preceding ones
