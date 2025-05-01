@@ -192,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Rewrite text with intelligence enhancement
+  // Rewrite text with intelligence enhancement + comparative analysis and AI detection
   app.post("/api/rewrite", async (req: Request, res: Response) => {
     try {
       const { originalText, options }: RewriteRequest = req.body;
@@ -216,6 +216,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       try {
+        // STEP 1: First analyze the original text to establish baseline cognitive metrics
+        console.log("Analyzing original text to establish baseline...");
+        const originalAnalysis = await evaluateIntelligence(originalText);
+        const originalScore = originalAnalysis.overallScore;
+        console.log(`Original text baseline cognitive score: ${originalScore}`);
+        
+        // Store key cognitive metrics for comparison
+        const originalMetrics = {
+          semanticCompression: originalAnalysis.deep.semanticCompression,
+          inferentialContinuity: originalAnalysis.deep.inferentialContinuity,
+          conceptualDepth: originalAnalysis.deep.conceptualDepth,
+          claimNecessity: originalAnalysis.deep.claimNecessity,
+          logicalLaddering: originalAnalysis.deep.logicalLaddering,
+          originality: originalAnalysis.deep.originality
+        };
+        
+        // STEP 2: Perform the rewrite
         const result = await rewriteText(
           originalText, 
           options.instruction,
@@ -223,10 +240,155 @@ export async function registerRoutes(app: Express): Promise<Server> {
           options.preserveDepth !== false   // Default to true if not specified
         );
         
+        // If the rewrite was rejected by the sanity check (original text returned)
+        if (result.rewrittenText === originalText) {
+          return res.json({
+            originalText,
+            rewrittenText: result.rewrittenText,
+            stats: result.stats,
+            comparativeAnalysis: {
+              verdict: "REWRITE REJECTED",
+              reason: "Sanity check detected potential degradation of semantic density or logical structure",
+              recommendedScore: originalScore,
+              rewriteQuality: "INFERIOR"
+            }
+          });
+        }
+        
+        // STEP 3: Analyze the rewritten text
+        console.log("Analyzing rewritten text for comparative evaluation...");
+        const rewrittenAnalysis = await evaluateIntelligence(result.rewrittenText);
+        const rewrittenScore = rewrittenAnalysis.overallScore;
+        console.log(`Rewritten text cognitive score: ${rewrittenScore}`);
+        
+        // Store key cognitive metrics for comparison
+        const rewrittenMetrics = {
+          semanticCompression: rewrittenAnalysis.deep.semanticCompression,
+          inferentialContinuity: rewrittenAnalysis.deep.inferentialContinuity,
+          conceptualDepth: rewrittenAnalysis.deep.conceptualDepth,
+          claimNecessity: rewrittenAnalysis.deep.claimNecessity,
+          logicalLaddering: rewrittenAnalysis.deep.logicalLaddering,
+          originality: rewrittenAnalysis.deep.originality
+        };
+        
+        // STEP 4: Calculate direct cognitive metric changes
+        const metricChanges = {
+          semanticCompression: rewrittenMetrics.semanticCompression - originalMetrics.semanticCompression,
+          inferentialContinuity: rewrittenMetrics.inferentialContinuity - originalMetrics.inferentialContinuity,
+          conceptualDepth: rewrittenMetrics.conceptualDepth - originalMetrics.conceptualDepth,
+          claimNecessity: rewrittenMetrics.claimNecessity - originalMetrics.claimNecessity,
+          logicalLaddering: rewrittenMetrics.logicalLaddering - originalMetrics.logicalLaddering,
+          originality: rewrittenMetrics.originality - originalMetrics.originality
+        };
+        
+        // STEP 5: Run AI detection on both texts if GPTZero API key is available
+        let aiDetectionResults = null;
+        if (process.env.GPTZERO_API_KEY) {
+          try {
+            console.log("Running AI detection on original and rewritten texts...");
+            const originalAICheck = await checkForAI({ content: originalText });
+            const rewrittenAICheck = await checkForAI({ content: result.rewrittenText });
+            
+            aiDetectionResults = {
+              original: originalAICheck,
+              rewritten: rewrittenAICheck,
+              aiProbabilityChange: rewrittenAICheck.probability - originalAICheck.probability
+            };
+            
+            console.log(`AI Detection Results - Original: ${originalAICheck.probability}%, Rewritten: ${rewrittenAICheck.probability}%`);
+          } catch (aiError) {
+            console.error("AI detection error:", aiError);
+            // Continue without AI detection if it fails
+          }
+        }
+        
+        // STEP 6: Score Adjustment Algorithm - Fix score inflation for high-quality texts
+        // This addresses the Chomsky problem where rewrites of already excellent texts 
+        // don't get properly penalized for non-improvement or slight degradation
+        
+        let adjustedScore = rewrittenScore;
+        let scoringVerdict = "";
+        let adjustmentReason = "";
+        let rewriteQuality = "EQUIVALENT"; // Default
+        
+        // Case 1: Original text is already excellent (90+) 
+        if (originalScore >= 90) {
+          // Check if semantic compression and inferential continuity improved
+          const keyMetricsImproved = metricChanges.semanticCompression > 1 && 
+                                     metricChanges.inferentialContinuity > 0;
+          
+          if (!keyMetricsImproved) {
+            // If key metrics didn't improve, apply a penalty
+            const penalty = 3;
+            adjustedScore = Math.max(originalScore - penalty, 85);
+            scoringVerdict = "SCORE ADJUSTED DOWNWARD";
+            adjustmentReason = "No meaningful improvement in key cognitive dimensions for already excellent text";
+            rewriteQuality = "INFERIOR";
+            console.log(`Score inflation detected! Original: ${originalScore}, Raw rewrite: ${rewrittenScore}, Adjusted: ${adjustedScore}`);
+          } else {
+            // Metrics improved but still apply smaller adjustment for high-quality texts
+            // to ensure rewrites are substantively better
+            if (rewrittenScore - originalScore < 1) {
+              adjustedScore = originalScore + 0.5; // Minimal improvement
+              scoringVerdict = "MODERATE IMPROVEMENT";
+              adjustmentReason = "Slight improvement in already excellent text";
+              rewriteQuality = "SLIGHTLY BETTER";
+            } else {
+              scoringVerdict = "SIGNIFICANT IMPROVEMENT";
+              adjustmentReason = "Meaningful enhancement of already excellent text";
+              rewriteQuality = "SUPERIOR";
+            }
+          }
+        }
+        // Case 2: Original text is good but not excellent (80-89)
+        else if (originalScore >= 80) {
+          // For good texts, require at least some improvement in semantic compression
+          if (metricChanges.semanticCompression <= 0) {
+            adjustedScore = Math.max(rewrittenScore - 2, originalScore - 1);
+            scoringVerdict = "SCORE ADJUSTED DOWNWARD";
+            adjustmentReason = "Semantic compression not improved in high-quality text";
+            rewriteQuality = "INFERIOR";
+          } else if (rewrittenScore <= originalScore) {
+            adjustedScore = originalScore - 0.5;
+            scoringVerdict = "SCORE ADJUSTED DOWNWARD";
+            adjustmentReason = "Rewrite didn't improve overall quality";
+            rewriteQuality = "INFERIOR";
+          } else {
+            scoringVerdict = "IMPROVEMENT DETECTED";
+            adjustmentReason = "Moderate enhancement of good text";
+            rewriteQuality = "BETTER";
+          }
+        }
+        // Case 3: Original text is average or below (below 80)
+        else {
+          // For average texts, maintain the rewritten score if it's higher
+          if (rewrittenScore <= originalScore) {
+            adjustedScore = originalScore - 0.5;
+            scoringVerdict = "SCORE ADJUSTED DOWNWARD";
+            adjustmentReason = "Rewrite didn't improve overall quality";
+            rewriteQuality = "INFERIOR";
+          } else {
+            scoringVerdict = "IMPROVEMENT ACCEPTED";
+            adjustmentReason = "Enhancement of average text";
+            rewriteQuality = "BETTER";
+          }
+        }
+        
+        // STEP 7: Return comprehensive results with comparative metrics
         res.json({
           originalText,
           rewrittenText: result.rewrittenText,
-          stats: result.stats
+          stats: result.stats,
+          comparativeAnalysis: {
+            originalScore: originalScore,
+            rewrittenRawScore: rewrittenScore,
+            adjustedScore: adjustedScore,
+            verdict: scoringVerdict,
+            reason: adjustmentReason,
+            rewriteQuality: rewriteQuality,
+            metricChanges: metricChanges,
+            aiDetection: aiDetectionResults
+          }
         });
       } catch (rewriteError: any) {
         console.error("Rewrite error:", rewriteError);
