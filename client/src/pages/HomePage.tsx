@@ -178,11 +178,11 @@ const HomePage: React.FC = () => {
           ) : (
             <div>
               {/* Document A Results */}
-              {analysisA && <DocumentResults id="A" analysis={analysisA} />}
+              {analysisA && <DocumentResults id="A" analysis={analysisA} originalDocument={documentA} />}
 
               {/* Document B Results (only in compare mode) */}
               {mode === "compare" && analysisB && (
-                <DocumentResults id="B" analysis={analysisB} />
+                <DocumentResults id="B" analysis={analysisB} originalDocument={documentB} />
               )}
 
               {/* Comparative Results (only in compare mode) */}
