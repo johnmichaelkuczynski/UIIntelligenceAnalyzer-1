@@ -64,17 +64,17 @@ export async function evaluateIntelligence(
     detailedEvaluation.surface.surfaceFluency
   ) / 4;
   
-  // Calculate deep score with weighted emphasis on blueprint-grade indicators
-  // More heavily weighted toward semantic compression, inferential continuity, and originality
+  // Calculate deep score with EXTREME emphasis on semantic compression and definitional clarity
+  // FUNDAMENTALLY REWEIGHTED to prioritize compression and clear operational definitions
   const deepScoreWeighted = (
-    detailedEvaluation.deep.conceptualDepth * 1.4 +       // Weight: 1.4 (important)
-    detailedEvaluation.deep.inferentialContinuity * 1.8 + // Weight: 1.8 (critical)
-    detailedEvaluation.deep.claimNecessity * 1.0 +        // Weight: 1.0 (standard)
-    detailedEvaluation.deep.semanticCompression * 2.0 +   // Weight: 2.0 (highest priority)
-    detailedEvaluation.deep.logicalLaddering * 1.0 +      // Weight: 1.0 (standard)
-    detailedEvaluation.deep.depthFluency * 1.0 +          // Weight: 1.0 (standard)
-    detailedEvaluation.deep.originality * 1.8             // Weight: 1.8 (critical)
-  ) / 10; // Normalized by the sum of weights
+    detailedEvaluation.deep.semanticCompression * 5.0 +   // Weight: 5.0 (DOMINANT - more than doubled)
+    detailedEvaluation.deep.claimNecessity * 2.0 +        // Weight: 2.0 (critical for definitional clarity)
+    detailedEvaluation.deep.inferentialContinuity * 1.5 + // Weight: 1.5 (reduced but still important)
+    detailedEvaluation.deep.logicalLaddering * 1.0 +      // Weight: 1.0 (unchanged)
+    detailedEvaluation.deep.conceptualDepth * 0.8 +       // Weight: 0.8 (reduced)
+    detailedEvaluation.deep.depthFluency * 0.4 +          // Weight: 0.4 (heavily reduced)
+    detailedEvaluation.deep.originality * 0.3             // Weight: 0.3 (heavily reduced)
+  ) / 11.0; // Normalized by new sum of weights (11.0)
   
   // Constrain to valid range
   const deepScore = Math.min(100, Math.max(0, deepScoreWeighted));
@@ -191,10 +191,11 @@ export async function evaluateIntelligence(
     (conceptualDepthScore >= 85 || originalityScore >= 85);
     
   // Framework creation score - measures the ability to establish new conceptual frameworks
+  // HEAVILY reweighted to prioritize semantic compression as the primary factor
   const frameworkCreationScore =
-    (originalityScore * 0.35) +
-    (semanticCompressionScore * 0.35) +
-    (conceptualDepthScore * 0.3);
+    (semanticCompressionScore * 0.60) + // Dramatically increased from 0.35 to 0.60
+    (conceptualDepthScore * 0.25) +     // Reduced from 0.30 to 0.25
+    (originalityScore * 0.15);          // Dramatically reduced from 0.35 to 0.15
   
   // DETECTION FUNCTION: Blueprint-Grade Thinking (90-98)
   // These patterns match the calibration examples for blueprint-grade thinking
@@ -238,13 +239,14 @@ export async function evaluateIntelligence(
     semanticCompressionScore >= 80 &&
     (depthFluencyScore >= 85 || claimNecessityScore >= 85);
   
-  // Core blueprint metrics average with EXTREMELY HEAVY weighting toward compression
-  // This prioritizes semantic density far above other factors
+  // Core blueprint metrics average with ABSOLUTE MAXIMUM weighting toward compression
+  // This prioritizes semantic density as THE primary factor above all else
   const coreBlueprintScore = 
-    (semanticCompressionScore * 3.0 + 
-     inferentialContinuityScore * 1.0 + 
-     conceptualDepthScore * 0.75 + 
-     originalityScore * 0.25) / 5.0;
+    (semanticCompressionScore * 5.0 +  // DRASTICALLY increased from 3.0 to 5.0
+     inferentialContinuityScore * 0.7 + // Decreased from 1.0 to 0.7
+     claimNecessityScore * 0.6 +       // Added as new factor for definitional clarity
+     conceptualDepthScore * 0.5 +      // Decreased from 0.75 to 0.5
+     originalityScore * 0.2) / 7.0;    // Decreased from 0.25 to 0.2, adjusted divisor
   
   // DETECTION: Advanced Critique Without Blueprinting (80-89)
   // Added more refined criteria to distinguish between upper and lower ranges of advanced critique
