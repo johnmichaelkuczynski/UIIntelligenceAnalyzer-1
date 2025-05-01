@@ -105,15 +105,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No content provided" });
       }
       
-      // Use OpenAI GPT-4 to perform deep semantic analysis of the document
+      // Check for available AI APIs
+      const useMultiModel = !!process.env.ANTHROPIC_API_KEY;
+      if (useMultiModel) {
+        console.log("Using multi-model enhanced analysis with OpenAI and Anthropic Claude.");
+      } else {
+        console.log("Using OpenAI-only analysis. For better results, add ANTHROPIC_API_KEY.");
+      }
+      
+      // Use our enhanced multi-model approach for deep semantic analysis
       try {
-        // First try to use the OpenAI-based analysis
+        // Perform comprehensive analysis with multi-model support where available
         const aiEvaluation = await evaluateIntelligence(document.content);
         const result = formatAIEvaluationAsDocumentAnalysis(document.content, aiEvaluation);
+        
+        // Log the key cognitive metrics for debugging
+        console.log("Analysis complete with the following key metrics:");
+        console.log(`- Semantic Compression: ${aiEvaluation.deep.semanticCompression}/100`);
+        console.log(`- Inferential Continuity: ${aiEvaluation.deep.inferentialContinuity}/100`);
+        console.log(`- Claim Necessity: ${aiEvaluation.deep.claimNecessity}/100`);
+        console.log(`- Overall Score: ${aiEvaluation.overallScore}/100`);
+        
         res.json(result);
       } catch (aiError) {
-        console.error("OpenAI analysis failed, falling back to algorithmic analysis:", aiError);
-        // Fallback to the algorithmic analysis if OpenAI fails
+        console.error("AI analysis failed, falling back to algorithmic analysis:", aiError);
+        // Fallback to the algorithmic analysis as a last resort
         const result = generateAnalysis(document.content);
         res.json(result);
       }
@@ -136,16 +152,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let analysisA: DocumentAnalysis;
       let analysisB: DocumentAnalysis;
       
+      // Check for available AI APIs
+      const useMultiModel = !!process.env.ANTHROPIC_API_KEY;
+      if (useMultiModel) {
+        console.log("Using multi-model enhanced comparison with OpenAI and Anthropic Claude.");
+      } else {
+        console.log("Using OpenAI-only comparison. For better results, add ANTHROPIC_API_KEY.");
+      }
+      
       try {
-        // Try using OpenAI for deep semantic analysis
+        // Use our enhanced multi-model approach for document comparison
+        console.log("Analyzing document A with multi-model approach...");
         const aiEvaluationA = await evaluateIntelligence(documentA.content);
+        
+        console.log("Analyzing document B with multi-model approach...");
         const aiEvaluationB = await evaluateIntelligence(documentB.content);
+        
+        // Log the key comparative metrics for debugging
+        console.log("Comparison metrics:");
+        console.log(`Document A score: ${aiEvaluationA.overallScore}/100`);
+        console.log(`Document B score: ${aiEvaluationB.overallScore}/100`);
+        console.log(`Score difference: ${Math.abs(aiEvaluationA.overallScore - aiEvaluationB.overallScore)}`);
         
         analysisA = formatAIEvaluationAsDocumentAnalysis(documentA.content, aiEvaluationA);
         analysisB = formatAIEvaluationAsDocumentAnalysis(documentB.content, aiEvaluationB);
       } catch (aiError) {
-        console.error("OpenAI analysis failed, falling back to algorithmic analysis:", aiError);
-        // Fallback to algorithmic analysis if OpenAI fails
+        console.error("AI analysis failed, falling back to algorithmic analysis:", aiError);
+        // Fallback to algorithmic analysis as a last resort
         analysisA = generateAnalysis(documentA.content);
         analysisB = generateAnalysis(documentB.content);
       }
@@ -207,12 +240,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Starting rewrite with instruction: ${options.instruction}`);
       console.log(`Text size: ${originalText.length} characters`);
       
-      // Check if API key is available
+      // Check if OpenAI API key is available (required)
       if (!process.env.OPENAI_API_KEY) {
         return res.status(500).json({
           success: false,
           message: "OpenAI API key is required for rewriting"
         });
+      }
+      
+      // Check for Anthropic API key for multi-model enhancement (optional but recommended)
+      const useMultiModel = !!process.env.ANTHROPIC_API_KEY;
+      if (!useMultiModel) {
+        console.log("Warning: ANTHROPIC_API_KEY not found. Using OpenAI-only mode for rewriting, which may produce lower quality results.");
+      } else {
+        console.log("Using multi-model enhanced rewriting with OpenAI and Anthropic Claude.");
       }
       
       try {
