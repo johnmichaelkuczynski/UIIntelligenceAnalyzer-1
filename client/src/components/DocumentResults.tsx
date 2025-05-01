@@ -578,6 +578,71 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
                       <BrainCircuit className="h-3 w-3" />
                       {isAnalyzingRewrite ? "Analyzing..." : "Analyze Intelligence"}
                     </Button>
+                    
+                    {/* AI Detection for Rewrite */}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="flex gap-1 items-center bg-amber-50 text-amber-700 hover:bg-amber-100"
+                      onClick={() => {
+                        setIsCheckingAI(true);
+                        setShowAIDetectionModal(true);
+                        checkForAI({ content: rewrittenText })
+                          .then(result => {
+                            setAIDetectionResult(result);
+                            console.log("AI detection for rewrite:", result);
+                          })
+                          .catch(error => {
+                            console.error("Error checking rewrite for AI:", error);
+                            toast({
+                              title: "AI detection failed",
+                              description: "Could not check if the rewritten text is AI-generated.",
+                              variant: "destructive"
+                            });
+                          })
+                          .finally(() => {
+                            setIsCheckingAI(false);
+                          });
+                      }}
+                    >
+                      <ShieldAlert className="h-3 w-3" />
+                      Check AI
+                    </Button>
+                    
+                    {/* Share Rewrite button */}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="flex gap-1 items-center"
+                      onClick={() => {
+                        if (rewrittenAnalysis) {
+                          // If we already have an analysis for the rewrite, use it directly
+                          setShowShareModal(true);
+                        } else {
+                          // Otherwise, analyze it first
+                          setIsAnalyzingRewrite(true);
+                          analyzeDocument({ content: rewrittenText })
+                            .then(analysis => {
+                              setRewrittenAnalysis(analysis);
+                              setShowShareModal(true);
+                            })
+                            .catch(error => {
+                              console.error("Error analyzing rewrite for sharing:", error);
+                              toast({
+                                title: "Analysis failed",
+                                description: "Could not analyze the rewritten text for sharing.",
+                                variant: "destructive"
+                              });
+                            })
+                            .finally(() => {
+                              setIsAnalyzingRewrite(false);
+                            });
+                        }
+                      }}
+                    >
+                      <Share2 className="h-3 w-3" />
+                      Share Rewrite
+                    </Button>
                   </div>
                 </div>
                 

@@ -86,10 +86,11 @@ export interface ShareViaEmailRequest {
   senderEmail?: string;
   senderName?: string;
   subject: string;
-  documentType: 'single' | 'comparison';
+  documentType: 'single' | 'comparison' | 'rewrite';
   analysisA: DocumentAnalysis;
   analysisB?: DocumentAnalysis;
   comparison?: DocumentComparison;
+  rewrittenAnalysis?: DocumentAnalysis;
 }
 
 // Translation related types

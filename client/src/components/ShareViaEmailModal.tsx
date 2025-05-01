@@ -13,6 +13,7 @@ interface ShareViaEmailModalProps {
   analysisA: DocumentAnalysis;
   analysisB?: DocumentAnalysis;
   comparison?: DocumentComparison;
+  rewrittenAnalysis?: DocumentAnalysis;
 }
 
 const ShareViaEmailModal: React.FC<ShareViaEmailModalProps> = ({
@@ -20,18 +21,28 @@ const ShareViaEmailModal: React.FC<ShareViaEmailModalProps> = ({
   onClose,
   analysisA,
   analysisB,
-  comparison
+  comparison,
+  rewrittenAnalysis
 }) => {
   const { toast } = useToast();
   const [recipientEmail, setRecipientEmail] = useState("");
   const [senderEmail, setSenderEmail] = useState("");
   const [senderName, setSenderName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [includeRewrite, setIncludeRewrite] = useState(!!rewrittenAnalysis);
   
-  const documentType = analysisB && comparison ? 'comparison' : 'single';
-  const subjectText = documentType === 'single' 
-    ? "Intelligence Analysis Results" 
-    : "Document Comparison Analysis Results";
+  // Determine the document type based on available analyses
+  let documentType: 'single' | 'comparison' | 'rewrite' = 'single';
+  if (analysisB && comparison) {
+    documentType = 'comparison';
+  } else if (rewrittenAnalysis) {
+    documentType = 'rewrite';
+  }
+  
+  const subjectText = 
+    documentType === 'comparison' ? "Document Comparison Analysis Results" :
+    documentType === 'rewrite' ? "Document Analysis with Rewrite Results" :
+    "Intelligence Analysis Results";
 
   const handleSendEmail = async () => {
     // Validate email
@@ -53,7 +64,8 @@ const ShareViaEmailModal: React.FC<ShareViaEmailModalProps> = ({
       documentType,
       analysisA,
       analysisB,
-      comparison
+      comparison,
+      rewrittenAnalysis: (documentType === 'rewrite' && includeRewrite) ? rewrittenAnalysis : undefined
     };
 
     setIsLoading(true);
@@ -104,11 +116,29 @@ const ShareViaEmailModal: React.FC<ShareViaEmailModalProps> = ({
             Share Analysis via Email
           </DialogTitle>
           <DialogDescription>
-            Send the {documentType === 'single' ? 'document analysis' : 'comparison analysis'} to yourself or others via email.
+            Send the {
+              documentType === 'comparison' ? 'document comparison analysis' :
+              documentType === 'rewrite' ? 'document analysis with rewrite' :
+              'document analysis'
+            } to yourself or others via email.
           </DialogDescription>
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
+          {rewrittenAnalysis && (
+            <div className="flex items-center space-x-2 bg-green-50 p-3 rounded-md mb-1">
+              <input
+                type="checkbox"
+                id="include-rewrite"
+                checked={includeRewrite}
+                onChange={(e) => setIncludeRewrite(e.target.checked)}
+                className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+              />
+              <label htmlFor="include-rewrite" className="text-sm font-medium text-gray-700">
+                Include intelligence-enhanced rewrite in email
+              </label>
+            </div>
+          )}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="recipient-email" className="text-right">
               To
