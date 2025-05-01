@@ -75,45 +75,43 @@ async function extractTextFromDocx(file: Express.Multer.File): Promise<DocumentI
 }
 
 /**
- * Extract text from a PDF file using pdf-parse
+ * Extract text from a PDF file using pdfjs-dist
  */
 async function extractTextFromPdf(file: Express.Multer.File): Promise<DocumentInput> {
   let tempFilePath = '';
   try {
     console.log(`Starting PDF extraction for file: ${file.originalname}, size: ${file.size} bytes`);
     
-    // Make sure we have pdf-parse package
-    let pdfParse;
-    try {
-      pdfParse = await import('pdf-parse');
-      console.log("Successfully imported pdf-parse module");
-    } catch (importError) {
-      console.error("Failed to import pdf-parse:", importError);
-      throw new Error("PDF parsing module not available");
+    // Import pdfjs-dist
+    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.js');
+    console.log("Successfully imported pdfjs-dist module");
+    
+    // Set up the worker source
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    console.log("Using CDN for PDF.js worker");
+
+    // Parse the PDF directly from the buffer
+    const loadingTask = pdfjsLib.getDocument({ data: file.buffer });
+    console.log("PDF loading task created");
+    
+    const pdf = await loadingTask.promise;
+    console.log(`PDF loaded with ${pdf.numPages} pages`);
+    
+    // Extract text from all pages
+    let textContent = '';
+    
+    for (let i = 1; i <= pdf.numPages; i++) {
+      console.log(`Processing page ${i} of ${pdf.numPages}`);
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const strings = content.items.map((item: any) => item.str);
+      textContent += strings.join(' ') + '\n';
     }
     
-    // Save buffer to temporary file
-    tempFilePath = path.join(os.tmpdir(), `${Date.now()}-${file.originalname}`);
-    fs.writeFileSync(tempFilePath, file.buffer);
-    console.log(`Saved temporary file to: ${tempFilePath}`);
+    console.log(`Extracted ${textContent.length} characters of text`);
     
-    // Read file from disk
-    const dataBuffer = fs.readFileSync(tempFilePath);
-    console.log(`Read ${dataBuffer.length} bytes from temporary file`);
-    
-    // Parse PDF
-    console.log("Starting PDF parsing...");
-    const data = await pdfParse.default(dataBuffer);
-    console.log(`Successfully parsed PDF, extracted ${data.text.length} characters of text`);
-    
-    // Clean up temp file
-    if (fs.existsSync(tempFilePath)) {
-      fs.unlinkSync(tempFilePath);
-      console.log("Deleted temporary file");
-    }
-    
-    // Validate that we actually got text content
-    if (!data.text || data.text.trim().length === 0) {
+    // Check if we got any meaningful text
+    if (!textContent || textContent.trim().length === 0) {
       console.warn("PDF parsed successfully but no text was extracted");
       return {
         content: "The PDF was processed but no text could be extracted. The PDF may be scanned or image-based. Please try another file or paste the text directly.",
@@ -124,7 +122,7 @@ async function extractTextFromPdf(file: Express.Multer.File): Promise<DocumentIn
     
     console.log("PDF extraction completed successfully");
     return {
-      content: data.text,
+      content: textContent,
       filename: file.originalname,
       mimeType: file.mimetype
     };
