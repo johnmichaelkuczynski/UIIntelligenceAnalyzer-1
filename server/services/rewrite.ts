@@ -381,7 +381,7 @@ Evaluate whether the rewrite preserves or improves the cognitive qualities of th
         try {
           console.log("Getting second opinion from Claude for high-quality text...");
           const claudeResponse = await anthropic.messages.create({
-            model: "claude-3-opus-20240229",
+            model: "claude-3-7-sonnet-20250219", // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
             max_tokens: 1000,
             system: `You are a critical evaluator specialized in detecting ANY deterioration in semantic density or logical structure in rewritten text.
             

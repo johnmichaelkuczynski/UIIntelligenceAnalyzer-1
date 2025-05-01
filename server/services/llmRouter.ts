@@ -103,7 +103,7 @@ export class LLMRouter {
     
     try {
       const response = await anthropic.messages.create({
-        model: "claude-3-opus-20240229",
+        model: "claude-3-7-sonnet-20250219", // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
         max_tokens: 1000,
         system: `You are RECURSIVE (Reasoning Evaluation Circuit Utilizing Recursive Structure in Intellectual Verification Engine), specialized in analyzing the recursive scaffolding of arguments.
         
@@ -370,7 +370,7 @@ export class LLMRouter {
       if (this.options.useMultiModel) {
         try {
           const claudeResponse = await anthropic.messages.create({
-            model: "claude-3-opus-20240229",
+            model: "claude-3-7-sonnet-20250219", // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
             max_tokens: Math.ceil(originalText.length * 1.2), // Allow for some expansion
             system: `You are a structural rewriter focused on RECURSIVE STRUCTURE improvement.
             
