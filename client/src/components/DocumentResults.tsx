@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { DocumentAnalysis, DocumentInput as DocumentInputType, RewriteOptions, RewriteResult } from "@/lib/types";
 import AnalysisDimension from "./AnalysisDimension";
 import { Badge } from "@/components/ui/badge";
-import { Bot, Share2, FileEdit, FileText, ClipboardCopy, Download } from "lucide-react";
+import { Bot, Share2, FileEdit, FileText, ClipboardCopy, Download, BrainCircuit, FileType } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ShareViaEmailModal from "./ShareViaEmailModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -10,8 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { rewriteDocument } from "@/lib/analysis";
+import { rewriteDocument, analyzeDocument } from "@/lib/analysis";
 import { useToast } from "@/hooks/use-toast";
+import { Document, Packer, Paragraph, TextRun } from "docx";
+import { jsPDF } from "jspdf";
 
 interface DocumentResultsProps {
   id: "A" | "B";
@@ -69,6 +71,10 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
   const downloadLinkRef = useRef<HTMLAnchorElement>(null);
+  const [rewriteProgress, setRewriteProgress] = useState(0);
+  const [rewriteProgressVisible, setRewriteProgressVisible] = useState(false);
+  const [rewrittenAnalysis, setRewrittenAnalysis] = useState<DocumentAnalysis | null>(null);
+  const [isAnalyzingRewrite, setIsAnalyzingRewrite] = useState(false);
   
   // Calculate word and character count for rewritten text
   React.useEffect(() => {
@@ -84,6 +90,103 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
       setCharCount(0);
     }
   }, [rewrittenText]);
+  
+  // Function to handle analyzing the rewritten text
+  const handleAnalyzeRewrite = async () => {
+    if (!rewrittenText) return;
+    
+    setIsAnalyzingRewrite(true);
+    try {
+      const analysis = await analyzeDocument({ content: rewrittenText });
+      setRewrittenAnalysis(analysis);
+      
+      toast({
+        title: "Rewrite analyzed",
+        description: `Intelligence score: ${analysis.overallScore}/100`,
+      });
+    } catch (error) {
+      console.error("Error analyzing rewritten text:", error);
+      toast({
+        title: "Analysis failed",
+        description: "Failed to analyze the rewritten text.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAnalyzingRewrite(false);
+    }
+  };
+  
+  // Function to handle downloading in different formats
+  const handleExportDocument = (format: 'txt' | 'docx' | 'pdf') => {
+    if (!rewrittenText) return;
+    
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const filename = `rewritten-text-${timestamp}`;
+    
+    if (format === 'txt') {
+      // Plain text download
+      const blob = new Blob([rewrittenText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      
+      if (downloadLinkRef.current) {
+        downloadLinkRef.current.href = url;
+        downloadLinkRef.current.download = `${filename}.txt`;
+        downloadLinkRef.current.click();
+      }
+      
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+    } 
+    else if (format === 'docx') {
+      // DOCX download using docx library
+      const doc = new Document({
+        sections: [{
+          properties: {},
+          children: rewrittenText.split('\n\n').map(paragraph => 
+            new Paragraph({
+              children: [new TextRun({ text: paragraph })],
+            })
+          )
+        }]
+      });
+      
+      Packer.toBlob(doc).then(blob => {
+        const url = URL.createObjectURL(blob);
+        
+        if (downloadLinkRef.current) {
+          downloadLinkRef.current.href = url;
+          downloadLinkRef.current.download = `${filename}.docx`;
+          downloadLinkRef.current.click();
+        }
+        
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+      });
+    }
+    else if (format === 'pdf') {
+      // PDF download using jsPDF
+      const pdf = new jsPDF();
+      
+      // Split into pages and add text
+      const textLines = pdf.splitTextToSize(rewrittenText, 180);
+      let y = 10;
+      const lineHeight = 7;
+      
+      for (let i = 0; i < textLines.length; i++) {
+        if (y > 280) {
+          pdf.addPage();
+          y = 10;
+        }
+        pdf.text(textLines[i], 10, y);
+        y += lineHeight;
+      }
+      
+      pdf.save(`${filename}.pdf`);
+    }
+    
+    toast({
+      title: "Document exported",
+      description: `Document exported as ${format.toUpperCase()} successfully.`
+    });
+  };
   
   const handleRewrite = async () => {
     if (!originalDocument?.content) {
@@ -112,6 +215,9 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
     setIsRewriting(true);
     setRewrittenText("");
     setRewriteStats(null);
+    setRewriteProgress(0);
+    setRewriteProgressVisible(true);
+    setRewrittenAnalysis(null);
     
     try {
       const options: RewriteOptions = {
@@ -120,7 +226,33 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
         preserveDepth: true  // Default to maintaining/increasing depth
       };
       
+      // For large texts, update progress periodically using a timer
+      // This is a simulation since the actual progress isn't exposed by the API
+      const contentLength = originalDocument.content.length;
+      
+      // Use a timer to simulate progress for user feedback
+      const progressInterval = setInterval(() => {
+        setRewriteProgress(prev => {
+          // Only update progress if still rewriting and less than 90%
+          // We leave the last 10% for when the actual result comes back
+          if (prev < 90) {
+            return prev + (Math.random() * 5);
+          }
+          return prev;
+        });
+      }, 800);
+      
       const result = await rewriteDocument(originalDocument.content, options);
+      
+      // Clear interval and set to 100% when done
+      clearInterval(progressInterval);
+      setRewriteProgress(100);
+      
+      // Set a small timeout before hiding progress to ensure user sees it complete
+      setTimeout(() => {
+        setRewriteProgressVisible(false);
+      }, 500);
+      
       setRewrittenText(result.rewrittenText);
       setRewriteStats(result.stats);
       
@@ -130,6 +262,7 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
       });
     } catch (error) {
       console.error("Error rewriting text:", error);
+      setRewriteProgressVisible(false);
       toast({
         title: "Rewrite failed",
         description: "An error occurred while rewriting the text.",
@@ -146,22 +279,6 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
       title: "Copied to clipboard",
       description: "The rewritten text has been copied to your clipboard."
     });
-  };
-  
-  const handleDownload = (format: 'txt') => {
-    if (!rewrittenText) return;
-    
-    // Simple text download
-    const blob = new Blob([rewrittenText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    
-    if (downloadLinkRef.current) {
-      downloadLinkRef.current.href = url;
-      downloadLinkRef.current.download = `rewritten-text-${new Date().toISOString().slice(0, 10)}.txt`;
-      downloadLinkRef.current.click();
-    }
-    
-    setTimeout(() => URL.revokeObjectURL(url), 100);
   };
   
   const calculatePercentageChange = () => {
@@ -307,11 +424,30 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
               </div>
             )}
             
+            {/* Progress bar for rewrite process */}
+            {rewriteProgressVisible && (
+              <div className="my-4">
+                <div className="flex justify-between text-sm text-gray-600 mb-1">
+                  <span>Rewriting document...</span>
+                  <span>{Math.min(Math.round(rewriteProgress), 100)}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div 
+                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out" 
+                    style={{ width: `${Math.min(Math.round(rewriteProgress), 100)}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Processing large documents may take several minutes. Please wait...
+                </p>
+              </div>
+            )}
+  
             {rewrittenText && (
               <div className="bg-gray-50 rounded-md p-4 mt-2">
                 <div className="flex justify-between items-center mb-3">
                   <h3 className="font-medium text-gray-900">Rewritten Text</h3>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button 
                       variant="outline" 
                       size="sm" 
@@ -321,14 +457,51 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
                       <ClipboardCopy className="h-3 w-3" />
                       Copy
                     </Button>
+                    
+                    {/* Document export dropdown */}
+                    <div className="relative group">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="flex gap-1 items-center"
+                      >
+                        <Download className="h-3 w-3" />
+                        Export as
+                      </Button>
+                      <div className="absolute right-0 mt-1 hidden group-hover:block bg-white shadow-lg rounded-md z-10">
+                        <div className="py-1">
+                          <button
+                            onClick={() => handleExportDocument('txt')}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                          >
+                            Text (.txt)
+                          </button>
+                          <button
+                            onClick={() => handleExportDocument('docx')}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                          >
+                            Word (.docx)
+                          </button>
+                          <button
+                            onClick={() => handleExportDocument('pdf')}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                          >
+                            PDF (.pdf)
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Intelligence Analysis button */}
                     <Button 
                       variant="outline" 
-                      size="sm" 
-                      onClick={() => handleDownload('txt')}
-                      className="flex gap-1 items-center"
+                      size="sm"
+                      onClick={handleAnalyzeRewrite}
+                      disabled={isAnalyzingRewrite}
+                      className="flex gap-1 items-center bg-blue-50 text-blue-700 hover:bg-blue-100"
                     >
-                      <Download className="h-3 w-3" />
-                      Download
+                      <BrainCircuit className="h-3 w-3" />
+                      {isAnalyzingRewrite ? "Analyzing..." : "Analyze Intelligence"}
                     </Button>
                   </div>
                 </div>
@@ -356,6 +529,27 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
                     <p>
                       <span className="font-medium">Applied instruction:</span> {rewriteStats.instructionFollowed}
                     </p>
+                  </div>
+                )}
+                
+                {/* Rewritten text analysis results */}
+                {rewrittenAnalysis && (
+                  <div className="mt-4 border-t pt-3 border-gray-200">
+                    <h4 className="font-medium text-gray-900 mb-2">Intelligence Analysis of Rewritten Text</h4>
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="flex-1">
+                        <div className="h-2 w-full bg-gray-200 rounded-full">
+                          <div 
+                            className="h-2 bg-green-600 rounded-full" 
+                            style={{ width: `${rewrittenAnalysis.overallScore}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      <span className="font-semibold text-green-700">
+                        {rewrittenAnalysis.overallScore}/100
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700">{rewrittenAnalysis.summary}</p>
                   </div>
                 )}
               </div>
