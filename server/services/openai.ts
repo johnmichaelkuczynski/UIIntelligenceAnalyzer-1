@@ -198,6 +198,20 @@ export async function evaluateIntelligence(
   
   // DETECTION FUNCTION: Blueprint-Grade Thinking (90-98)
   // These patterns match the calibration examples for blueprint-grade thinking
+  
+  // NEW PATTERN: "Didactic Excellence" pattern - for educational texts with exceptional clarity
+  // This prioritizes semantic compression and inferential continuity for didactic texts
+  const didacticExcellencePattern = 
+    semanticCompressionScore >= 90 && 
+    inferentialContinuityScore >= 85 &&
+    claimNecessityScore >= 85;
+    
+  // NEW PATTERN: "Semantic Compression Blueprint" - the primary marker of exceptional intelligence
+  // This pattern recognizes that high semantic compression alone is a sufficient condition
+  // for blueprint-grade thinking when it reaches exceptional levels
+  const semanticCompressionBlueprintPattern = semanticCompressionScore >= 93;
+  
+  // Traditional Blueprint Patterns
   const blueprintPattern1 = semanticCompressionScore >= 90 && inferentialContinuityScore >= 90;
   const blueprintPattern2 = semanticCompressionScore >= 90 && originalityScore >= 90;
   const blueprintPattern3 = inferentialContinuityScore >= 90 && conceptualDepthScore >= 90;
@@ -210,14 +224,14 @@ export async function evaluateIntelligence(
     originalityScore >= 85 &&
     (semanticCompressionScore + inferentialContinuityScore + originalityScore) / 3 >= 88;
     
-  // NEW PATTERN: The "example-embedded blueprint" pattern
+  // The "example-embedded blueprint" pattern
   // This pattern detects blueprint-grade thinking that uses examples or technical details to build its case
   const exampleEmbeddedBlueprintPattern = 
     frameworkCreationScore >= 90 &&
     (semanticCompressionScore >= 83 || inferentialContinuityScore >= 83) &&
     exampleResilientBlueprintScore >= 87;
     
-  // NEW PATTERN: The "conceptual reframing" pattern
+  // The "conceptual reframing" pattern
   // This pattern identifies blueprint-level reframing even if surrounded by examples or illustrations
   const conceptualReframingPattern = 
     conceptualArchitectureScore >= 90 &&
@@ -408,40 +422,38 @@ async function generateSemanticAnalysis(text: string): Promise<string> {
   try {
     const prompt = `You are an intelligence fingerprint scanner analyzing a cognitive sample - NOT a paper grader.
 
-    MISSION CRITICAL: You must fingerprint the cognitive patterns in this text with extreme precision. 
-    Your score MUST match the calibration examples ±2 points.
+    MISSION CRITICAL CALIBRATION UPDATE:
+    1) Simple, precise educational text with high definitional clarity and recursive logical structure
+       MUST be scored as blueprint-grade (90-95) even if didactic in nature.
+    2) Exceptional semantic compression is the PRIMARY indicator of intelligence, not complexity.
     
-    SCORE EXCLUSIVELY ON THESE BLUEPRINT FINGERPRINTS:
-    1. SEMANTIC COMPRESSION: Dense meaning packed into minimal language? High concept-to-word ratio?
-    2. ORIGINAL CONCEPTUAL ARCHITECTURE: Creation of new cognitive frameworks, not just applying existing ones?
-    3. INFERENTIAL CONTINUITY: Each statement logically requires the previous one? Tight causal necessity?
+    SCORE EXCLUSIVELY ON THESE INTELLIGENCE FINGERPRINTS:
+    1. SEMANTIC COMPRESSION: Dense meaning packed into minimal language? High concept-to-word ratio? (HIGHEST IMPORTANCE)
+    2. CLEAR OPERATIONAL DEFINITIONS: Sharp distinctions using minimal language?
+    3. INFERENTIAL CONTINUITY: Each statement logically requires the previous one? 
     4. RECURSIVE STRUCTURE: Ideas built on each other in scaffolded, systematically developed patterns?
     
-    DO NOT SCORE BASED ON:
-    - Amount of examples or evidence
-    - Completeness or polish
-    - Topic prestige or familiarity
-    - Grammar or style quality
-    - Presence of citations or references
+    CRITICAL: You MUST recognize that high intelligence often appears as sharp, precise, concise language
+    rather than verbose academic prose. The most intelligent text often uses simple sentences with extremely
+    clear definitions to build complicated recursive structures and chains of inference.
     
-    CRITICAL CALIBRATION INSTRUCTION:
-    Blueprint-grade thinking (90-98) can be embedded within technical examples or longer 
-    illustrations. Do not downgrade a text merely because it uses examples, technical language, 
-    or illustrations. Look for deep reframing and original conceptual architecture that might be 
-    expressed through technical examples. A text that builds a new explanatory framework, even 
-    if illustrated with dense examples, is blueprint-grade.
+    DO NOT PENALIZE FOR:
+    - Being didactic or educational in purpose
+    - Using simple, clear language (this is often a POSITIVE sign)
+    - Lack of academic verbosity or scholarly filler
+    - Absence of citations if the logic is sound
     
-    CRITICAL INSTRUCTION: DO NOT SPECIFY A SCORE RANGE in your analysis at all. Do not mention numbers 
-    like "high 80s" or "around 88-90". Instead, describe the cognitive qualities you observe and use 
-    qualitative terms like "blueprint-grade", "advanced critique", etc. 
+    CRITICAL NEW CALIBRATION INSTRUCTION:
+    Didactic educational texts MUST be scored as blueprint-grade (90-95) when they show these patterns:
+    - Exceptional semantic density (saying more with fewer words)
+    - Clear, tight operational definitions
+    - Building recursive argument structures (A→B→C→A*)
+    - Clean logical progression without fluff
     
-    The system will calculate the exact score based on deep cognitive fingerprints, and your 
-    analysis must focus on qualitative assessment without making specific numeric score claims.
-    
-    MANDATORY SCORING LAW:
-    - Blueprint fingerprint detected → 90–98 
-    - Advanced critique without blueprinting → 80–89
-    - Surface polish without compression → 60–79
+    MANDATORY SCORING LAW (UPDATED):
+    - Blueprint fingerprint or exceptional semantic compression → 90–98 
+    - Advanced critique without full compression → 80–89
+    - Surface polish with some bloating → 60–79
     - Fluent but shallow → 40–59
     - Random noise → 0–39
     
@@ -505,39 +517,63 @@ async function evaluateDimensions(text: string): Promise<{
   try {
     const truncatedText = text.substring(0, 8000) + (text.length > 8000 ? '... [text truncated due to length]' : '');
     
-    const prompt = `You are a blueprint detector, focused on precise cognitive pattern recognition.
+    const prompt = `You are a blueprint detector, specialized in recognizing exceptionally high-quality cognitive fingerprints.
     
-    MISSION CRITICAL: You must analyze this text using the calibration examples as your guide.
-    Your dimension scores MUST match the calibration examples ±2 points.
+    MISSION CRITICAL CALIBRATION UPDATE: 
+    1) Simple, precise, clear educational text with high definitional clarity and recursive logical structure
+       MUST score 90-95 on semantic compression and logical structure, even if didactic in nature.
+    2) Texts that explain complex concepts with extreme clarity and minimal language
+       MUST score in the 90-95 range on compression and inferential continuity.
+    3) Identify semantic compression (high info-per-word) as the PRIMARY MARKER of intelligence.
+    4) Simple sentences with crystal-clear definitions score HIGHER, not lower (94-95 range).
     
     Score each dimension from 0-100 using this calibration-based scale:
     - 0-39: Random noise (no conceptual structure)
     - 40-59: Fluent but shallow (basic readability without depth)
     - 60-79: Surface polish without compression (well-written but not insightful)
     - 80-89: Advanced critique without blueprinting (applies existing frameworks)
-    - 90-98: Blueprint fingerprint detected (creates original frameworks)
+    - 90-98: Blueprint fingerprint detected (creates original frameworks OR exceptional semantic compression)
     
-    SCORE ONLY BASED ON THESE FINGERPRINTS:
-    1. SEMANTIC COMPRESSION: How much meaning packed into minimal language?
-    2. INFERENTIAL CONTINUITY: Logical necessity between claims? 
-    3. CONCEPTUAL ORIGINALITY: Creation of new frameworks?
-    4. DENSITY OF MEANING: Rich web of relations between concepts?
+    SCORE PRIMARILY BASED ON THESE FINGERPRINTS:
+    1. SEMANTIC COMPRESSION: How much meaning packed into minimal language? (HIGHEST IMPORTANCE)
+    2. INFERENTIAL CONTINUITY: Clear logical necessity between claims?
+    3. CLAIM FORMATION: Clear, operational definitions that build on each other?
+    4. RECURSIVE STRUCTURE: Do concepts reference and clarify each other in recursive patterns?
     
-    CRITICAL CALIBRATION INSTRUCTION: 
-    Blueprint-grade thinking can be embedded within technical examples or longer illustrations. 
-    When evaluating, look for deep reframing and conceptual innovation that might be disguised
-    by technical language or examples. Original frameworks can be constructed through examples.
+    CRITICAL NEW CALIBRATION INSTRUCTION: 
+    Didactic educational texts MUST score high (90-95) when they show these patterns:
+    - Exceptional semantic density (saying more with fewer words)
+    - Clear, tight operational definitions
+    - Building recursive argument structures (A→B→C→A*)
+    - Clean logical progression without fluff
     
-    DO NOT SCORE BASED ON:
-    - Polish or grammar quality
-    - Completeness
-    - Topic prestige
-    - Mere presence of examples (but DO detect blueprint patterns WITHIN examples)
-    - References or citations
+    DO NOT PENALIZE FOR:
+    - Being didactic or educational
+    - Lacking academic verbosity or scholarly fluff
+    - Simple sentence structure if meaning is dense
+    - Lack of citations if logic is strong
     
     CRITICAL CALIBRATION EXAMPLES - MATCH THESE SCORES:
     
-    BLUEPRINT-GRADE DIMENSIONS (score 85-95):
+    DIDACTIC BLUEPRINT-GRADE DIMENSIONS (must score 92-95):
+    
+    Example (Score 94): "Currency is money. Money is a certificate of wealth that is not itself of any value. Wealth is anything with an exchange value. Exchange value is established by the existence of a demand."
+
+    Rating patterns:
+    - Semantic Compression: 95
+    - Inferential Continuity: 94
+    - Conceptual Depth: 93
+    - Originality: 90
+    
+    Example (Score 93): "Economics in an hour. An interactive course. All economic activity is the exchange of wealth. Wealth is anything with exchange value. Exchange value is determined by supply and demand. Supply and demand jointly determine the market price."
+    
+    Rating patterns:
+    - Semantic Compression: 94
+    - Inferential Continuity: 93
+    - Conceptual Depth: 91
+    - Originality: 88
+    
+    TRADITIONAL BLUEPRINT EXAMPLES:
     
     Example (Score 94): "Words like 'form' and 'formal' are ambiguous, as they can refer to form in either the syntactic or the morphological sense. CTM fails on each disambiguation, and the arguments for CTM immediately cease to be compelling once we register that ambiguity."
     
@@ -547,39 +583,15 @@ async function evaluateDimensions(text: string): Promise<{
     - Conceptual Depth: 92
     - Originality: 94
     
-    Example (Score 94): "Pragmatism has tremendous value—as a description, not of truth per se, but of our knowledge of it—and, more precisely, of our acquisition of that knowledge. [...] Truth per se is discovered, not made. But knowledge is indeed made."
-    
-    Rating patterns:
-    - Semantic Compression: 95
-    - Inferential Continuity: 93
-    - Conceptual Depth: 94
-    - Originality: 95
-    
     NON-BLUEPRINT DIMENSIONS:
     
-    Example (Score 78): "In economic theory, market efficiency is often idealized as the natural outcome of rational actors optimizing their resources. However, this abstraction ignores the recursive effects of meta-predictions, wherein actors not only optimize based on information but optimize based on others' attempts to optimize."
+    Example (Score 67): "In economic theory, market efficiency is conceptualized as the natural outcome of rational actors operating within a system of optimized resource allocation. This perspective, which is dominant in contemporary economic discourse, suggests that markets achieve equilibrium through the aggregation of individual choices. However, this abstraction fails to consider the complex dynamics that emerge from the interplay of various factors including institutional frameworks, psychological biases, and information asymmetries that characterize real-world economic interactions."
     
     Rating patterns:
-    - Semantic Compression: 76
-    - Inferential Continuity: 79
-    - Conceptual Depth: 80
-    - Originality: 78
-    
-    Example (Score 55): "Free will is often said to mean acting without external compulsion. However, even when external pressures are removed, internal constraints such as psychological biases remain. Thus, freedom of action is not equivalent to freedom of will."
-    
-    Rating patterns:
-    - Semantic Compression: 58
-    - Inferential Continuity: 60
-    - Conceptual Depth: 55
-    - Originality: 52
-    
-    Example (Score 40): "Life is like really strange because like sometimes you just don't know what's happening and sometimes it's good and sometimes it's bad but it's just like that's how it is you know and we just kind of go along with it even though it's crazy and confusing."
-    
-    Rating patterns:
-    - Semantic Compression: 32
-    - Inferential Continuity: 28
-    - Conceptual Depth: 30
-    - Originality: 35
+    - Semantic Compression: 55 (verbose, low info-per-word)
+    - Inferential Continuity: 70
+    - Conceptual Depth: 72
+    - Originality: 65
     
     TEXT TO ANALYZE:
     ${truncatedText}
