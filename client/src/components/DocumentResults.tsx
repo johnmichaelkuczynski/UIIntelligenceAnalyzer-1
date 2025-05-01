@@ -21,42 +21,47 @@ interface DocumentResultsProps {
   originalDocument?: DocumentInputType;
 }
 
-// Common rewrite instructions that users can select from
+// Common rewrite instructions that users can select from, specifically designed to improve intelligence scores
 const REWRITE_PRESETS = [
   {
-    label: "Clarify argument without adding length",
-    value: "clarify_argument"
+    label: "Enhance semantic density",
+    value: "semantic_density"
   },
   {
-    label: "Preserve structure but elevate tone",
-    value: "elevate_tone"
+    label: "Improve recursive reasoning",
+    value: "recursive_reasoning"
   },
   {
-    label: "Make more recursive",
-    value: "make_recursive"
+    label: "Add conceptual precision",
+    value: "conceptual_precision"
   },
   {
-    label: "Add precision without verbosity",
-    value: "precision_no_verbosity"
+    label: "Strengthen logical coherence",
+    value: "logical_coherence"
   },
   {
-    label: "Keep technical but improve readability",
-    value: "improve_readability"
+    label: "Improve inferential connections",
+    value: "inferential_connections"
   },
   {
-    label: "Strengthen logical connections",
-    value: "strengthen_logic"
+    label: "Add meta-structural elements",
+    value: "meta_structural"
   }
 ];
 
-// Map preset values to actual instructions
+// Map preset values to actual instructions (optimized for intelligence score improvement)
 const INSTRUCTION_MAP: Record<string, string> = {
-  "clarify_argument": "Clarify the argument without adding length or simplifying concepts",
-  "elevate_tone": "Preserve structure but elevate tone while maintaining conceptual depth",
-  "make_recursive": "Make argumentation more recursive without simplifying",
-  "precision_no_verbosity": "Add precision without adding verbosity",
-  "improve_readability": "Keep technical depth but improve readability",
-  "strengthen_logic": "Strengthen logical connections between sentences"
+  "semantic_density": "Increase semantic density by replacing general terms with precise ones. Maintain exact same paragraph structure. Add empirical references where possible without changing length. Ensure causal connections are explicit.",
+  
+  "recursive_reasoning": "Enhance recursive reasoning by nesting arguments. Every claim should include at least one self-referential element. Improve definitional clarity while maintaining exact text length.",
+  
+  "conceptual_precision": "Sharpen all conceptual distinctions. Replace fuzzy terms with precise ones. Introduce technical terms where appropriate while maintaining readability. Add comparative analysis between adjacent concepts.",
+  
+  "logical_coherence": "Strengthen logical coherence through improved transitions. Each paragraph should follow necessarily from previous one. Add counter-arguments and pre-emptive rebuttals where possible while maintaining exact same length.",
+  
+  "inferential_connections": "Enhance inferential connections between ideas by making implicit links explicit. Add bridging statements between concepts. Ensure that all arguments display A→B→C structure rather than just A→C.",
+  
+  "meta_structural": "Add meta-structural elements that comment on the logical flow. Increase self-awareness of argumentation pattern. Ensure definitional recursion without adding complexity."
 };
 
 const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, originalDocument }) => {
@@ -387,6 +392,26 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
           </DialogHeader>
           
           <div className="grid gap-4 py-2">
+            {/* Intelligence improvement guidance */}
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+              <h4 className="text-sm font-medium text-blue-900 flex items-center gap-1.5 mb-2">
+                <BrainCircuit className="h-4 w-4" />
+                Guidelines for Improving Intelligence Score
+              </h4>
+              <p className="text-xs text-blue-800 mb-2">
+                The rewrite feature is designed to enhance the intelligence score while maintaining the exact length of your text. The presets below are specifically engineered to improve scores across key dimensions:
+              </p>
+              <ul className="text-xs space-y-1 text-blue-800 mb-2 list-disc pl-4">
+                <li><span className="font-medium">Semantic density</span> - Use more precise terms that convey more information</li>
+                <li><span className="font-medium">Recursive reasoning</span> - Add self-reference and layered thinking patterns</li>
+                <li><span className="font-medium">Logical coherence</span> - Strengthen connections between claims and evidence</li>
+                <li><span className="font-medium">Definitional precision</span> - Use clearer distinctions between related concepts</li>
+              </ul>
+              <p className="text-xs text-blue-800">
+                For custom instructions, focus on making claims more precise, adding empirical references, and ensuring logical flow between paragraphs.
+              </p>
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="rewrite-instruction" className="mb-1">
                 Rewrite Instructions
@@ -397,7 +422,7 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
                   value={instruction}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select rewrite approach" />
+                    <SelectValue placeholder="Select intelligence-enhancing approach" />
                   </SelectTrigger>
                   <SelectContent>
                     {REWRITE_PRESETS.map((preset) => (
@@ -418,7 +443,7 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
                   id="custom-instruction"
                   value={customInstruction}
                   onChange={(e) => setCustomInstruction(e.target.value)}
-                  placeholder="Enter specific instructions for the rewrite..."
+                  placeholder="For best results, focus on: 1) Increase semantic density 2) Add precise definitions 3) Make reasoning more recursive 4) Strengthen logical connections..."
                   className="min-h-[80px]"
                 />
               </div>
