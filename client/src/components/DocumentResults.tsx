@@ -1,16 +1,17 @@
 import React, { useState, useRef } from "react";
-import { DocumentAnalysis, DocumentInput as DocumentInputType, RewriteOptions, RewriteResult } from "@/lib/types";
+import { DocumentAnalysis, DocumentInput as DocumentInputType, RewriteOptions, RewriteResult, AIDetectionResult } from "@/lib/types";
 import AnalysisDimension from "./AnalysisDimension";
 import { Badge } from "@/components/ui/badge";
-import { Bot, Share2, FileEdit, FileText, ClipboardCopy, Download, BrainCircuit, FileType } from "lucide-react";
+import { Bot, Share2, FileEdit, FileText, ClipboardCopy, Download, BrainCircuit, FileType, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ShareViaEmailModal from "./ShareViaEmailModal";
+import AIDetectionModal from "./AIDetectionModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { rewriteDocument, analyzeDocument } from "@/lib/analysis";
+import { rewriteDocument, analyzeDocument, checkForAI } from "@/lib/analysis";
 import { useToast } from "@/hooks/use-toast";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { jsPDF } from "jspdf";
@@ -80,6 +81,9 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
   const [rewriteProgressVisible, setRewriteProgressVisible] = useState(false);
   const [rewrittenAnalysis, setRewrittenAnalysis] = useState<DocumentAnalysis | null>(null);
   const [isAnalyzingRewrite, setIsAnalyzingRewrite] = useState(false);
+  const [showAIDetectionModal, setShowAIDetectionModal] = useState(false);
+  const [aiDetectionResult, setAIDetectionResult] = useState<AIDetectionResult | undefined>(undefined);
+  const [isCheckingAI, setIsCheckingAI] = useState(false);
   
   // Calculate word and character count for rewritten text
   React.useEffect(() => {
@@ -291,6 +295,38 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
     return Math.round(rewriteStats.lengthChange * 100);
   };
   
+  // Function to check if text is AI-generated
+  const handleCheckAI = async () => {
+    if (!originalDocument?.content) {
+      toast({
+        title: "Missing input",
+        description: "Document content not found. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsCheckingAI(true);
+    setShowAIDetectionModal(true);
+    
+    try {
+      // Call the AI detection API
+      const result = await checkForAI(originalDocument);
+      setAIDetectionResult(result);
+      
+      console.log("AI detection result:", result);
+    } catch (error) {
+      console.error("Error checking for AI:", error);
+      toast({
+        title: "AI detection failed",
+        description: "An error occurred while checking for AI content.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCheckingAI(false);
+    }
+  };
+  
   const dimensions = [
     analysis.dimensions.definitionCoherence,
     analysis.dimensions.claimFormation,
@@ -315,6 +351,16 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
           >
             <FileEdit className="h-4 w-4" />
             Rewrite
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex items-center gap-2 bg-amber-100 text-amber-800 hover:bg-amber-200"
+            onClick={handleCheckAI}
+            disabled={!originalDocument?.content}
+          >
+            <ShieldAlert className="h-4 w-4" />
+            Check AI
           </Button>
           <Button 
             size="sm" 
@@ -599,6 +645,14 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* AI Detection Modal */}
+      <AIDetectionModal
+        isOpen={showAIDetectionModal}
+        onClose={() => setShowAIDetectionModal(false)}
+        result={aiDetectionResult}
+        isLoading={isCheckingAI}
+      />
       
       {/* Hidden download link */}
       <a 
