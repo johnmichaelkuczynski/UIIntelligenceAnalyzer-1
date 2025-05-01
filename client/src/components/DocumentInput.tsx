@@ -1,10 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FileInput } from "@/components/ui/file-input";
-import { X, Upload, Bot } from "lucide-react";
+import { X, Upload, Bot, FileText } from "lucide-react";
 import { extractTextFromFile } from "@/lib/analysis";
 import { DocumentInput as DocumentInputType } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
 
 interface DocumentInputProps {
   id: "A" | "B";
@@ -21,7 +22,24 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [wordCount, setWordCount] = useState(0);
+  const [charCount, setCharCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Calculate word and character count
+  useEffect(() => {
+    if (document.content) {
+      // Count words by splitting on whitespace
+      const words = document.content.trim().split(/\s+/).filter(Boolean);
+      setWordCount(words.length);
+      
+      // Count characters excluding whitespace
+      setCharCount(document.content.length);
+    } else {
+      setWordCount(0);
+      setCharCount(0);
+    }
+  }, [document.content]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setDocument({ ...document, content: e.target.value });
@@ -121,13 +139,32 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
           <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent"></div>
         </div>
       ) : (
-        <Textarea
-          id={`textInput${id}`}
-          placeholder="Type or paste your text here..."
-          className="w-full h-40 p-4 border border-gray-300 rounded-lg focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
-          value={document.content}
-          onChange={handleTextChange}
-        />
+        <>
+          <Textarea
+            id={`textInput${id}`}
+            placeholder="Type or paste your text here..."
+            className="w-full h-40 p-4 border border-gray-300 rounded-lg focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+            value={document.content}
+            onChange={handleTextChange}
+          />
+          
+          {/* Word and character count */}
+          <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
+            <div className="flex items-center">
+              <FileText className="h-3 w-3 mr-1" />
+              <span>
+                <Badge variant="secondary" className="text-xs font-normal px-2 py-0">
+                  {wordCount} words
+                </Badge>
+              </span>
+            </div>
+            <div>
+              <Badge variant="outline" className="text-xs font-normal px-2 py-0">
+                {charCount} characters
+              </Badge>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
