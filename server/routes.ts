@@ -4,10 +4,11 @@ import { storage } from "./storage";
 import multer from "multer";
 import { extractTextFromFile } from "./api/documentParser";
 import { checkForAI } from "./api/gptZero";
-import { DocumentAnalysis, DocumentComparison, ShareViaEmailRequest, DimensionRating } from "../client/src/lib/types";
+import { DocumentAnalysis, DocumentComparison, ShareViaEmailRequest, DimensionRating, RewriteOptions, RewriteRequest } from "../client/src/lib/types";
 import { sendAnalysisViaEmail } from "./services/sendgrid";
 import { evaluateIntelligence } from "./services/openai";
 import { translateLargeDocument } from "./services/translation";
+import { rewriteText } from "./services/rewrite";
 
 // Configure multer for file uploads - store in memory
 const upload = multer({ 
@@ -187,6 +188,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: error.message || "Error sharing results via email" 
+      });
+    }
+  });
+
+  // Rewrite text with intelligence enhancement
+  app.post("/api/rewrite", async (req: Request, res: Response) => {
+    try {
+      const { originalText, options }: RewriteRequest = req.body;
+      
+      if (!originalText || !options?.instruction) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Missing required rewrite fields" 
+        });
+      }
+      
+      console.log(`Starting rewrite with instruction: ${options.instruction}`);
+      console.log(`Text size: ${originalText.length} characters`);
+      
+      // Check if API key is available
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({
+          success: false,
+          message: "OpenAI API key is required for rewriting"
+        });
+      }
+      
+      try {
+        const result = await rewriteText(
+          originalText, 
+          options.instruction,
+          options.preserveLength !== false, // Default to true if not specified
+          options.preserveDepth !== false   // Default to true if not specified
+        );
+        
+        res.json({
+          originalText,
+          rewrittenText: result.rewrittenText,
+          stats: result.stats
+        });
+      } catch (rewriteError: any) {
+        console.error("Rewrite error:", rewriteError);
+        res.status(500).json({
+          success: false,
+          message: rewriteError.message || "Error during rewrite process"
+        });
+      }
+    } catch (error: any) {
+      console.error("Error starting rewrite:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Error starting rewrite process" 
       });
     }
   });

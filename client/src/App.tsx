@@ -5,8 +5,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import HomePage from "@/pages/HomePage";
 import TranslationPage from "@/pages/TranslationPage";
+import RewritePage from "@/pages/RewritePage";
 import NotFound from "@/pages/not-found";
-import { BrainCircuit, Languages } from "lucide-react";
+import { BrainCircuit, Languages, FileEdit } from "lucide-react";
 
 function Navigation() {
   return (
@@ -18,6 +19,12 @@ function Navigation() {
             <Link href="/" className="flex items-center gap-2 hover:underline">
               <BrainCircuit className="h-5 w-5" />
               <span>Intelligence Analysis</span>
+            </Link>
+          </li>
+          <li>
+            <Link href="/rewrite" className="flex items-center gap-2 hover:underline">
+              <FileEdit className="h-5 w-5" />
+              <span>Intelligence Rewrite</span>
             </Link>
           </li>
           <li>
@@ -38,6 +45,7 @@ function Router() {
       <Navigation />
       <Switch>
         <Route path="/" component={HomePage} />
+        <Route path="/rewrite" component={RewritePage} />
         <Route path="/translate" component={TranslationPage} />
         <Route component={NotFound} />
       </Switch>

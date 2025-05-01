@@ -5,7 +5,10 @@ import {
   DocumentAnalysis, 
   DocumentComparison,
   TranslationOptions,
-  TranslationResult
+  TranslationResult,
+  RewriteOptions,
+  RewriteResult,
+  RewriteRequest
 } from "./types";
 
 // Function to analyze a single document
@@ -95,6 +98,25 @@ export async function translateDocument(
     return await response.json();
   } catch (error) {
     console.error("Error translating document:", error);
+    throw error;
+  }
+}
+
+// Function to rewrite a document with intelligence enhancement
+export async function rewriteDocument(
+  originalText: string,
+  options: RewriteOptions
+): Promise<RewriteResult> {
+  try {
+    const request: RewriteRequest = {
+      originalText,
+      options
+    };
+    
+    const response = await apiRequest("POST", "/api/rewrite", request);
+    return await response.json();
+  } catch (error) {
+    console.error("Error rewriting document:", error);
     throw error;
   }
 }

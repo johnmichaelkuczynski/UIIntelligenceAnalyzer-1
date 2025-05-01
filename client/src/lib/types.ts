@@ -6,6 +6,29 @@ export interface DocumentInput {
 
 export type AnalysisMode = 'single' | 'compare';
 
+// Rewrite related types
+export interface RewriteOptions {
+  instruction: string; // User's specific instruction for the rewrite
+  preserveLength?: boolean; // Keep within 100-110% of original length
+  preserveDepth?: boolean; // Maintain or increase conceptual depth
+}
+
+export interface RewriteRequest {
+  originalText: string;
+  options: RewriteOptions;
+}
+
+export interface RewriteResult {
+  originalText: string;
+  rewrittenText: string;
+  stats: {
+    originalLength: number;
+    rewrittenLength: number;
+    lengthChange: number; // Percentage change
+    instructionFollowed: string; // Description of how the instruction was applied
+  };
+}
+
 export type DimensionRating = 'Exceptional' | 'Very Strong' | 'Strong' | 'Moderate' | 'Basic' | 'Weak' | 'Very Weak' | 'Critically Deficient';
 
 export interface AnalysisDimension {
