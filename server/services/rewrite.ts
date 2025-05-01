@@ -25,27 +25,164 @@ async function performRewriteSanityCheck(originalText: string, rewrittenText: st
   try {
     // Basic checks first - reject obviously bad rewrites
     
-    // Reject if rewrite is longer without adding value
-    if (rewrittenText.length > originalText.length * 1.02) {
-      console.warn("SANITY CHECK FAILED: Rewrite is significantly longer than original");
+    // STRICT LENGTH CHECK: Reject if rewrite is longer at all - absolutely no bloat allowed
+    if (rewrittenText.length > originalText.length * 1.005) { // Reduced from 1.02 to 1.005 (0.5% tolerance)
+      console.warn("SANITY CHECK FAILED: Rewrite is longer than original - no bloat permitted");
+      return false;
+    }
+    
+    // Check for academic verbosity patterns - automatic rejection for these
+    const academicVerbosityPatterns = [
+      "it is important to note that",
+      "it should be noted that",
+      "it is worth mentioning that", 
+      "it is interesting to observe",
+      "it can be observed that",
+      "as previously mentioned",
+      "as stated earlier",
+      "furthermore",
+      "moreover",
+      "additionally",
+      "consequently",
+      "subsequently",
+      "nevertheless",
+      "notwithstanding",
+      "hence"
+    ];
+    
+    // Reject if any academic verbosity patterns were added that weren't in the original
+    for (const pattern of academicVerbosityPatterns) {
+      if (!originalText.toLowerCase().includes(pattern.toLowerCase()) && 
+          rewrittenText.toLowerCase().includes(pattern.toLowerCase())) {
+        console.warn(`SANITY CHECK FAILED: Added academic verbosity pattern "${pattern}"`);
+        return false;
+      }
+    }
+    
+    // Reject if rewrite has significantly more commas (indicator of clause complexity)
+    const originalCommaCount = (originalText.match(/,/g) || []).length;
+    const rewriteCommaCount = (rewrittenText.match(/,/g) || []).length;
+    if (rewriteCommaCount > originalCommaCount * 1.2) { // 20% more commas is suspicious
+      console.warn(`SANITY CHECK FAILED: Rewrite has ${rewriteCommaCount} commas vs original ${originalCommaCount} - likely increased clause complexity`);
       return false;
     }
     
     // Simple degradation patterns check - immediate rejection for clear violations
+    // MASSIVELY EXPANDED pattern set to catch even subtle degradations
     const degradationPatterns = [
+      // Simple verb padding (critical violations)
       { original: "is", rewrite: "equates to" },
       { original: "is", rewrite: "serves as" },
+      { original: "is", rewrite: "functions as" },
+      { original: "is", rewrite: "represents" },
+      { original: "is", rewrite: "constitutes" },
+      { original: "is", rewrite: "can be considered" },
+      { original: "is", rewrite: "may be viewed as" },
+      { original: "is", rewrite: "is defined as" },
+      { original: "is", rewrite: "is characterized as" },
+      { original: "is", rewrite: "is understood to be" },
+      { original: "is", rewrite: "is recognized as" },
+      { original: "is", rewrite: "manifests as" },
+      
+      // Wordiness expansions
       { original: "when", rewrite: "arises when" },
+      { original: "when", rewrite: "in cases where" },
+      { original: "when", rewrite: "in situations where" },
+      { original: "when", rewrite: "at times when" },
+      { original: "when", rewrite: "during periods when" },
+      { original: "when", rewrite: "in instances where" },
+      
+      // Category bloat
       { original: "are", rewrite: "can be categorized as" },
+      { original: "are", rewrite: "may be classified as" },
+      { original: "are", rewrite: "can be understood as" },
+      { original: "are", rewrite: "might be considered as" },
+      { original: "are", rewrite: "function primarily as" },
+      
+      // Definition inflation
       { original: "means", rewrite: "signifies" },
+      { original: "means", rewrite: "indicates" },
+      { original: "means", rewrite: "denotes" },
+      { original: "means", rewrite: "connotes" },
+      { original: "means", rewrite: "implies" },
+      { original: "means", rewrite: "suggests" },
+      { original: "means", rewrite: "represents" },
+      
+      // Verb complexity
       { original: "uses", rewrite: "utilizes" },
+      { original: "uses", rewrite: "employs" },
+      { original: "uses", rewrite: "leverages" },
+      { original: "uses", rewrite: "makes use of" },
+      { original: "uses", rewrite: "takes advantage of" },
+      { original: "use", rewrite: "employ" },
+      { original: "use", rewrite: "utilize" },
+      { original: "use", rewrite: "make use of" },
+      
+      // Demonstration bloat
       { original: "shows", rewrite: "demonstrates" },
+      { original: "shows", rewrite: "illustrates" },
+      { original: "shows", rewrite: "indicates" },
+      { original: "shows", rewrite: "reveals" },
+      { original: "shows", rewrite: "makes evident" },
+      { original: "shows", rewrite: "serves to demonstrate" },
+      
+      // Assistance complexity
       { original: "helps", rewrite: "facilitates" },
+      { original: "helps", rewrite: "enables" },
+      { original: "helps", rewrite: "assists in" },
+      { original: "helps", rewrite: "contributes to" },
+      { original: "helps", rewrite: "plays a role in" },
+      { original: "helps", rewrite: "aids in the process of" },
+      
+      // Preposition complexity
       { original: "about", rewrite: "regarding" },
+      { original: "about", rewrite: "concerning" },
+      { original: "about", rewrite: "in relation to" },
+      { original: "about", rewrite: "with respect to" },
+      { original: "about", rewrite: "pertaining to" },
+      
+      // Example complexity
       { original: "like", rewrite: "such as" },
+      { original: "like", rewrite: "for example" },
+      { original: "like", rewrite: "for instance" },
+      { original: "like", rewrite: "similar to" },
+      { original: "like", rewrite: "comparable to" },
+      
+      // Necessity complexity
       { original: "need", rewrite: "require" },
+      { original: "need", rewrite: "necessitate" },
+      { original: "need", rewrite: "have a requirement for" },
+      { original: "need", rewrite: "depend upon" },
+      
+      // Creation complexity
       { original: "make", rewrite: "construct" },
-      { original: "use", rewrite: "employ" }
+      { original: "make", rewrite: "create" },
+      { original: "make", rewrite: "formulate" },
+      { original: "make", rewrite: "develop" },
+      { original: "make", rewrite: "generate" },
+      { original: "make", rewrite: "produce" },
+      
+      // Additional common transformations
+      { original: "if", rewrite: "in the event that" },
+      { original: "if", rewrite: "under circumstances where" },
+      { original: "if", rewrite: "assuming that" },
+      { original: "if", rewrite: "on the condition that" },
+      
+      { original: "gets", rewrite: "acquires" },
+      { original: "gets", rewrite: "obtains" },
+      { original: "gets", rewrite: "procures" },
+      
+      { original: "has", rewrite: "possesses" },
+      { original: "has", rewrite: "maintains" },
+      { original: "has", rewrite: "is characterized by" },
+      
+      { original: "lets", rewrite: "enables" },
+      { original: "lets", rewrite: "permits" },
+      { original: "lets", rewrite: "facilitates" },
+      
+      { original: "seems", rewrite: "appears to be" },
+      { original: "seems", rewrite: "gives the impression of" },
+      { original: "seems", rewrite: "is perceived as" }
     ];
     
     // Check if simple modifications that reduce precision were made
@@ -92,30 +229,37 @@ async function performRewriteSanityCheck(originalText: string, rewrittenText: st
       messages: [
         {
           role: "system",
-          content: `You are SIGMA (Semantic Intelligence Grading and Measurement Analyzer), a specialized quality control system that evaluates whether rewrites preserve or improve cognitive quality.
+          content: `You are SIGMA (Semantic Intelligence Grading and Measurement Analyzer), a stringent quality control system that detects ANY deterioration in semantic compression between versions of text.
 
-YOUR MISSION: Detect any deterioration in semantic compression, definitional clarity, or logical flow from original to rewrite.
+PRIMARY MISSION: Detect and reject ANY decrease in semantic compression ratio or definitional clarity, with ZERO TOLERANCE for verbosity increases.
 
-PRIMARY EVALUATION METRICS (in order of importance):
-1. SEMANTIC COMPRESSION RATIO (60%): Information content divided by word count 
-2. DEFINITIONAL PRECISION (25%): Clarity and operational specificity of key concepts
-3. LOGICAL FLOW (15%): Inferential necessity between adjacent claims
+EVALUATION HIERARCHY (WEIGHTED METRICS):
+1. SEMANTIC COMPRESSION RATIO (70%): Information divided by word count - THE CRITICAL METRIC
+2. DEFINITIONAL PRECISION (25%): Clarity and specificity of key concepts - ESSENTIAL
+3. LOGICAL FLOW (5%): Inferential necessity between adjacent claims - SECONDARY CONCERN
 
-AUTOMATIC REJECTION RULES:
-- If semantic compression decreased (rewrite uses more words for same information)
-- If clear definitions became fuzzy or verbose
-- If direct statements were made indirect 
-- If simple sentences became complex without adding content
-- If academic padding was added ("moreover," "furthermore," etc.)
+ABSOLUTE REJECTION RULES (ZERO EXCEPTIONS):
+- ANY decrease in semantic compression ratio (even slight)
+- ANY transformation of "X is Y" into longer formulations
+- ANY addition of academic padding words (even a single instance)
+- ANY increase in sentence complexity without proportional information gain
+- ANY decrease in definitional precision
+- ANY addition of transition phrases or linking words 
+- ANY shift from direct to indirect language
 
-SPECIFIC PATTERNS TO DETECT AS DEGRADATIONS:
-- "X is Y" → "X equates to Y" or "X serves as Y" (verbosity increase)
-- "When X" → "In situations where X" (unnecessary expansion)
-- "X means Y" → "X signifies/represents/indicates Y" (synonym bloat)
-- Simple direct definitions replaced with elaborate explanations
-- Addition of empty linking phrases between otherwise unchanged sentences
+COMPREHENSIVE DEGRADATION PATTERNS TO DETECT:
+- Critical: "X is Y" → ANY longer version ("equates to", "serves as", "functions as", etc.)
+- Critical: "When X" → ANY longer version ("in situations where", "in cases where", etc.)
+- Critical: Addition of ANY academic padding ("moreover", "furthermore", "consequently")
+- Critical: Plain verbs → fancy synonyms ("use" → "utilize", "show" → "demonstrate")
+- Critical: Simple prepositions → complex phrases ("about" → "regarding", "with" → "by means of")
+- Critical: Replacing concrete language with abstractions
+- Critical: Making terse, clear sentences into elaborate explanations
 
-When evaluating, look specifically at sentence-by-sentence information density. Even a single instance of reduced semantic compression is grounds for rejection.
+SPECIAL DIDACTIC TEXT PROTECTION:
+Texts with high didactic value that use precise operational definitions MUST be preserved exactly as written. These texts are especially sensitive to verbosity damage. Even minor "improvements" often degrade their intelligence value.
+
+When evaluating, examine EACH SENTENCE for information density. Even a SINGLE instance of reduced semantic compression is grounds for rejection. Be EXCEEDINGLY STRICT - better to reject a rewrite than to allow ANY quality degradation.
 
 Respond with a JSON object that looks EXACTLY like this:
 {
@@ -177,19 +321,36 @@ Evaluate whether the rewrite preserves or improves the cognitive qualities of th
                      logicalStructurePreserved &&
                      result.overallVerdict === true;
       
-      // If semantic compression is worse, automatic rejection regardless of other dimensions
+      // EXTREME ENFORCEMENT: If semantic compression is even slightly worse, automatic rejection
       if (!semanticCompressionPreserved) {
-        console.warn("SANITY CHECK FAILED: Semantic compression degraded");
+        console.warn("SANITY CHECK FAILED: Semantic compression degraded - absolute dealbreaker");
         return false;
       }
       
-      // If original scores are already high (8+ on semantic compression), 
-      // rewrite must improve or be rejected
-      if (result.semanticCompression?.originalScore >= 8 && !semanticCompressionImproved) {
-        console.warn("SANITY CHECK FAILED: Original has high semantic compression (8+) but rewrite didn't improve it");
+      // STRICT IMPROVEMENT REQUIREMENT: If original scores are already high (7+ on semantic compression), 
+      // rewrite MUST improve or be rejected. Lowered threshold from 8 to 7 to capture more high-quality texts.
+      if (result.semanticCompression?.originalScore >= 7 && !semanticCompressionImproved) {
+        console.warn("SANITY CHECK FAILED: Original has high semantic compression (7+) but rewrite didn't improve it");
         return false;
       }
       
+      // DIDACTIC TEXT PROTECTION: Special protection for educational texts with clear definitions
+      // If original has high definitional clarity, rewrite must improve this specific dimension
+      if (result.definitionalClarity?.originalScore >= 8 && 
+          result.definitionalClarity?.rewriteScore <= result.definitionalClarity?.originalScore) {
+        console.warn("SANITY CHECK FAILED: Original has excellent definitional clarity (8+) but rewrite didn't improve it");
+        return false;
+      }
+      
+      // ENFORCE MINIMUM IMPROVEMENT: Reject marginal improvements as not worth the risk
+      // If rewrite only slightly improves semantic compression, reject it to be safe
+      if (semanticCompressionImproved && 
+          result.semanticCompression?.rewriteScore <= result.semanticCompression?.originalScore + 0.5) {
+        console.warn("SANITY CHECK FAILED: Improvement in semantic compression too minimal to justify risk");
+        return false;
+      }
+      
+      // If we've passed all the strict checks, apply the final verdict
       return verdict;
       
     } catch (error) {
@@ -237,38 +398,44 @@ export async function rewriteText(
   const originalLength = originalText.length;
   
   // Create a system prompt that enforces the rewrite rules
-  const systemPrompt = `You are SEMANTIC COMPRESSION OPTIMIZER, an engine that enhances writing intelligence through superior semantic density.
+  const systemPrompt = `You are ULTRA-SEMANTIC COMPRESSION OPTIMIZER, an engine that ruthlessly preserves and enhances semantic density with zero tolerance for verbosity.
 
-YOUR PRIME DIRECTIVE:
-NEVER MAKE CLEAN TEXT VERBOSE. Superior intelligence is expressed in maximum meaning with minimum words.
+YOUR FUNDAMENTAL LAW (INVIOLABLE):
+NEVER MAKE CLEAN TEXT VERBOSE. A single instance of making clear text more verbose is an unacceptable failure.
 
-INTELLIGENCE FINGERPRINT RULES (ABSOLUTELY MANDATORY):
-1. SEMANTIC DENSITY IS SUPREME: High-intelligence texts have 90%+ information density per word.
-2. SIMPLE SENTENCES EXPRESSING COMPLEX IDEAS ARE SUPERIOR to complex sentences expressing simple ideas.
-3. DIRECT DEFINITION > VERBOSE EXPLANATION: Sharp definitional clarity always beats elaborate exposition.
-4. ONLY REWRITE IF YOU CAN IMPROVE ACTUAL INTELLIGENCE: Many texts are already optimally compressed.
-5. OPERATIONAL DEFINITIONS BUILD FOUNDATION: If original uses clear operational definitions, preserve or sharpen them.
+INTELLIGENCE COMPRESSION HIERARCHY (ABSOLUTE PRIORITIES):
+1. SEMANTIC DENSITY IS SUPREME: The highest-value intelligence fingerprint is maximum meaning per word.
+2. SHARP OPERATIONAL DEFINITIONS outperform all other cognitive structures.
+3. DIRECT LANGUAGE beats indirect language in all cases.
+4. SIMPLE SENTENCES EXPRESSING COMPLEX IDEAS are superior to complex sentences expressing simple ideas.
+5. DIDACTIC CLARITY with recursive structure is blueprint-grade thinking.
 
-BEFORE EDITING ANY SENTENCE, RUN THIS CHECK:
-1. Does the original sentence have high semantic compression? (meaning-per-word ratio)
-2. Does the original sentence use clean, direct definition?
-3. Does the original connect logically to adjacent sentences?
-→ If YES to all three, DO NOT MODIFY THE SENTENCE AT ALL.
+MANDATORY "DO NOT TOUCH" RULE:
+If the original sentence has high semantic compression AND clear operational definition, DO NOT MODIFY IT AT ALL.
+The most intelligent text is often already optimal - modification risks degradation.
 
-REWRITE LENGTH CONSTRAINT:
-- Final text MUST be 95-100% of original character count. NEVER longer.
-- If original text has exceptional density, output may be IDENTICAL to input.
+PRE-EDIT VERIFICATION:
+Before modifying ANY sentence, you MUST verify:
+1. Does the original have excellent semantic compression already? (meaning-per-word ratio)
+2. Does the original use sharp, clear operational definitions?
+3. Does the original use simple, direct language?
+→ If YES to ANY of these, preserve that sentence exactly as written.
 
-FORBIDDEN TRANSFORMATIONS (AUTOMATIC FAILURE):
-- NEVER replace "X is Y" with "X equates to Y" or similar padding
-- NEVER replace direct statements with indirect ones
-- NEVER add transition words like "furthermore," "moreover," "indeed," etc.
-- NEVER replace simple words with complex synonyms
-- NEVER introduce abstractions to replace concrete statements
-- NEVER turn simple sentences into complex ones
-- NEVER replace sharp definitions with vague descriptions
+REWRITE LENGTH RULE:
+- Final text MUST be ≤98% of original character count. NEVER longer. SHORTER IS BETTER.
+- If original text has excellent semantic density, your output MUST be identical to input.
+- DELETING text that adds no value is a valid intelligence improvement.
 
-EXAMPLES OF DEGRADATION (NEVER DO THESE):
+ABSOLUTELY FORBIDDEN TRANSFORMATIONS (CRITICAL FAILURE POINTS):
+- NEVER replace "X is Y" with ANY longer version ("X represents Y", "X equates to Y", etc.)
+- NEVER replace ANY direct statement with an indirect one
+- NEVER add ANY transition words ("furthermore," "moreover," "indeed," etc.)
+- NEVER replace ANY simple word with a complex synonym
+- NEVER replace ANY concrete statement with an abstraction
+- NEVER turn ANY simple sentence into a complex one
+- NEVER replace ANY direct definition with an elaborate explanation
+
+DEFINITIVE DEGRADATION EXAMPLES (PATTERN RECOGNITION):
 
 ORIGINAL: "Currency is money. Money is a certificate of wealth that is not itself of any value."
 BAD REWRITE: "Currency equates to money, which serves as a representation of wealth without intrinsic value."
@@ -278,28 +445,40 @@ ORIGINAL: "A surplus is when you have more of something than you need."
 BAD REWRITE: "A surplus arises when there is an excess of a particular item beyond what is required."
 WHY BAD: Added words without adding meaning, increased processing time.
 
-INTELLIGENCE IMPROVEMENT TECHNIQUES (ONLY IF ORIGINAL NEEDS THEM):
-- Sharpen fuzzy definitions with precise operational boundaries
-- Connect disjoint ideas with minimal logical scaffolding
-- Replace circular reasoning with directional inference
+ORIGINAL: "Companies can raise money by issuing stocks or bonds."
+BAD REWRITE: "Corporations have the ability to generate capital through the issuance of equity shares or debt instruments."
+WHY BAD: Simple, clear statement replaced with jargon and verbosity.
+
+ORIGINAL: "This matters because prices signal value."
+BAD REWRITE: "This concept is significant due to the fact that price mechanisms function as indicators of underlying value."
+WHY BAD: Academic verbosity destroyed the semantic compression.
+
+INTELLIGENCE AMPLIFICATION TECHNIQUES (APPLY ONLY WHEN NEEDED):
+- Replace fuzzy definitions with razor-sharp operational boundaries
 - Remove redundancies while preserving all unique content
+- Connect logically disjoint ideas with minimal scaffolding
 - Strengthen distinction-making between related concepts
-- Reveal implicit inferential structures (make reasoning chains explicit)
-- Ensure each sentence builds logically on preceding ones
+- Replace ambiguous terms with precise ones
+- Convert circular reasoning to directional inference
+- Reveal implicit inferential structures with minimal language
 - Add recursive self-reference only where it genuinely clarifies
-- Add genuine semantic compression (more informational content per word)
+- ACTUAL semantic compression (more information per word)
 
-ABSOLUTELY FORBIDDEN BEHAVIORS:
-- NO ACADEMIC STYLE INFLATION: Never add words that don't add cognitive content
-- NO "SCHOLARLY" FILLER: Never add padding phrases like "it is important to note" or "it can be observed"
-- NO VERBOSITY: Never use more words where fewer would convey the same information
-- NO UNNECESSARY ABSTRACTION: Concrete precision beats vague sophistication
-- NO TONE ELEVATION: Never make text "sound smarter" without making it cognitively richer
+ZERO-TOLERANCE FORBIDDEN BEHAVIORS:
+- ACADEMIC STYLE INFLATION: Adding words that don't add cognitive content
+- SCHOLARLY FILLER: Adding phrases like "it is important to note" or "it should be observed"
+- VERBOSITY: Using more words where fewer would suffice
+- ABSTRACTION CREEP: Replacing concrete language with abstraction
+- COMPLEXITY INFLATION: Making sentence structure more complex
+- TRANSITION PADDING: Adding connective phrases between otherwise unchanged content
+- PSEUDO-SOPHISTICATION: Replacing simple words with complex synonyms
 
-DETECTION CRITERIA:
-- If you find yourself adding transition words, STOP.
-- If you find yourself making sentences longer without adding inferential content, STOP.
-- If original text already has high semantic density and logical structure, make minimal changes.
+IMMEDIATE ABORT TRIGGERS:
+- If you find yourself adding ANY transition words ➝ STOP and revert.
+- If you find yourself making ANY sentence longer without adding content ➝ STOP and revert.
+- If original text already has high semantic density ➝ PRESERVE it exactly.
+- If original uses clear operational definitions ➝ PRESERVE them exactly.
+- If original uses direct language ➝ PRESERVE it exactly.
 
 SPECIFIC INSTRUCTION: ${instruction}
 
