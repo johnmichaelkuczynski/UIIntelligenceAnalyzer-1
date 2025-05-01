@@ -57,12 +57,41 @@ export async function evaluateIntelligence(
   // Use the new LLM router for comprehensive multi-model evaluation
   const multiModelEvaluation = await llmRouter.evaluateComprehensive(text);
   
-  // Fall back to traditional evaluation if comprehensive fails
-  // First, generate a semantic analysis using GPT-4
+  // Generate semantic analysis 
   const semanticAnalysis = await generateSemanticAnalysis(text);
   
   // Then, get detailed evaluation of specific dimensions
   const detailedEvaluation = await evaluateDimensions(text);
+  
+  // Apply multi-model insights to traditional evaluation (critical integration)
+  if (multiModelEvaluation) {
+    // Boost semantic compression from multi-model evaluation (primary quality indicator)
+    if (multiModelEvaluation.semanticCompression && multiModelEvaluation.semanticCompression.score > 7) {
+      detailedEvaluation.deep.semanticCompression = Math.max(
+        detailedEvaluation.deep.semanticCompression,
+        multiModelEvaluation.semanticCompression.score * 10 // Scale from 0-10 to 0-100
+      );
+      console.log(`Boosted semantic compression to ${detailedEvaluation.deep.semanticCompression} based on multi-model evaluation`);
+    }
+    
+    // Enhance logical laddering from recursive reasoning (second most important quality)
+    if (multiModelEvaluation.recursiveReasoning && multiModelEvaluation.recursiveReasoning.score > 7) {
+      detailedEvaluation.deep.inferentialContinuity = Math.max(
+        detailedEvaluation.deep.inferentialContinuity,
+        multiModelEvaluation.recursiveReasoning.score * 10 // Scale from 0-10 to 0-100
+      );
+      console.log(`Boosted inferential continuity to ${detailedEvaluation.deep.inferentialContinuity} based on multi-model evaluation`);
+    }
+    
+    // Improve definitional clarity measure (third most important quality)
+    if (multiModelEvaluation.definitionalClarity && multiModelEvaluation.definitionalClarity.score > 7) {
+      detailedEvaluation.deep.claimNecessity = Math.max(
+        detailedEvaluation.deep.claimNecessity,
+        multiModelEvaluation.definitionalClarity.score * 10 // Scale from 0-10 to 0-100
+      );
+      console.log(`Boosted claim necessity to ${detailedEvaluation.deep.claimNecessity} based on multi-model evaluation`);
+    }
+  }
   
   // Calculate surface score (grammar, structure, etc.)
   const surfaceScore = (
