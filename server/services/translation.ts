@@ -38,6 +38,34 @@ const MACROCHUNK_SIZE = 10000; // words
 const SUBCHUNK_SIZE = 800; // words
 const MAX_RETRIES = 2;
 
+// Detect language if auto is selected
+async function detectLanguage(text: string): Promise<string> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+      messages: [
+        {
+          role: "system",
+          content: "You are a language detection expert. Analyze the text and identify what language it's written in. Respond with just the language name in lowercase (e.g., 'english', 'spanish', 'french', etc)."
+        },
+        {
+          role: "user",
+          content: text.substring(0, 300) // Just use the first 300 characters for detection
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 20
+    });
+    
+    const detectedLanguage = response.choices[0].message.content?.toLowerCase().trim() || "english";
+    console.log(`Detected language: ${detectedLanguage}`);
+    return detectedLanguage;
+  } catch (error) {
+    console.error("Error detecting language:", error);
+    return "english"; // Default to English if detection fails
+  }
+}
+
 // Helper function to count words
 function countWords(text: string): number {
   const matches = text.match(WORD_COUNT_REGEX);
@@ -234,6 +262,27 @@ export async function translateLargeDocument(
   progressCallback?: (progress: TranslationProgress) => void
 ): Promise<TranslationResult> {
   try {
+    // Auto-detect source language if 'auto' is selected
+    if (options.sourceLanguage === 'auto') {
+      try {
+        console.log('Auto-detecting source language...');
+        if (progressCallback) {
+          progressCallback({
+            currentChunk: 0,
+            totalChunks: 1,
+            status: 'processing'
+          });
+        }
+        
+        const detectedLanguage = await detectLanguage(document.substring(0, 1000));
+        options = { ...options, sourceLanguage: detectedLanguage };
+        console.log(`Using detected language: ${detectedLanguage} for translation`);
+      } catch (error) {
+        console.error('Language detection failed, defaulting to English:', error);
+        options = { ...options, sourceLanguage: 'english' };
+      }
+    }
+    
     const wordCount = countWords(document);
     console.log(`Document word count: ${wordCount}`);
     
