@@ -6,7 +6,7 @@ import ComparativeResults from "@/components/ComparativeResults";
 import AIDetectionModal from "@/components/AIDetectionModal";
 
 import { Button } from "@/components/ui/button";
-import { Brain } from "lucide-react";
+import { Brain, RefreshCw, Trash2 } from "lucide-react";
 import { analyzeDocument, compareDocuments, checkForAI } from "@/lib/analysis";
 import { AnalysisMode, DocumentInput as DocumentInputType, AIDetectionResult, DocumentAnalysis, DocumentComparison } from "@/lib/types";
 
@@ -105,6 +105,30 @@ const HomePage: React.FC = () => {
       setIsAnalysisLoading(false);
     }
   };
+  
+  // Handler for resetting the entire analysis
+  const handleReset = () => {
+    // Clear document inputs
+    setDocumentA({ content: "" });
+    setDocumentB({ content: "" });
+    
+    // Clear analysis results
+    setAnalysisA(null);
+    setAnalysisB(null);
+    setComparison(null);
+    
+    // Reset UI states
+    setShowResults(false);
+    setIsAnalysisLoading(false);
+    setIsAICheckLoading(false);
+    setAIDetectionResult(undefined);
+    
+    // Reset to single mode
+    setMode("single");
+    
+    // Scroll to top
+    window.scrollTo(0, 0);
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -143,8 +167,8 @@ const HomePage: React.FC = () => {
           />
         )}
 
-        {/* Analysis Button */}
-        <div className="flex justify-center">
+        {/* Analysis Buttons */}
+        <div className="flex justify-center gap-4">
           <Button
             onClick={handleAnalyze}
             className="px-6 py-3 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 flex items-center"
@@ -154,6 +178,15 @@ const HomePage: React.FC = () => {
             <span>
               {mode === "single" ? "Analyze Document" : "Analyze Both Documents"}
             </span>
+          </Button>
+          
+          <Button
+            onClick={handleReset}
+            className="px-6 py-3 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 flex items-center"
+            disabled={isAnalysisLoading}
+          >
+            <Trash2 className="h-5 w-5 mr-2" />
+            <span>Reset Everything</span>
           </Button>
         </div>
       </div>
