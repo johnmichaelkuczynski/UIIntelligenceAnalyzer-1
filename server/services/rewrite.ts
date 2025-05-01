@@ -53,7 +53,7 @@ function levenshteinDistance(str1: string, str2: string): number {
  * Calculate the similarity percentage between two strings using Levenshtein distance
  * Returns a value between 0 (completely different) and 100 (identical)
  */
-function calculateSimilarityPercentage(str1: string, str2: string): number {
+export function calculateSimilarityPercentage(str1: string, str2: string): number {
   if (str1 === str2) return 100;
   if (str1.length === 0 || str2.length === 0) return 0;
   

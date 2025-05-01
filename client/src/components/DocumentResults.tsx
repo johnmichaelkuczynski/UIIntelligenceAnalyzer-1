@@ -79,7 +79,7 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
   const downloadLinkRef = useRef<HTMLAnchorElement>(null);
   const [rewriteProgress, setRewriteProgress] = useState(0);
   const [rewriteProgressVisible, setRewriteProgressVisible] = useState(false);
-  const [rewrittenAnalysis, setRewrittenAnalysis] = useState<DocumentAnalysis | null>(null);
+  const [rewrittenAnalysis, setRewrittenAnalysis] = useState<DocumentAnalysis | undefined>(undefined);
   const [isAnalyzingRewrite, setIsAnalyzingRewrite] = useState(false);
   const [showAIDetectionModal, setShowAIDetectionModal] = useState(false);
   const [aiDetectionResult, setAIDetectionResult] = useState<AIDetectionResult | undefined>(undefined);
@@ -226,7 +226,7 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
     setRewriteStats(null);
     setRewriteProgress(0);
     setRewriteProgressVisible(true);
-    setRewrittenAnalysis(null);
+    setRewrittenAnalysis(undefined);
     
     try {
       const options: RewriteOptions = {

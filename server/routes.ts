@@ -242,15 +242,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // If the rewrite was rejected by the sanity check (original text returned)
         if (result.rewrittenText === originalText) {
+          // Check if the rejection was due to similarity or other issues
+          const rejectionReason = result.stats.instructionFollowed.includes("similar to input") 
+            ? "Rewrite rejected: output is too similar to input (>95% similarity). This does not qualify as a substantive rearticulation."
+            : "Sanity check detected potential degradation of semantic density or logical structure";
+
           return res.json({
             originalText,
             rewrittenText: result.rewrittenText,
             stats: result.stats,
             comparativeAnalysis: {
               verdict: "REWRITE REJECTED",
-              reason: "Sanity check detected potential degradation of semantic density or logical structure",
+              reason: rejectionReason,
               recommendedScore: originalScore,
-              rewriteQuality: "INFERIOR"
+              rewriteQuality: "INVALID: NOT REWRITTEN"
+            }
+          });
+        }
+        
+        // Additional similarity check to catch any similar rewrites that passed through
+        // Import the levenshteinDistance function from rewrite.ts
+        const { calculateSimilarityPercentage } = require('./services/rewrite');
+        const similarityPercentage = calculateSimilarityPercentage(originalText, result.rewrittenText);
+        console.log(`Similarity between original and rewritten text: ${similarityPercentage}%`);
+        
+        // Reject if texts are too similar (fallback check in case the first check failed)
+        if (similarityPercentage > 95) {
+          console.log(`REWRITE REJECTED (ROUTE CHECK): Output is ${similarityPercentage}% similar to input`);
+          return res.json({
+            originalText,
+            rewrittenText: originalText, // Return original text since rewrite was invalid
+            stats: {
+              originalLength: originalText.length,
+              rewrittenLength: originalText.length,
+              lengthChange: 0,
+              instructionFollowed: options.instruction + ` [REWRITE REJECTED: Output is ${similarityPercentage}% similar to input. This does not qualify as a valid rewrite.]`
+            },
+            comparativeAnalysis: {
+              verdict: "REWRITE REJECTED",
+              reason: `Rewrite rejected: output is too similar to input (${similarityPercentage}% similarity). This does not qualify as a substantive rearticulation.`,
+              recommendedScore: originalScore,
+              rewriteQuality: "INVALID: NOT REWRITTEN"
             }
           });
         }
