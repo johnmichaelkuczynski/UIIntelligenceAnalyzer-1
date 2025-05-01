@@ -75,45 +75,23 @@ async function extractTextFromDocx(file: Express.Multer.File): Promise<DocumentI
 }
 
 /**
- * Extract text from a PDF file using pdfjs-dist
+ * Extract text from a PDF file using pdf-parse
  */
 async function extractTextFromPdf(file: Express.Multer.File): Promise<DocumentInput> {
-  let tempFilePath = '';
   try {
     console.log(`Starting PDF extraction for file: ${file.originalname}, size: ${file.size} bytes`);
     
-    // Import pdfjs-dist correctly
-    const pdfjsLib = await import('pdfjs-dist');
-    console.log("Successfully imported pdfjs-dist module");
+    // Import the pdf-parse library
+    const pdfParse = await import('pdf-parse');
+    console.log("Successfully imported pdf-parse module");
     
-    // Parse the PDF directly from the buffer
-    const loadingTask = pdfjsLib.getDocument({ data: file.buffer });
-    console.log("PDF loading task created");
-    
-    const pdf = await loadingTask.promise;
-    console.log(`PDF loaded with ${pdf.numPages} pages`);
-    
-    // Check if the PDF has pages
-    if (!pdf.numPages) {
-      throw new Error("This PDF may be encrypted or contain no extractable text.");
-    }
-    
-    // Extract text from all pages
-    let textContent = '';
-    
-    for (let i = 1; i <= pdf.numPages; i++) {
-      console.log(`Processing page ${i} of ${pdf.numPages}`);
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      const strings = content.items.map((item: any) => item.str);
-      textContent += strings.join(' ') + '\n';
-    }
-    
-    console.log(`Extracted ${textContent.length} characters of text`);
+    // Process the PDF using the buffer directly
+    const result = await pdfParse.default(file.buffer);
+    console.log(`Extracted ${result.text.length} characters from PDF with ${result.numpages} pages`);
     
     // Check if we got any meaningful text
-    if (!textContent || textContent.trim().length === 0) {
-      console.warn("PDF parsed successfully but no text was extracted");
+    if (!result.text || result.text.trim().length === 0) {
+      console.warn("PDF parsed but no text extracted");
       return {
         content: "The PDF was processed but no text could be extracted. The PDF may be scanned or image-based. Please try another file or paste the text directly.",
         filename: file.originalname,
@@ -121,10 +99,10 @@ async function extractTextFromPdf(file: Express.Multer.File): Promise<DocumentIn
       };
     }
     
-    // Clean up the extracted text
-    const cleanedText = textContent
-      .replace(/\s+/g, ' ')                 // Replace multiple spaces with one
-      .replace(/(\. )/g, '.\n')             // Add line breaks after periods for readability
+    // Enhance readability of the extracted text
+    const cleanedText = result.text
+      .replace(/\s+/g, ' ')     // Replace multiple spaces with one
+      .replace(/(\. )/g, '.\n') // Add line breaks after periods for readability
       .trim();
     
     console.log(`PDF extraction completed successfully (${cleanedText.length} chars)`);
@@ -136,17 +114,7 @@ async function extractTextFromPdf(file: Express.Multer.File): Promise<DocumentIn
   } catch (error: any) {
     console.error("Error extracting text from PDF:", error);
     
-    // Clean up temp file if it exists
-    if (tempFilePath && fs.existsSync(tempFilePath)) {
-      try {
-        fs.unlinkSync(tempFilePath);
-        console.log("Cleaned up temporary file after error");
-      } catch (cleanupError) {
-        console.error("Error cleaning up temporary file:", cleanupError);
-      }
-    }
-    
-    // Fallback with helpful error message
+    // Provide a helpful error message
     return {
       content: `Error extracting text from the PDF file: ${error.message || 'Unknown error'}. This may be due to the PDF being encrypted, damaged, or containing only images. Please try another file or paste the text directly.`,
       filename: file.originalname,
