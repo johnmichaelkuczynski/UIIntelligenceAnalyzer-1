@@ -42,14 +42,22 @@ const scoringConfig = {
   blueprintThreshold: 90 // Threshold for blueprint-capable cognitive performance
 };
 
+// Import our new multi-model LLM router
+import { llmRouter } from "./llmRouter";
+
 /**
- * Evaluate writing sample for intelligence using GPT-4
+ * Evaluate writing sample for intelligence using multi-model evaluation
  * Applies both surface and deep semantic analysis with calibrated weights
+ * Now uses distributed analysis across OpenAI and Anthropic for more accurate assessment
  */
 export async function evaluateIntelligence(
   text: string, 
   customConfig?: Partial<typeof scoringConfig>
 ): Promise<IntelligenceEvaluation> {
+  // Use the new LLM router for comprehensive multi-model evaluation
+  const multiModelEvaluation = await llmRouter.evaluateComprehensive(text);
+  
+  // Fall back to traditional evaluation if comprehensive fails
   // First, generate a semantic analysis using GPT-4
   const semanticAnalysis = await generateSemanticAnalysis(text);
   
