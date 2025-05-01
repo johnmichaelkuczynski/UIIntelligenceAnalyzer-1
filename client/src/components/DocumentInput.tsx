@@ -157,6 +157,20 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
                   {wordCount} words
                 </Badge>
               </span>
+              
+              {/* Display PDF metadata if available */}
+              {document.filename?.toLowerCase().endsWith('.pdf') && document.metadata?.pageCount && (
+                <Badge variant="secondary" className="text-xs font-normal px-2 py-0 ml-2">
+                  {document.metadata.pageCount} pages
+                </Badge>
+              )}
+              
+              {/* Display filename if available */}
+              {document.filename && (
+                <Badge variant="secondary" className="text-xs font-normal px-2 py-0 ml-2">
+                  {document.filename}
+                </Badge>
+              )}
             </div>
             <div>
               <Badge variant="outline" className="text-xs font-normal px-2 py-0">

@@ -2,6 +2,12 @@ export interface DocumentInput {
   content: string;
   filename?: string;
   mimeType?: string;
+  metadata?: {
+    pageCount?: number;
+    info?: Record<string, any>;
+    version?: string;
+    [key: string]: any;
+  };
 }
 
 export type AnalysisMode = 'single' | 'compare';
