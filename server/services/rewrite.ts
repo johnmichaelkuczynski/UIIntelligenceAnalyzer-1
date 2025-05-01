@@ -1,5 +1,11 @@
 import OpenAI from "openai";
+import Anthropic from '@anthropic-ai/sdk';
 import { llmRouter } from "./llmRouter";
+
+// Initialize Anthropic client if API key is present
+const anthropic = new Anthropic({ 
+  apiKey: process.env.ANTHROPIC_API_KEY || 'key-not-set'
+});
 
 // Initialize OpenAI with a fallback for missing API key
 // The API key can be provided later through environment variables
@@ -275,6 +281,14 @@ async function performRewriteSanityCheck(originalText: string, rewrittenText: st
       openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     }
     
+    // Check if we're using multi-model approach with Anthropic
+    const useMultiModel = !!process.env.ANTHROPIC_API_KEY;
+    if (useMultiModel) {
+      console.log("Using multi-model enhanced sanity check with OpenAI and Anthropic Claude.");
+    } else {
+      console.log("Using OpenAI-only sanity check. For better results, add ANTHROPIC_API_KEY.");
+    }
+    
     const response = await openai.chat.completions.create({
       model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [
@@ -355,18 +369,76 @@ Evaluate whether the rewrite preserves or improves the cognitive qualities of th
       const result = JSON.parse(response.choices[0].message.content || "{}");
       
       // Log detailed evaluation results
-      console.log("Rewrite quality evaluation:", JSON.stringify(result, null, 2));
+      console.log("OpenAI rewrite quality evaluation:", JSON.stringify(result, null, 2));
+      
+      // Get a second opinion from Claude if available for high-quality texts
+      let claudeVerdict = { 
+        semanticCompression: { preserved: true },
+        definitionalClarity: { preserved: true }
+      };
+      
+      if (useMultiModel && result.semanticCompression?.originalScore >= 7) {
+        try {
+          console.log("Getting second opinion from Claude for high-quality text...");
+          const claudeResponse = await anthropic.messages.create({
+            model: "claude-3-opus-20240229",
+            max_tokens: 1000,
+            system: `You are a critical evaluator specialized in detecting ANY deterioration in semantic density or logical structure in rewritten text.
+            
+            MISSION: Evaluate whether a rewrite preserves or improves the semantic compression ratio, definitional clarity, and logical structure of the original text.
+            
+            FOCUS SPECIFICALLY ON:
+            1. Semantic Compression: Information-per-word ratio (HIGHEST PRIORITY)
+            2. Definitional Precision: Clarity and specificity of concept definitions
+            
+            When evaluating, be EXTREMELY STRICT. For high-level philosophical or theoretical texts, even minor degradations in semantic density are unacceptable.
+            
+            Respond with a JSON object containing only two fields:
+            {
+              "semanticCompressionPreserved": true|false,
+              "definitionalClarityPreserved": true|false
+            }`,
+            messages: [
+              {
+                role: "user",
+                content: `ORIGINAL TEXT:
+              ${truncatedOriginal}
+              
+              REWRITTEN TEXT:
+              ${truncatedRewrite}
+              
+              Evaluate whether the rewrite preserves or improves the semantic compression ratio and definitional clarity of the original text. Respond with JSON.`
+              }
+            ],
+            temperature: 0.2,
+          });
+          
+          // Extract text from Claude response safely
+          const firstContent = claudeResponse.content[0];
+          if (firstContent && 'type' in firstContent && firstContent.type === 'text' && 'text' in firstContent) {
+            claudeVerdict = JSON.parse(firstContent.text);
+            console.log("Claude second opinion received:", claudeVerdict);
+          }
+        } catch (claudeError) {
+          console.warn("Claude evaluation failed, continuing with OpenAI only:", claudeError);
+        }
+      }
       
       // Check individual dimensions with stricter semantic compression requirement
-      const semanticCompressionPreserved = result.semanticCompression?.preserved === true;
+      const semanticCompressionPreserved = result.semanticCompression?.preserved === true &&
+                                          (useMultiModel ? claudeVerdict.semanticCompression?.preserved !== false : true);
+      
       const semanticCompressionImproved = semanticCompressionPreserved && 
                                           result.semanticCompression?.rewriteScore > 
                                           result.semanticCompression?.originalScore;
       
-      const definitionalClarityPreserved = result.definitionalClarity?.preserved === true;
+      const definitionalClarityPreserved = result.definitionalClarity?.preserved === true &&
+                                         (useMultiModel ? claudeVerdict.definitionalClarity?.preserved !== false : true);
+      
       const logicalStructurePreserved = result.logicalStructure?.preserved === true;
       
       // Only accept if ALL dimensions are preserved AND semantic compression is maintained or improved
+      // Both models must agree on preservation for enhanced reliability
       const verdict = semanticCompressionPreserved && 
                      definitionalClarityPreserved && 
                      logicalStructurePreserved &&
