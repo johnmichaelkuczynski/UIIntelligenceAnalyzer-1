@@ -626,7 +626,8 @@ async function evaluateDimensions(text: string): Promise<{
       
       // Combine evaluations, taking the highest scores
       // This ensures that strong recursive structures aren't penalized by section splitting
-      finalEvaluation = combineEvaluations(sectionEvaluations);
+      // Pass the complete document text to ensure proper financial/economic pattern detection
+      finalEvaluation = combineEvaluations(sectionEvaluations, text);
     } else {
       // For shorter documents, use standard evaluation
       finalEvaluation = await performDimensionEvaluation(text);
@@ -782,7 +783,7 @@ function enforceScoreConsistency(evaluation: { surface: SurfaceAnalysis, deep: D
  * Combine evaluations from multiple sections, taking the best scores
  * This prevents penalizing documents for being long and complex
  */
-function combineEvaluations(evaluations: any[]): { surface: SurfaceAnalysis, deep: DeepAnalysis } {
+function combineEvaluations(evaluations: any[], documentText?: string): { surface: SurfaceAnalysis, deep: DeepAnalysis } {
   if (!evaluations || evaluations.length === 0) {
     throw new Error("No evaluations to combine");
   }
@@ -810,7 +811,8 @@ function combineEvaluations(evaluations: any[]): { surface: SurfaceAnalysis, dee
   }
   
   // Apply scoring consistency rules to prevent contradictory evaluations
-  return enforceScoreConsistency(combined);
+  // Pass the document text to the enforceScoreConsistency function for content-based analysis
+  return enforceScoreConsistency(combined, documentText);
 }
 
 /**
