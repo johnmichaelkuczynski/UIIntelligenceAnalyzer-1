@@ -661,7 +661,7 @@ async function evaluateDimensions(text: string): Promise<{
 /**
  * Enforce consistency rules to prevent contradictory scoring
  */
-function enforceScoreConsistency(evaluation: { surface: SurfaceAnalysis, deep: DeepAnalysis }): { surface: SurfaceAnalysis, deep: DeepAnalysis } {
+function enforceScoreConsistency(evaluation: { surface: SurfaceAnalysis, deep: DeepAnalysis }, documentText?: string): { surface: SurfaceAnalysis, deep: DeepAnalysis } {
   // Make a copy to avoid modifying the original
   const result = JSON.parse(JSON.stringify(evaluation));
   
@@ -703,26 +703,34 @@ function enforceScoreConsistency(evaluation: { surface: SurfaceAnalysis, deep: D
   // These texts often use plain language but contain complex institutional, historical, and policy logic
   // Use both jargon score and text analysis to detect economic documents
   
-  // Wider criteria for detecting economic/financial/regulatory documents
-  const economicTerms = ['bank', 'finance', 'regulation', 'economic', 'market', 'capital', 'fiscal', 'monetary', 
-    'investment', 'bubble', 'recession', 'crash', 'security', 'mortgage', 'trading', 'deposit', 'liquidity',
-    'deregulation', 'risk', 'systemic', 'policy', 'framework', 'mechanism', 'treasury', 'federal reserve',
-    'volcker rule', 'glass-steagall', 'dodd-frank'];
-    
-  // Use the text parameter that was passed to the evaluateDimensions function
-  const normalizedText = text.toLowerCase();
-  const containsEconomicTerms = economicTerms.some(term => normalizedText.includes(term));
+  // Default values
+  let isLikelyEconomicDocument = false;
+  let hasMultipleHistoricalReferences = false;
+  let containsEconomicTerms = false;
   
-  // Primary detection method: uses both structure and economic terminology
-  const isLikelyEconomicDocument = 
-    (result.surface.jargonUsage >= 75 && result.surface.structure >= 75 && containsEconomicTerms) ||
-    (result.surface.structure >= 85 && containsEconomicTerms);
+  // Only perform text-based analysis if we have the document text available
+  if (documentText) {
+    // Wider criteria for detecting economic/financial/regulatory documents
+    const economicTerms = ['bank', 'finance', 'regulation', 'economic', 'market', 'capital', 'fiscal', 'monetary', 
+      'investment', 'bubble', 'recession', 'crash', 'security', 'mortgage', 'trading', 'deposit', 'liquidity',
+      'deregulation', 'risk', 'systemic', 'policy', 'framework', 'mechanism', 'treasury', 'federal reserve',
+      'volcker rule', 'glass-steagall', 'dodd-frank'];
+      
+    // Use the document text that was passed to the function
+    const normalizedText = documentText.toLowerCase();
+    containsEconomicTerms = economicTerms.some(term => normalizedText.includes(term));
   
-  // Specialized detection pattern for chronological economic analyses
-  // Look for patterns like "in 1929... after the crash... regulation was... in 2008..."
-  const yearPattern = /\b(19\d{2}|20\d{2})\b/g;
-  const years = normalizedText.match(yearPattern) || [];
-  const hasMultipleHistoricalReferences = years.length >= 3;
+    // Primary detection method: uses both structure and economic terminology
+    isLikelyEconomicDocument = 
+      (result.surface.jargonUsage >= 75 && result.surface.structure >= 75 && containsEconomicTerms) ||
+      (result.surface.structure >= 85 && containsEconomicTerms);
+  
+    // Specialized detection pattern for chronological economic analyses
+    // Look for patterns like "in 1929... after the crash... regulation was... in 2008..."
+    const yearPattern = /\b(19\d{2}|20\d{2})\b/g;
+    const years = normalizedText.match(yearPattern) || [];
+    hasMultipleHistoricalReferences = years.length >= 3;
+  }
   
   // Detect regulatory/financial document with deep structure even if language is simple
   if ((result.deep.inferentialContinuity >= 80 && isLikelyEconomicDocument) || 
