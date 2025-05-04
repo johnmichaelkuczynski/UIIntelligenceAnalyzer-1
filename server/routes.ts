@@ -142,75 +142,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Analyze a single document - DIRECT PASS-THROUGH TO GPT-4o
+  // PURE PASS-THROUGH TO USER-SELECTED LLM - NO CUSTOM ALGORITHMS
   app.post("/api/analyze", async (req: Request, res: Response) => {
     try {
-      const document = req.body;
+      const { content, provider = "openai" } = req.body;
       
-      if (!document || !document.content) {
+      if (!content) {
         return res.status(400).json({ message: "No content provided" });
       }
       
-      // Import the direct passthrough method
-      const { directPassthroughAnalyze } = await import('./services/directLLM');
+      // Import the direct passthrough methods
+      const { 
+        directOpenAIAnalyze, 
+        directAnthropicAnalyze, 
+        directPerplexityAnalyze 
+      } = await import('./services/directLLM');
       
-      // Direct pass-through to OpenAI with no custom algorithms
+      let directResult;
+      // Select LLM provider based on user choice - PURE PASSTHROUGH
+      console.log(`DIRECT PASSTHROUGH: Sending document directly to ${provider} for analysis`);
+      
       try {
-        console.log("DIRECT PASSTHROUGH: Sending document directly to GPT-4o for analysis");
-        // Direct passthrough to LLM - no custom algorithms
-        const directResult = await directPassthroughAnalyze(document.content);
+        // Direct passthrough to selected LLM - no custom algorithms at all
+        switch (provider.toLowerCase()) {
+          case 'anthropic':
+            directResult = await directAnthropicAnalyze(content);
+            break;
+          case 'perplexity':
+            directResult = await directPerplexityAnalyze(content);
+            break;
+          case 'openai':
+          default:
+            directResult = await directOpenAIAnalyze(content);
+            break;
+        }
         
-        // Format the result to match our API response structure
+        // Simply return exactly what the LLM gave us - no modifications
+        // Just format to match expected API structure
         const result = {
           id: 0,
           documentId: 0,
-          summary: directResult.analysis.substring(0, 300) + "...",
+          provider: directResult.provider || provider,
+          summary: directResult.analysis?.substring(0, 300) + "..." || "Analysis summary not available",
           strengths: [],
           weaknesses: [],
           overallScore: directResult.overallScore,
           dimensions: [
             {
               name: "Semantic Compression",
-              score: directResult.deep.semanticCompression,
+              score: directResult.deep?.semanticCompression,
               description: "How much meaning is packed into minimal language"
             },
             {
               name: "Inferential Continuity",
-              score: directResult.deep.inferentialContinuity,
+              score: directResult.deep?.inferentialContinuity,
               description: "How clearly claims follow from previous claims"
             },
             {
               name: "Claim Necessity",
-              score: directResult.deep.claimNecessity,
+              score: directResult.deep?.claimNecessity,
               description: "How well concepts are defined and build on each other"
             },
             {
               name: "Conceptual Depth",
-              score: directResult.deep.conceptualDepth,
+              score: directResult.deep?.conceptualDepth,
               description: "How deeply the concepts are explored"
             },
             {
               name: "Logical Laddering",
-              score: directResult.deep.logicalLaddering,
+              score: directResult.deep?.logicalLaddering,
               description: "How well the text builds recursive argument structures"
             }
           ],
           analysis: directResult.analysis,
+          rawResponse: directResult, // Include the complete raw LLM response
           createdAt: new Date().toISOString(),
         };
         
-        // Log the direct results
-        console.log("DIRECT PASSTHROUGH ANALYSIS COMPLETE - No custom algorithms used:");
-        console.log(`- Semantic Compression: ${directResult.deep.semanticCompression}/100`);
-        console.log(`- Inferential Continuity: ${directResult.deep.inferentialContinuity}/100`);
-        console.log(`- Claim Necessity: ${directResult.deep.claimNecessity}/100`);
+        // Log the direct pass-through results
+        console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH COMPLETE - Using provider's raw analysis with NO custom algorithms`);
+        console.log(`- Provider: ${directResult.provider || provider}`);
         console.log(`- Overall Score: ${directResult.overallScore}/100`);
         
         res.json(result);
-      } catch (error) {
-        console.error("Error with direct OpenAI passthrough:", error);
+      } catch (error: any) {
+        console.error(`Error with direct ${provider} passthrough:`, error);
         res.status(500).json({ 
-          message: "Error analyzing with direct OpenAI passthrough", 
+          message: `Error analyzing with direct ${provider} passthrough`, 
           error: error.message 
         });
       }
@@ -220,58 +238,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Compare two documents
+  // PURE PASS-THROUGH COMPARE - Direct LLM comparison with no custom algorithms
   app.post("/api/compare", async (req: Request, res: Response) => {
     try {
-      const { documentA, documentB } = req.body;
+      const { documentA, documentB, provider = "openai" } = req.body;
       
       if (!documentA?.content || !documentB?.content) {
         return res.status(400).json({ message: "Two documents with content are required" });
       }
       
-      // Analyze both documents
-      let analysisA: DocumentAnalysis;
-      let analysisB: DocumentAnalysis;
+      // Import the direct passthrough methods
+      const { 
+        directOpenAIAnalyze, 
+        directAnthropicAnalyze, 
+        directPerplexityAnalyze 
+      } = await import('./services/directLLM');
       
-      // Check for available AI APIs
-      const useMultiModel = !!process.env.ANTHROPIC_API_KEY;
-      if (useMultiModel) {
-        console.log("Using multi-model enhanced comparison with OpenAI and Anthropic Claude.");
-      } else {
-        console.log("Using OpenAI-only comparison. For better results, add ANTHROPIC_API_KEY.");
-      }
+      // Define function to get analysis from selected provider
+      const getAnalysisFromProvider = async (content: string) => {
+        console.log(`DIRECT PASSTHROUGH COMPARISON: Sending document to ${provider}`);
+        
+        switch (provider.toLowerCase()) {
+          case 'anthropic':
+            return await directAnthropicAnalyze(content);
+          case 'perplexity':
+            return await directPerplexityAnalyze(content);
+          case 'openai':
+          default:
+            return await directOpenAIAnalyze(content);
+        }
+      };
       
       try {
-        // Use our enhanced multi-model approach for document comparison
-        console.log("Analyzing document A with multi-model approach...");
-        const aiEvaluationA = await evaluateIntelligence(documentA.content);
+        // Get direct analyses from the chosen LLM provider for both documents
+        console.log(`Analyzing document A with DIRECT ${provider.toUpperCase()} PASSTHROUGH...`);
+        const directResultA = await getAnalysisFromProvider(documentA.content);
         
-        console.log("Analyzing document B with multi-model approach...");
-        const aiEvaluationB = await evaluateIntelligence(documentB.content);
+        console.log(`Analyzing document B with DIRECT ${provider.toUpperCase()} PASSTHROUGH...`);
+        const directResultB = await getAnalysisFromProvider(documentB.content);
         
-        // Log the key comparative metrics for debugging
-        console.log("Comparison metrics:");
-        console.log(`Document A score: ${aiEvaluationA.overallScore}/100`);
-        console.log(`Document B score: ${aiEvaluationB.overallScore}/100`);
-        console.log(`Score difference: ${Math.abs(aiEvaluationA.overallScore - aiEvaluationB.overallScore)}`);
+        // Log the direct comparison metrics
+        console.log(`DIRECT ${provider.toUpperCase()} COMPARISON - No custom algorithms:`);
+        console.log(`Document A score: ${directResultA.overallScore}/100`);
+        console.log(`Document B score: ${directResultB.overallScore}/100`);
+        console.log(`Score difference: ${Math.abs(directResultA.overallScore - directResultB.overallScore)}`);
         
-        analysisA = formatAIEvaluationAsDocumentAnalysis(documentA.content, aiEvaluationA);
-        analysisB = formatAIEvaluationAsDocumentAnalysis(documentB.content, aiEvaluationB);
-      } catch (aiError) {
-        console.error("AI analysis failed, falling back to algorithmic analysis:", aiError);
-        // Fallback to algorithmic analysis as a last resort
-        analysisA = generateAnalysis(documentA.content);
-        analysisB = generateAnalysis(documentB.content);
+        // Convert to expected format
+        const formatDirectResult = (result: any, content: string) => ({
+          id: 0,
+          documentId: 0,
+          provider: result.provider || provider,
+          summary: result.analysis?.substring(0, 300) + "..." || "Analysis not available",
+          strengths: [],
+          weaknesses: [],
+          overallScore: result.overallScore,
+          dimensions: [
+            {
+              name: "Semantic Compression",
+              score: result.deep?.semanticCompression,
+              description: "How much meaning is packed into minimal language"
+            },
+            {
+              name: "Inferential Continuity",
+              score: result.deep?.inferentialContinuity,
+              description: "How clearly claims follow from previous claims"
+            },
+            {
+              name: "Claim Necessity",
+              score: result.deep?.claimNecessity,
+              description: "How well concepts are defined and build on each other"
+            },
+            {
+              name: "Conceptual Depth",
+              score: result.deep?.conceptualDepth,
+              description: "How deeply the concepts are explored"
+            },
+            {
+              name: "Logical Laddering",
+              score: result.deep?.logicalLaddering,
+              description: "How well the text builds recursive argument structures"
+            }
+          ],
+          analysis: result.analysis,
+          rawResponse: result,
+          createdAt: new Date().toISOString(),
+        });
+        
+        const analysisA = formatDirectResult(directResultA, documentA.content);
+        const analysisB = formatDirectResult(directResultB, documentB.content);
+        
+        // Create simple comparison object with just the direct scores from the LLM
+        const comparison = {
+          id: 0,
+          documentAId: 0,
+          documentBId: 0,
+          overallDifference: Math.abs(directResultA.overallScore - directResultB.overallScore),
+          dimensionalDifferences: [
+            {
+              dimension: "Semantic Compression",
+              documentAScore: directResultA.deep?.semanticCompression,
+              documentBScore: directResultB.deep?.semanticCompression,
+              difference: Math.abs((directResultA.deep?.semanticCompression || 0) - (directResultB.deep?.semanticCompression || 0))
+            },
+            {
+              dimension: "Inferential Continuity", 
+              documentAScore: directResultA.deep?.inferentialContinuity,
+              documentBScore: directResultB.deep?.inferentialContinuity,
+              difference: Math.abs((directResultA.deep?.inferentialContinuity || 0) - (directResultB.deep?.inferentialContinuity || 0))
+            },
+            {
+              dimension: "Claim Necessity",
+              documentAScore: directResultA.deep?.claimNecessity,
+              documentBScore: directResultB.deep?.claimNecessity,
+              difference: Math.abs((directResultA.deep?.claimNecessity || 0) - (directResultB.deep?.claimNecessity || 0))
+            }
+          ],
+          conclusion: `Direct comparison using ${provider} evaluation. No custom algorithms were used.`,
+          createdAt: new Date().toISOString()
+        };
+        
+        res.json({
+          analysisA,
+          analysisB,
+          comparison,
+          provider: provider
+        });
+      } catch (error: any) {
+        console.error(`Error with direct ${provider} comparison:`, error);
+        res.status(500).json({ 
+          message: `Error comparing documents with direct ${provider} passthrough`, 
+          error: error.message 
+        });
       }
-      
-      // Generate a comparison between the two documents
-      const comparison = generateComparison(analysisA, analysisB);
-      
-      res.json({
-        analysisA,
-        analysisB,
-        comparison
-      });
     } catch (error: any) {
       console.error("Error comparing documents:", error);
       res.status(500).json({ message: error.message || "Error comparing documents" });
@@ -306,10 +404,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Rewrite text with intelligence enhancement + comparative analysis and AI detection
+  // PURE PASS-THROUGH REWRITE - Direct to LLM with no custom algorithms
   app.post("/api/rewrite", async (req: Request, res: Response) => {
     try {
-      const { originalText, options }: RewriteRequest = req.body;
+      const { originalText, provider = "openai", options } = req.body;
       
       if (!originalText || !options?.instruction) {
         return res.status(400).json({ 
@@ -318,49 +416,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      console.log(`Starting rewrite with instruction: ${options.instruction}`);
+      console.log(`Starting direct passthrough rewrite with ${provider}`);
       console.log(`Text size: ${originalText.length} characters`);
+      console.log(`Instruction: ${options.instruction}`);
       
-      // Check if OpenAI API key is available (required)
-      if (!process.env.OPENAI_API_KEY) {
-        return res.status(500).json({
-          success: false,
-          message: "OpenAI API key is required for rewriting"
-        });
-      }
-      
-      // Check for Anthropic API key for multi-model enhancement (optional but recommended)
-      const useMultiModel = !!process.env.ANTHROPIC_API_KEY;
-      if (!useMultiModel) {
-        console.log("Warning: ANTHROPIC_API_KEY not found. Using OpenAI-only mode for rewriting, which may produce lower quality results.");
-      } else {
-        console.log("Using multi-model enhanced rewriting with OpenAI and Anthropic Claude.");
-      }
+      // Import the direct rewrite method
+      const { directRewrite } = await import('./services/directLLM');
       
       try {
-        // STEP 1: First analyze the original text to establish baseline cognitive metrics
-        console.log("Analyzing original text to establish baseline...");
-        const originalAnalysis = await evaluateIntelligence(originalText);
-        const originalScore = originalAnalysis.overallScore;
-        console.log(`Original text baseline cognitive score: ${originalScore}`);
-        
-        // Store key cognitive metrics for comparison
-        const originalMetrics = {
-          semanticCompression: originalAnalysis.deep.semanticCompression,
-          inferentialContinuity: originalAnalysis.deep.inferentialContinuity,
-          conceptualDepth: originalAnalysis.deep.conceptualDepth,
-          claimNecessity: originalAnalysis.deep.claimNecessity,
-          logicalLaddering: originalAnalysis.deep.logicalLaddering,
-          originality: originalAnalysis.deep.originality
-        };
-        
-        // STEP 2: Perform the rewrite
-        const result = await rewriteText(
-          originalText, 
-          options.instruction,
-          options.preserveLength !== false, // Default to true if not specified
-          options.preserveDepth !== false   // Default to true if not specified
-        );
+        // DIRECT PASS-THROUGH TO LLM - No custom algorithms
+        console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR REWRITE`);
+        const result = await directRewrite(originalText, options.instruction, provider);
         
         // If the rewrite was rejected by the sanity check (original text returned)
         if (result.rewrittenText === originalText) {

@@ -78,9 +78,13 @@ export async function directAnthropicAnalyze(text: string): Promise<any> {
     });
 
     // Parse the response content and return without custom processing
-    const result = JSON.parse(response.content[0].text);
-    result.provider = "Anthropic (Claude-3.7-Sonnet)";
-    return result;
+    if (response.content && response.content[0] && 'text' in response.content[0]) {
+      const result = JSON.parse(response.content[0].text as string);
+      result.provider = "Anthropic (Claude-3.7-Sonnet)";
+      return result;
+    } else {
+      throw new Error("Unexpected response format from Anthropic API");
+    }
   } catch (error) {
     console.error("Error in direct passthrough to Anthropic:", error);
     throw error;
@@ -115,17 +119,131 @@ export async function directPerplexityAnalyze(text: string): Promise<any> {
       })
     });
 
-    const data = await response.json();
+    const data = await response.json() as any;
     if (!response.ok) {
-      throw new Error(`Perplexity API error: ${data.error?.message || JSON.stringify(data)}`);
+      throw new Error(`Perplexity API error: ${data?.error?.message || JSON.stringify(data)}`);
     }
 
     // Parse result from Perplexity response
-    const result = JSON.parse(data.choices[0].message.content);
-    result.provider = "Perplexity (Llama-3.1-Sonar)";
-    return result;
+    if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+      const result = JSON.parse(data.choices[0].message.content);
+      result.provider = "Perplexity (Llama-3.1-Sonar)";
+      return result;
+    } else {
+      throw new Error("Unexpected response format from Perplexity API");
+    }
   } catch (error) {
     console.error("Error in direct passthrough to Perplexity:", error);
+    throw error;
+  }
+}
+
+/**
+ * Direct pass-through to rewrite text using the selected LLM provider
+ * No custom algorithms or processing - just send the text directly to the LLM
+ */
+export async function directRewrite(
+  text: string, 
+  instruction: string, 
+  provider: string = "openai"
+): Promise<any> {
+  try {
+    // Construct rewrite prompt
+    const rewritePrompt = `Please rewrite the following text according to this instruction: ${instruction}\n\nHere is the text to rewrite:\n\n${text}\n\nRewritten text:`;
+    
+    let rewrittenText = "";
+    
+    // Direct pass-through to selected provider with no custom processing
+    switch (provider.toLowerCase()) {
+      case 'anthropic': {
+        if (!process.env.ANTHROPIC_API_KEY) {
+          throw new Error("ANTHROPIC_API_KEY is required but not provided");
+        }
+        
+        const anthro = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+        const response = await anthro.messages.create({
+          model: "claude-3-7-sonnet-20250219",
+          max_tokens: 4000,
+          messages: [
+            { role: "user", content: rewritePrompt }
+          ]
+        });
+        
+        if (response.content && response.content[0] && 'text' in response.content[0]) {
+          rewrittenText = response.content[0].text as string;
+        } else {
+          throw new Error("Unexpected response format from Anthropic API");
+        }
+        break;
+      }
+      
+      case 'perplexity': {
+        if (!process.env.PERPLEXITY_API_KEY) {
+          throw new Error("PERPLEXITY_API_KEY is required but not provided");
+        }
+        
+        const response = await fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: "llama-3.1-sonar-small-128k-online",
+            messages: [
+              { role: "user", content: rewritePrompt }
+            ],
+            temperature: 0.7
+          })
+        });
+        
+        const data = await response.json() as any;
+        if (!response.ok) {
+          throw new Error(`Perplexity API error: ${data?.error?.message || JSON.stringify(data)}`);
+        }
+        
+        if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+          rewrittenText = data.choices[0].message.content;
+        } else {
+          throw new Error("Unexpected response format from Perplexity API");
+        }
+        break;
+      }
+      
+      case 'openai':
+      default: {
+        if (!process.env.OPENAI_API_KEY) {
+          throw new Error("OPENAI_API_KEY is required but not provided");
+        }
+        
+        const oai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        const response = await oai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [
+            { role: "user", content: rewritePrompt }
+          ],
+          temperature: 0.7
+        });
+        
+        rewrittenText = response.choices[0].message.content || "";
+        break;
+      }
+    }
+    
+    return {
+      originalText: text,
+      rewrittenText: rewrittenText,
+      instruction: instruction,
+      provider: provider,
+      stats: {
+        originalLength: text.length,
+        rewrittenLength: rewrittenText.length,
+        lengthChange: rewrittenText.length - text.length,
+        lengthChangePct: Math.round((rewrittenText.length - text.length) / text.length * 100)
+      }
+    };
+  } catch (error) {
+    console.error(`Error in direct ${provider} rewrite:`, error);
     throw error;
   }
 }
