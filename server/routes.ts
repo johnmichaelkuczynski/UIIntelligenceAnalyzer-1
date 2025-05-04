@@ -142,7 +142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Analyze a single document
+  // Analyze a single document - DIRECT PASS-THROUGH TO GPT-4o
   app.post("/api/analyze", async (req: Request, res: Response) => {
     try {
       const document = req.body;
@@ -151,33 +151,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No content provided" });
       }
       
-      // Check for available AI APIs
-      const useMultiModel = !!process.env.ANTHROPIC_API_KEY;
-      if (useMultiModel) {
-        console.log("Using multi-model enhanced analysis with OpenAI and Anthropic Claude.");
-      } else {
-        console.log("Using OpenAI-only analysis. For better results, add ANTHROPIC_API_KEY.");
-      }
+      // Import the direct passthrough method
+      const { directPassthroughAnalyze } = await import('./services/directLLM');
       
-      // Use our enhanced multi-model approach for deep semantic analysis
+      // Direct pass-through to OpenAI with no custom algorithms
       try {
-        // Perform comprehensive analysis with multi-model support where available
-        const aiEvaluation = await evaluateIntelligence(document.content);
-        const result = formatAIEvaluationAsDocumentAnalysis(document.content, aiEvaluation);
+        console.log("DIRECT PASSTHROUGH: Sending document directly to GPT-4o for analysis");
+        // Direct passthrough to LLM - no custom algorithms
+        const directResult = await directPassthroughAnalyze(document.content);
         
-        // Log the key cognitive metrics for debugging
-        console.log("Analysis complete with the following key metrics:");
-        console.log(`- Semantic Compression: ${aiEvaluation.deep.semanticCompression}/100`);
-        console.log(`- Inferential Continuity: ${aiEvaluation.deep.inferentialContinuity}/100`);
-        console.log(`- Claim Necessity: ${aiEvaluation.deep.claimNecessity}/100`);
-        console.log(`- Overall Score: ${aiEvaluation.overallScore}/100`);
+        // Format the result to match our API response structure
+        const result = {
+          id: 0,
+          documentId: 0,
+          summary: directResult.analysis.substring(0, 300) + "...",
+          strengths: [],
+          weaknesses: [],
+          overallScore: directResult.overallScore,
+          dimensions: [
+            {
+              name: "Semantic Compression",
+              score: directResult.deep.semanticCompression,
+              description: "How much meaning is packed into minimal language"
+            },
+            {
+              name: "Inferential Continuity",
+              score: directResult.deep.inferentialContinuity,
+              description: "How clearly claims follow from previous claims"
+            },
+            {
+              name: "Claim Necessity",
+              score: directResult.deep.claimNecessity,
+              description: "How well concepts are defined and build on each other"
+            },
+            {
+              name: "Conceptual Depth",
+              score: directResult.deep.conceptualDepth,
+              description: "How deeply the concepts are explored"
+            },
+            {
+              name: "Logical Laddering",
+              score: directResult.deep.logicalLaddering,
+              description: "How well the text builds recursive argument structures"
+            }
+          ],
+          analysis: directResult.analysis,
+          createdAt: new Date().toISOString(),
+        };
+        
+        // Log the direct results
+        console.log("DIRECT PASSTHROUGH ANALYSIS COMPLETE - No custom algorithms used:");
+        console.log(`- Semantic Compression: ${directResult.deep.semanticCompression}/100`);
+        console.log(`- Inferential Continuity: ${directResult.deep.inferentialContinuity}/100`);
+        console.log(`- Claim Necessity: ${directResult.deep.claimNecessity}/100`);
+        console.log(`- Overall Score: ${directResult.overallScore}/100`);
         
         res.json(result);
-      } catch (aiError) {
-        console.error("AI analysis failed, falling back to algorithmic analysis:", aiError);
-        // Fallback to the algorithmic analysis as a last resort
-        const result = generateAnalysis(document.content);
-        res.json(result);
+      } catch (error) {
+        console.error("Error with direct OpenAI passthrough:", error);
+        res.status(500).json({ 
+          message: "Error analyzing with direct OpenAI passthrough", 
+          error: error.message 
+        });
       }
     } catch (error: any) {
       console.error("Error analyzing document:", error);
