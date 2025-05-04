@@ -428,187 +428,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR REWRITE`);
         const result = await directRewrite(originalText, options.instruction, provider);
         
-        // If the rewrite was rejected by the sanity check (original text returned)
-        if (result.rewrittenText === originalText) {
-          // Check if the rejection was due to similarity or other issues
-          const rejectionReason = result.stats.instructionFollowed.includes("similar to input") 
-            ? "Rewrite rejected: output is too similar to input (>95% similarity). This does not qualify as a substantive rearticulation."
-            : "Sanity check detected potential degradation of semantic density or logical structure";
-
-          return res.json({
-            originalText,
-            rewrittenText: result.rewrittenText,
-            stats: result.stats,
-            comparativeAnalysis: {
-              verdict: "REWRITE REJECTED",
-              reason: rejectionReason,
-              recommendedScore: originalScore,
-              rewriteQuality: "INVALID: NOT REWRITTEN"
-            }
-          });
-        }
+        // Simply return the result from the LLM with no evaluation
+        console.log(`DIRECT PASSTHROUGH REWRITE COMPLETE - Using ${provider}`);
         
-        // Additional similarity check to catch any similar rewrites that passed through
-        // Import the levenshteinDistance function from rewrite.ts
-        const { calculateSimilarityPercentage } = require('./services/rewrite');
-        const similarityPercentage = calculateSimilarityPercentage(originalText, result.rewrittenText);
-        console.log(`Similarity between original and rewritten text: ${similarityPercentage}%`);
-        
-        // Reject if texts are too similar (fallback check in case the first check failed)
-        if (similarityPercentage > 95) {
-          console.log(`REWRITE REJECTED (ROUTE CHECK): Output is ${similarityPercentage}% similar to input`);
-          return res.json({
-            originalText,
-            rewrittenText: originalText, // Return original text since rewrite was invalid
-            stats: {
-              originalLength: originalText.length,
-              rewrittenLength: originalText.length,
-              lengthChange: 0,
-              instructionFollowed: options.instruction + ` [REWRITE REJECTED: Output is ${similarityPercentage}% similar to input. This does not qualify as a valid rewrite.]`
-            },
-            comparativeAnalysis: {
-              verdict: "REWRITE REJECTED",
-              reason: `Rewrite rejected: output is too similar to input (${similarityPercentage}% similarity). This does not qualify as a substantive rearticulation.`,
-              recommendedScore: originalScore,
-              rewriteQuality: "INVALID: NOT REWRITTEN"
-            }
-          });
-        }
-        
-        // STEP 3: Analyze the rewritten text
-        console.log("Analyzing rewritten text for comparative evaluation...");
-        const rewrittenAnalysis = await evaluateIntelligence(result.rewrittenText);
-        const rewrittenScore = rewrittenAnalysis.overallScore;
-        console.log(`Rewritten text cognitive score: ${rewrittenScore}`);
-        
-        // Store key cognitive metrics for comparison
-        const rewrittenMetrics = {
-          semanticCompression: rewrittenAnalysis.deep.semanticCompression,
-          inferentialContinuity: rewrittenAnalysis.deep.inferentialContinuity,
-          conceptualDepth: rewrittenAnalysis.deep.conceptualDepth,
-          claimNecessity: rewrittenAnalysis.deep.claimNecessity,
-          logicalLaddering: rewrittenAnalysis.deep.logicalLaddering,
-          originality: rewrittenAnalysis.deep.originality
-        };
-        
-        // STEP 4: Calculate direct cognitive metric changes
-        const metricChanges = {
-          semanticCompression: rewrittenMetrics.semanticCompression - originalMetrics.semanticCompression,
-          inferentialContinuity: rewrittenMetrics.inferentialContinuity - originalMetrics.inferentialContinuity,
-          conceptualDepth: rewrittenMetrics.conceptualDepth - originalMetrics.conceptualDepth,
-          claimNecessity: rewrittenMetrics.claimNecessity - originalMetrics.claimNecessity,
-          logicalLaddering: rewrittenMetrics.logicalLaddering - originalMetrics.logicalLaddering,
-          originality: rewrittenMetrics.originality - originalMetrics.originality
-        };
-        
-        // STEP 5: Run AI detection on both texts if GPTZero API key is available
-        let aiDetectionResults = null;
-        if (process.env.GPTZERO_API_KEY) {
-          try {
-            console.log("Running AI detection on original and rewritten texts...");
-            const originalAICheck = await checkForAI({ content: originalText });
-            const rewrittenAICheck = await checkForAI({ content: result.rewrittenText });
-            
-            aiDetectionResults = {
-              original: originalAICheck,
-              rewritten: rewrittenAICheck,
-              aiProbabilityChange: rewrittenAICheck.probability - originalAICheck.probability
-            };
-            
-            console.log(`AI Detection Results - Original: ${originalAICheck.probability}%, Rewritten: ${rewrittenAICheck.probability}%`);
-          } catch (aiError) {
-            console.error("AI detection error:", aiError);
-            // Continue without AI detection if it fails
-          }
-        }
-        
-        // STEP 6: Score Adjustment Algorithm - Fix score inflation for high-quality texts
-        // This addresses the Chomsky problem where rewrites of already excellent texts 
-        // don't get properly penalized for non-improvement or slight degradation
-        
-        let adjustedScore = rewrittenScore;
-        let scoringVerdict = "";
-        let adjustmentReason = "";
-        let rewriteQuality = "EQUIVALENT"; // Default
-        
-        // Case 1: Original text is already excellent (90+) 
-        if (originalScore >= 90) {
-          // Check if semantic compression and inferential continuity improved
-          const keyMetricsImproved = metricChanges.semanticCompression > 1 && 
-                                     metricChanges.inferentialContinuity > 0;
-          
-          if (!keyMetricsImproved) {
-            // If key metrics didn't improve, apply a penalty
-            const penalty = 3;
-            adjustedScore = Math.max(originalScore - penalty, 85);
-            scoringVerdict = "SCORE ADJUSTED DOWNWARD";
-            adjustmentReason = "No meaningful improvement in key cognitive dimensions for already excellent text";
-            rewriteQuality = "INFERIOR";
-            console.log(`Score inflation detected! Original: ${originalScore}, Raw rewrite: ${rewrittenScore}, Adjusted: ${adjustedScore}`);
-          } else {
-            // Metrics improved but still apply smaller adjustment for high-quality texts
-            // to ensure rewrites are substantively better
-            if (rewrittenScore - originalScore < 1) {
-              adjustedScore = originalScore + 0.5; // Minimal improvement
-              scoringVerdict = "MODERATE IMPROVEMENT";
-              adjustmentReason = "Slight improvement in already excellent text";
-              rewriteQuality = "SLIGHTLY BETTER";
-            } else {
-              scoringVerdict = "SIGNIFICANT IMPROVEMENT";
-              adjustmentReason = "Meaningful enhancement of already excellent text";
-              rewriteQuality = "SUPERIOR";
-            }
-          }
-        }
-        // Case 2: Original text is good but not excellent (80-89)
-        else if (originalScore >= 80) {
-          // For good texts, require at least some improvement in semantic compression
-          if (metricChanges.semanticCompression <= 0) {
-            adjustedScore = Math.max(rewrittenScore - 2, originalScore - 1);
-            scoringVerdict = "SCORE ADJUSTED DOWNWARD";
-            adjustmentReason = "Semantic compression not improved in high-quality text";
-            rewriteQuality = "INFERIOR";
-          } else if (rewrittenScore <= originalScore) {
-            adjustedScore = originalScore - 0.5;
-            scoringVerdict = "SCORE ADJUSTED DOWNWARD";
-            adjustmentReason = "Rewrite didn't improve overall quality";
-            rewriteQuality = "INFERIOR";
-          } else {
-            scoringVerdict = "IMPROVEMENT DETECTED";
-            adjustmentReason = "Moderate enhancement of good text";
-            rewriteQuality = "BETTER";
-          }
-        }
-        // Case 3: Original text is average or below (below 80)
-        else {
-          // For average texts, maintain the rewritten score if it's higher
-          if (rewrittenScore <= originalScore) {
-            adjustedScore = originalScore - 0.5;
-            scoringVerdict = "SCORE ADJUSTED DOWNWARD";
-            adjustmentReason = "Rewrite didn't improve overall quality";
-            rewriteQuality = "INFERIOR";
-          } else {
-            scoringVerdict = "IMPROVEMENT ACCEPTED";
-            adjustmentReason = "Enhancement of average text";
-            rewriteQuality = "BETTER";
-          }
-        }
-        
-        // STEP 7: Return comprehensive results with comparative metrics
         res.json({
-          originalText,
+          originalText: result.originalText,
           rewrittenText: result.rewrittenText,
           stats: result.stats,
-          comparativeAnalysis: {
-            originalScore: originalScore,
-            rewrittenRawScore: rewrittenScore,
-            adjustedScore: adjustedScore,
-            verdict: scoringVerdict,
-            reason: adjustmentReason,
-            rewriteQuality: rewriteQuality,
-            metricChanges: metricChanges,
-            aiDetection: aiDetectionResults
-          }
+          provider: result.provider || provider,
+          directPassthrough: true,
+          instruction: options.instruction
         });
       } catch (rewriteError: any) {
         console.error("Rewrite error:", rewriteError);
@@ -626,10 +455,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Translate large documents
+  // PURE PASS-THROUGH TRANSLATION - Direct to LLM with no custom algorithms
   app.post("/api/translate", async (req: Request, res: Response) => {
     try {
-      const { content, options, filename } = req.body;
+      const { content, provider = "openai", options } = req.body;
       
       if (!content || !options?.sourceLanguage || !options?.targetLanguage) {
         return res.status(400).json({ 
@@ -638,42 +467,151 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      console.log(`Starting translation from ${options.sourceLanguage} to ${options.targetLanguage}`);
-      console.log(`Document size: ${content.length} characters`);
+      console.log(`Starting direct passthrough translation with ${provider}`);
+      console.log(`From ${options.sourceLanguage} to ${options.targetLanguage}`);
+      console.log(`Text size: ${content.length} characters`);
       
-      // Set up Server-Sent Events for progress updates
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
+      // Import the direct translate method
+      const { directTranslate } = await import('./services/directLLM');
       
-      // Send progress updates to the client
-      const sendProgress = (progress: any) => {
-        res.write(`data: ${JSON.stringify(progress)}\n\n`);
+      try {
+        // DIRECT PASS-THROUGH TO LLM - No custom algorithms
+        console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR TRANSLATION`);
         
-        // If translation is completed or failed, end the response
-        if (progress.status === 'completed' || progress.status === 'failed') {
-          res.end();
-        }
-      };
-      
-      // Start the translation process
-      translateLargeDocument(content, options, sendProgress)
-        .then((result) => {
-          if (result.success) {
-            console.log('Translation completed successfully');
-          } else {
-            console.error('Translation failed:', result.error);
+        // For larger texts, need to do incremental updates
+        if (content.length > 10000) {
+          // Set up Server-Sent Events for progress updates
+          res.setHeader('Content-Type', 'text/event-stream');
+          res.setHeader('Cache-Control', 'no-cache');
+          res.setHeader('Connection', 'keep-alive');
+          
+          // Helper function to split text keeping paragraphs intact
+          const splitTextIntoChunks = (text: string, maxChunkSize: number = 4000): string[] => {
+            // Split by paragraphs
+            const paragraphs = text.split(/\n\s*\n/);
+            const chunks: string[] = [];
+            let currentChunk = '';
+            
+            for (const paragraph of paragraphs) {
+              // If adding this paragraph would exceed max size, start a new chunk
+              if (currentChunk.length + paragraph.length > maxChunkSize && currentChunk.length > 0) {
+                chunks.push(currentChunk);
+                currentChunk = paragraph;
+              } else {
+                // Add paragraph to current chunk
+                if (currentChunk.length > 0) {
+                  currentChunk += '\n\n';
+                }
+                currentChunk += paragraph;
+              }
+            }
+            
+            // Add the last chunk if it's not empty
+            if (currentChunk.length > 0) {
+              chunks.push(currentChunk);
+            }
+            
+            return chunks;
+          };
+          
+          // Break text into manageable chunks
+          const chunks = splitTextIntoChunks(content);
+          const totalChunks = chunks.length;
+          console.log(`Text split into ${totalChunks} chunks for translation`);
+          
+          // Send progress updates to the client
+          const sendProgress = (progress: any) => {
+            res.write(`data: ${JSON.stringify(progress)}\n\n`);
+            
+            // If translation is completed or failed, end the response
+            if (progress.status === 'completed' || progress.status === 'failed') {
+              res.end();
+            }
+          };
+          
+          // Process chunks sequentially
+          let translatedContent = '';
+          
+          for (let i = 0; i < chunks.length; i++) {
+            try {
+              // Send progress update
+              sendProgress({
+                currentChunk: i + 1,
+                totalChunks,
+                percentComplete: Math.round(((i + 0.5) / totalChunks) * 100),
+                status: 'translating'
+              });
+              
+              // Translate current chunk
+              const chunkResult = await directTranslate(
+                chunks[i],
+                options.sourceLanguage,
+                options.targetLanguage,
+                provider
+              );
+              
+              // Append translated chunk
+              translatedContent += (i > 0 ? '\n\n' : '') + chunkResult.translatedText;
+              
+              // Send another progress update
+              sendProgress({
+                currentChunk: i + 1,
+                totalChunks,
+                percentComplete: Math.round(((i + 1) / totalChunks) * 100),
+                status: 'processing'
+              });
+            } catch (chunkError) {
+              console.error(`Error translating chunk ${i+1}/${totalChunks}:`, chunkError);
+              sendProgress({
+                status: 'failed',
+                error: `Error translating chunk ${i+1}/${totalChunks}: ${chunkError.message}`
+              });
+              return;
+            }
           }
-        })
-        .catch((error) => {
-          console.error('Translation error:', error);
+          
+          // All chunks translated successfully
           sendProgress({
-            currentChunk: 0,
-            totalChunks: 0,
-            status: 'failed',
-            error: error.message || 'Unknown translation error'
+            status: 'completed',
+            result: {
+              originalText: content,
+              translatedText: translatedContent,
+              sourceLanguage: options.sourceLanguage,
+              targetLanguage: options.targetLanguage,
+              provider: provider,
+              stats: {
+                originalLength: content.length,
+                translatedLength: translatedContent.length
+              }
+            }
           });
+        } else {
+          // For smaller texts, just do a single request
+          const result = await directTranslate(
+            content, 
+            options.sourceLanguage, 
+            options.targetLanguage, 
+            provider
+          );
+          
+          // Return the result
+          res.json({
+            originalText: result.originalText,
+            translatedText: result.translatedText,
+            sourceLanguage: result.sourceLanguage,
+            targetLanguage: result.targetLanguage,
+            provider: result.provider || provider,
+            directPassthrough: true,
+            stats: result.stats
+          });
+        }
+      } catch (translationError: any) {
+        console.error("Translation error:", translationError);
+        res.status(500).json({
+          success: false,
+          message: translationError.message || "Error during translation process"
         });
+      }
     } catch (error: any) {
       console.error("Error starting translation:", error);
       res.status(500).json({ 

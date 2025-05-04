@@ -139,9 +139,117 @@ export async function directPerplexityAnalyze(text: string): Promise<any> {
 }
 
 /**
- * Direct pass-through to rewrite text using the selected LLM provider
+ * Direct pass-through for translation using selected LLM provider
  * No custom algorithms or processing - just send the text directly to the LLM
  */
+export async function directTranslate(
+  text: string, 
+  sourceLanguage: string,
+  targetLanguage: string,
+  provider: string = "openai"
+): Promise<any> {
+  try {
+    // Construct translation prompt
+    const translationPrompt = `Translate the following text from ${sourceLanguage} to ${targetLanguage}. Preserve the original meaning, tone, and formatting as closely as possible.\n\nOriginal text (${sourceLanguage}):\n\n${text}\n\nTranslated text (${targetLanguage}):`;
+    
+    let translatedText = "";
+    
+    // Direct pass-through to selected provider with no custom processing
+    switch (provider.toLowerCase()) {
+      case 'anthropic': {
+        if (!process.env.ANTHROPIC_API_KEY) {
+          throw new Error("ANTHROPIC_API_KEY is required but not provided");
+        }
+        
+        const anthro = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+        const response = await anthro.messages.create({
+          model: "claude-3-7-sonnet-20250219",
+          max_tokens: 4000,
+          messages: [
+            { role: "user", content: translationPrompt }
+          ]
+        });
+        
+        if (response.content && response.content[0] && 'text' in response.content[0]) {
+          translatedText = response.content[0].text as string;
+        } else {
+          throw new Error("Unexpected response format from Anthropic API");
+        }
+        break;
+      }
+      
+      case 'perplexity': {
+        if (!process.env.PERPLEXITY_API_KEY) {
+          throw new Error("PERPLEXITY_API_KEY is required but not provided");
+        }
+        
+        const response = await fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: "llama-3.1-sonar-small-128k-online",
+            messages: [
+              { role: "user", content: translationPrompt }
+            ],
+            temperature: 0.3
+          })
+        });
+        
+        const data = await response.json() as any;
+        if (!response.ok) {
+          throw new Error(`Perplexity API error: ${data?.error?.message || JSON.stringify(data)}`);
+        }
+        
+        if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+          translatedText = data.choices[0].message.content;
+        } else {
+          throw new Error("Unexpected response format from Perplexity API");
+        }
+        break;
+      }
+      
+      case 'openai':
+      default: {
+        if (!process.env.OPENAI_API_KEY) {
+          throw new Error("OPENAI_API_KEY is required but not provided");
+        }
+        
+        const oai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        const response = await oai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [
+            { role: "user", content: translationPrompt }
+          ],
+          temperature: 0.3
+        });
+        
+        translatedText = response.choices[0].message.content || "";
+        break;
+      }
+    }
+    
+    return {
+      originalText: text,
+      translatedText: translatedText,
+      sourceLanguage: sourceLanguage,
+      targetLanguage: targetLanguage,
+      provider: provider,
+      stats: {
+        originalLength: text.length,
+        translatedLength: translatedText.length,
+        lengthChange: translatedText.length - text.length,
+        lengthChangePct: Math.round((translatedText.length - text.length) / text.length * 100)
+      }
+    };
+  } catch (error) {
+    console.error(`Error in direct ${provider} translation:`, error);
+    throw error;
+  }
+}
+
 export async function directRewrite(
   text: string, 
   instruction: string, 
