@@ -22,6 +22,7 @@ export interface RewriteOptions {
 export interface RewriteRequest {
   originalText: string;
   options: RewriteOptions;
+  provider?: string;
 }
 
 export interface RewriteResult {
@@ -125,4 +126,5 @@ export interface TranslationRequest {
   content: string;
   filename?: string;
   options: TranslationOptions;
+  provider?: string;
 }

@@ -13,10 +13,14 @@ import {
 
 // Function to analyze a single document
 export async function analyzeDocument(
-  document: DocumentInput
+  document: DocumentInput,
+  provider: string = "openai"
 ): Promise<DocumentAnalysis> {
   try {
-    const response = await apiRequest("POST", "/api/analyze", document);
+    const response = await apiRequest("POST", "/api/analyze", {
+      ...document,
+      provider
+    });
     return await response.json();
   } catch (error) {
     console.error("Error analyzing document:", error);
@@ -27,7 +31,8 @@ export async function analyzeDocument(
 // Function to compare two documents
 export async function compareDocuments(
   documentA: DocumentInput,
-  documentB: DocumentInput
+  documentB: DocumentInput,
+  provider: string = "openai"
 ): Promise<{
   analysisA: DocumentAnalysis;
   analysisB: DocumentAnalysis;
@@ -37,6 +42,7 @@ export async function compareDocuments(
     const response = await apiRequest("POST", "/api/compare", {
       documentA,
       documentB,
+      provider
     });
     return await response.json();
   } catch (error) {
@@ -87,12 +93,14 @@ export async function extractTextFromFile(
 export async function translateDocument(
   content: string,
   options: TranslationOptions,
+  provider: string = "openai",
   filename?: string
 ): Promise<TranslationResult> {
   try {
     const response = await apiRequest("POST", "/api/translate", {
       content,
       options,
+      provider,
       filename,
     });
     return await response.json();
@@ -105,12 +113,14 @@ export async function translateDocument(
 // Function to rewrite a document with intelligence enhancement
 export async function rewriteDocument(
   originalText: string,
-  options: RewriteOptions
+  options: RewriteOptions,
+  provider: string = "openai"
 ): Promise<RewriteResult> {
   try {
     const request: RewriteRequest = {
       originalText,
-      options
+      options,
+      provider
     };
     
     const response = await apiRequest("POST", "/api/rewrite", request);

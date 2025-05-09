@@ -4,6 +4,7 @@ import DocumentInput from "@/components/DocumentInput";
 import DocumentResults from "@/components/DocumentResults";
 import ComparativeResults from "@/components/ComparativeResults";
 import AIDetectionModal from "@/components/AIDetectionModal";
+import ProviderSelector, { LLMProvider } from "@/components/ProviderSelector";
 
 import { Button } from "@/components/ui/button";
 import { Brain, RefreshCw, Trash2 } from "lucide-react";
@@ -34,6 +35,9 @@ const HomePage: React.FC = () => {
   const [aiDetectionModalOpen, setAIDetectionModalOpen] = useState(false);
   const [currentAICheckDocument, setCurrentAICheckDocument] = useState<"A" | "B">("A");
   const [aiDetectionResult, setAIDetectionResult] = useState<AIDetectionResult | undefined>(undefined);
+  
+  // State for LLM provider
+  const [selectedProvider, setSelectedProvider] = useState<LLMProvider>("openai");
 
   // Handler for checking if a document is AI-generated
   const handleCheckAI = async (documentId: "A" | "B") => {
@@ -89,18 +93,23 @@ const HomePage: React.FC = () => {
     
     try {
       if (mode === "single") {
-        const result = await analyzeDocument(documentA);
+        // Use the selected provider for analysis
+        console.log(`Analyzing with ${selectedProvider}...`);
+        const result = await analyzeDocument(documentA, selectedProvider);
         setAnalysisA(result);
         setAnalysisB(null);
         setComparison(null);
       } else {
-        const results = await compareDocuments(documentA, documentB);
+        // Use the selected provider for comparison
+        console.log(`Comparing with ${selectedProvider}...`);
+        const results = await compareDocuments(documentA, documentB, selectedProvider);
         setAnalysisA(results.analysisA);
         setAnalysisB(results.analysisB);
         setComparison(results.comparison);
       }
     } catch (error) {
       console.error("Error analyzing documents:", error);
+      alert(`Analysis failed. Please check if the ${selectedProvider} API is available.`);
     } finally {
       setIsAnalysisLoading(false);
     }
@@ -141,9 +150,14 @@ const HomePage: React.FC = () => {
 
       {/* Analysis Mode Selector */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Analysis Mode</h2>
-        <div className="flex flex-wrap gap-4">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">Analysis Settings</h2>
+        <div className="flex flex-wrap gap-8 items-center">
           <ModeToggle mode={mode} setMode={setMode} />
+          <ProviderSelector 
+            selectedProvider={selectedProvider}
+            onProviderChange={setSelectedProvider}
+            label="AI Provider"
+          />
         </div>
       </div>
 
