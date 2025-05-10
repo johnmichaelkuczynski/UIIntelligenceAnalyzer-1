@@ -193,31 +193,36 @@ const HomePage: React.FC = () => {
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Analysis Settings</h2>
         <div className="flex flex-wrap gap-8 items-center">
           <ModeToggle mode={mode} setMode={setMode} />
-          <ProviderSelector 
-            selectedProvider={selectedProvider}
-            onProviderChange={setSelectedProvider}
-            label="AI Provider"
-          />
-        </div>
-        
-        {/* API Status Indicators */}
-        <div className="mt-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">API Status:</h3>
-          <div className="flex flex-wrap gap-2">
-            <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center ${apiStatus.openai ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-              <span className={`h-2 w-2 rounded-full mr-1.5 ${apiStatus.openai ? 'bg-green-500' : 'bg-red-500'}`}></span>
-              OpenAI: {apiStatus.openai ? 'Active' : 'Inactive'}
-            </div>
-            <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center ${apiStatus.anthropic ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-              <span className={`h-2 w-2 rounded-full mr-1.5 ${apiStatus.anthropic ? 'bg-green-500' : 'bg-red-500'}`}></span>
-              Anthropic: {apiStatus.anthropic ? 'Active' : 'Inactive'}
-            </div>
-            <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center ${apiStatus.perplexity ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-              <span className={`h-2 w-2 rounded-full mr-1.5 ${apiStatus.perplexity ? 'bg-green-500' : 'bg-red-500'}`}></span>
-              Perplexity: {apiStatus.perplexity ? 'Active' : 'Inactive'}
+          <div className="border p-4 rounded-lg bg-white shadow-sm mt-2 md:mt-0">
+            <h3 className="text-lg font-medium text-gray-800 mb-3">Choose Your AI Provider</h3>
+            <ProviderSelector 
+              selectedProvider={selectedProvider}
+              onProviderChange={setSelectedProvider}
+              label="AI Provider"
+              apiStatus={apiStatus}
+              className="mb-3"
+            />
+            
+            {/* API Status Indicators */}
+            <div className="mt-4">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Provider Status:</h4>
+              <div className="flex flex-wrap gap-2">
+                <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center ${apiStatus.openai ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  <span className={`h-2 w-2 rounded-full mr-1.5 ${apiStatus.openai ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                  OpenAI: {apiStatus.openai ? 'Active' : 'Inactive'}
+                </div>
+                <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center ${apiStatus.anthropic ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  <span className={`h-2 w-2 rounded-full mr-1.5 ${apiStatus.anthropic ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                  Anthropic: {apiStatus.anthropic ? 'Active' : 'Inactive'}
+                </div>
+                <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center ${apiStatus.perplexity ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  <span className={`h-2 w-2 rounded-full mr-1.5 ${apiStatus.perplexity ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                  Perplexity: {apiStatus.perplexity ? 'Active' : 'Inactive'}
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-gray-500">All API providers are active and ready to use. Each offers different analysis capabilities.</p>
             </div>
           </div>
-          <p className="mt-2 text-xs text-gray-500">Please select a provider with Active status. If you need to use an inactive provider, please update its API key.</p>
         </div>
       </div>
 

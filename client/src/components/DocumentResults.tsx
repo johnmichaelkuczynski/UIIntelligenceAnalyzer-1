@@ -376,7 +376,23 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
       
       {/* Summary Card */}
       <div className="mb-6 bg-blue-50 p-4 rounded-md">
-        <h3 className="font-semibold text-gray-800 mb-2">Summary</h3>
+        <div className="flex justify-between items-start">
+          <h3 className="font-semibold text-gray-800 mb-2">Summary</h3>
+          {analysis.provider && (
+            <Badge variant="outline" className="bg-white">
+              {analysis.provider.includes("OpenAI") ? (
+                <Sparkles className="h-3.5 w-3.5 text-green-600 mr-1.5" />
+              ) : analysis.provider.includes("Anthropic") ? (
+                <BrainCircuit className="h-3.5 w-3.5 text-purple-600 mr-1.5" />
+              ) : analysis.provider.includes("Perplexity") ? (
+                <Bot className="h-3.5 w-3.5 text-blue-600 mr-1.5" />
+              ) : (
+                <FileType className="h-3.5 w-3.5 text-gray-600 mr-1.5" />
+              )}
+              {analysis.provider}
+            </Badge>
+          )}
+        </div>
         <p className="text-gray-700">{analysis.summary}</p>
       </div>
 
