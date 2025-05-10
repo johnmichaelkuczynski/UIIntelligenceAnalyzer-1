@@ -62,6 +62,7 @@ export interface DocumentAnalysis {
     isAI: boolean;
     probability: number;
   };
+  provider?: string; // Which AI provider generated this analysis
 }
 
 export interface DocumentComparison {
