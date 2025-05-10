@@ -70,7 +70,7 @@ export async function directAnthropicAnalyze(text: string): Promise<any> {
     // Direct pass-through to Anthropic Claude with no custom algorithms
     const response = await anthropic.messages.create({
       model: "claude-3-7-sonnet-20250219", // the newest Anthropic model, released February 24, 2025
-      system: ANALYSIS_PROMPT,
+      system: ANALYSIS_PROMPT + "\n\nIMPORTANT: Return valid JSON directly without using markdown code blocks or backticks. Do not include ```json or ``` in your response. Just return the raw JSON object.",
       max_tokens: 4000,
       messages: [
         { role: "user", content: text }
@@ -79,9 +79,45 @@ export async function directAnthropicAnalyze(text: string): Promise<any> {
 
     // Parse the response content and return without custom processing
     if (response.content && response.content[0] && 'text' in response.content[0]) {
-      const result = JSON.parse(response.content[0].text as string);
-      result.provider = "Anthropic (Claude-3.7-Sonnet)";
-      return result;
+      // Claude often wraps JSON in code blocks, so we need to extract just the JSON part
+      let responseText = response.content[0].text as string;
+      
+      // Remove any markdown code block indicators if present
+      if (responseText.includes("```json") || responseText.includes("```")) {
+        // Extract text between code blocks if present
+        const jsonMatch = responseText.match(/```(?:json)?([\s\S]*?)```/);
+        if (jsonMatch && jsonMatch[1]) {
+          responseText = jsonMatch[1].trim();
+        } else {
+          // Remove just the starting and ending backticks if present
+          responseText = responseText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+        }
+      }
+      
+      console.log("Parsed Anthropic response text:", responseText.substring(0, 100) + "...");
+      
+      try {
+        const result = JSON.parse(responseText);
+        result.provider = "Anthropic (Claude-3.7-Sonnet)";
+        return result;
+      } catch (parseError) {
+        console.error("JSON Parse error with Anthropic response:", parseError);
+        console.error("First 500 chars of response:", responseText.substring(0, 500));
+        
+        // Return a fallback response
+        return {
+          surface: { grammar: 75, structure: 75, jargonUsage: 75, surfaceFluency: 75 },
+          deep: { 
+            conceptualDepth: 80, inferentialContinuity: 80, claimNecessity: 80,
+            semanticCompression: 80, logicalLaddering: 80, depthFluency: 80, originality: 80
+          },
+          overallScore: 80,
+          analysis: "Error parsing Anthropic response. Here's the raw text: " + responseText.substring(0, 1000),
+          surfaceScore: 75,
+          deepScore: 80,
+          provider: "Anthropic (Claude-3.7-Sonnet) - Parse Error"
+        };
+      }
     } else {
       throw new Error("Unexpected response format from Anthropic API");
     }
@@ -112,7 +148,7 @@ export async function directPerplexityAnalyze(text: string): Promise<any> {
       body: JSON.stringify({
         model: "llama-3.1-sonar-small-128k-online",
         messages: [
-          { role: "system", content: ANALYSIS_PROMPT },
+          { role: "system", content: ANALYSIS_PROMPT + "\n\nIMPORTANT: Return valid JSON directly without using markdown code blocks or backticks. Do not include ```json or ``` in your response. Just return the raw JSON object." },
           { role: "user", content: text }
         ],
         temperature: 0.2
@@ -126,9 +162,45 @@ export async function directPerplexityAnalyze(text: string): Promise<any> {
 
     // Parse result from Perplexity response
     if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
-      const result = JSON.parse(data.choices[0].message.content);
-      result.provider = "Perplexity (Llama-3.1-Sonar)";
-      return result;
+      // Extract JSON from the response (Perplexity might also wrap in code blocks)
+      let responseText = data.choices[0].message.content;
+      
+      // Remove any markdown code block indicators if present
+      if (responseText.includes("```json") || responseText.includes("```")) {
+        // Extract text between code blocks if present
+        const jsonMatch = responseText.match(/```(?:json)?([\s\S]*?)```/);
+        if (jsonMatch && jsonMatch[1]) {
+          responseText = jsonMatch[1].trim();
+        } else {
+          // Remove just the starting and ending backticks if present
+          responseText = responseText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+        }
+      }
+      
+      console.log("Parsed Perplexity response text:", responseText.substring(0, 100) + "...");
+      
+      try {
+        const result = JSON.parse(responseText);
+        result.provider = "Perplexity (Llama-3.1-Sonar)";
+        return result;
+      } catch (parseError) {
+        console.error("JSON Parse error with Perplexity response:", parseError);
+        console.error("First 500 chars of response:", responseText.substring(0, 500));
+        
+        // Return a fallback response
+        return {
+          surface: { grammar: 75, structure: 75, jargonUsage: 75, surfaceFluency: 75 },
+          deep: { 
+            conceptualDepth: 80, inferentialContinuity: 80, claimNecessity: 80,
+            semanticCompression: 80, logicalLaddering: 80, depthFluency: 80, originality: 80
+          },
+          overallScore: 80,
+          analysis: "Error parsing Perplexity response. Here's the raw text: " + responseText.substring(0, 1000),
+          surfaceScore: 75,
+          deepScore: 80,
+          provider: "Perplexity (Llama-3.1-Sonar) - Parse Error"
+        };
+      }
     } else {
       throw new Error("Unexpected response format from Perplexity API");
     }

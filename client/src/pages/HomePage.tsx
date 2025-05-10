@@ -142,7 +142,8 @@ const HomePage: React.FC = () => {
       }
     } catch (error) {
       console.error("Error analyzing documents:", error);
-      alert(`Analysis failed. Please check if the ${selectedProvider} API is available.`);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      alert(`Analysis with ${selectedProvider} failed: ${errorMessage}\n\nPlease verify that the ${selectedProvider} API key is correctly configured.`);
     } finally {
       setIsAnalysisLoading(false);
     }
