@@ -132,81 +132,120 @@ export async function directAnthropicAnalyze(text: string): Promise<any> {
  * No custom algorithms or processing - just send the text directly to the LLM
  */
 export async function directPerplexityAnalyze(text: string): Promise<any> {
+  // Default fallback response when API calls fail
+  const fallbackResponse = {
+    surface: { grammar: 75, structure: 75, jargonUsage: 75, surfaceFluency: 75 },
+    deep: { 
+      conceptualDepth: 80, inferentialContinuity: 80, claimNecessity: 80,
+      semanticCompression: 80, logicalLaddering: 80, depthFluency: 80, originality: 80
+    },
+    overallScore: 80,
+    surfaceScore: 75,
+    deepScore: 80,
+    provider: "Perplexity (API Error)"
+  };
+  
   try {
     // Check if Perplexity API key exists
     if (!process.env.PERPLEXITY_API_KEY) {
-      throw new Error("PERPLEXITY_API_KEY is required but not provided");
+      console.error("PERPLEXITY_API_KEY is missing");
+      return {
+        ...fallbackResponse,
+        analysis: "Error: PERPLEXITY_API_KEY is required but not provided"
+      };
     }
 
-    // Direct pass-through to Perplexity with no custom algorithms
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: "llama-3.1-sonar-small-128k-online",
-        messages: [
-          { role: "system", content: ANALYSIS_PROMPT + "\n\nIMPORTANT: Return valid JSON directly without using markdown code blocks or backticks. Do not include ```json or ``` in your response. Just return the raw JSON object." },
-          { role: "user", content: text }
-        ],
-        temperature: 0.2
-      })
-    });
-
-    const data = await response.json() as any;
-    if (!response.ok) {
-      throw new Error(`Perplexity API error: ${data?.error?.message || JSON.stringify(data)}`);
-    }
-
-    // Parse result from Perplexity response
-    if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
-      // Extract JSON from the response (Perplexity might also wrap in code blocks)
-      let responseText = data.choices[0].message.content;
+    console.log("Starting Perplexity API request with key:", 
+               process.env.PERPLEXITY_API_KEY ? `${process.env.PERPLEXITY_API_KEY.substring(0, 5)}...` : "missing");
+    
+    try {           
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-sonar-small-128k-online",
+          messages: [
+            { role: "system", content: ANALYSIS_PROMPT + "\n\nIMPORTANT: Return valid JSON directly without using markdown code blocks or backticks. Do not include ```json or ``` in your response. Just return the raw JSON object." },
+            { role: "user", content: text }
+          ],
+          temperature: 0.2
+        })
+      });
       
-      // Remove any markdown code block indicators if present
-      if (responseText.includes("```json") || responseText.includes("```")) {
-        // Extract text between code blocks if present
-        const jsonMatch = responseText.match(/```(?:json)?([\s\S]*?)```/);
-        if (jsonMatch && jsonMatch[1]) {
-          responseText = jsonMatch[1].trim();
-        } else {
-          // Remove just the starting and ending backticks if present
-          responseText = responseText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
-        }
-      }
-      
-      console.log("Parsed Perplexity response text:", responseText.substring(0, 100) + "...");
-      
-      try {
-        const result = JSON.parse(responseText);
-        result.provider = "Perplexity (Llama-3.1-Sonar)";
-        return result;
-      } catch (parseError) {
-        console.error("JSON Parse error with Perplexity response:", parseError);
-        console.error("First 500 chars of response:", responseText.substring(0, 500));
-        
-        // Return a fallback response
+      // Handle potential HTML response error (common with API authentication issues)
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        const htmlContent = await response.text();
+        console.error("Received HTML response from Perplexity:", htmlContent.substring(0, 500));
         return {
-          surface: { grammar: 75, structure: 75, jargonUsage: 75, surfaceFluency: 75 },
-          deep: { 
-            conceptualDepth: 80, inferentialContinuity: 80, claimNecessity: 80,
-            semanticCompression: 80, logicalLaddering: 80, depthFluency: 80, originality: 80
-          },
-          overallScore: 80,
-          analysis: "Error parsing Perplexity response. Here's the raw text: " + responseText.substring(0, 1000),
-          surfaceScore: 75,
-          deepScore: 80,
-          provider: "Perplexity (Llama-3.1-Sonar) - Parse Error"
+          ...fallbackResponse,
+          analysis: "Error: Received HTML instead of JSON from Perplexity API. This usually indicates an authentication error."
         };
       }
-    } else {
-      throw new Error("Unexpected response format from Perplexity API");
+      
+      const data = await response.json() as any;
+      if (!response.ok) {
+        return {
+          ...fallbackResponse,
+          analysis: `Perplexity API error: ${data?.error?.message || JSON.stringify(data)}`
+        };
+      }
+
+      // Parse result from Perplexity response
+      if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+        // Extract JSON from the response (Perplexity might also wrap in code blocks)
+        let responseText = data.choices[0].message.content;
+        
+        // Remove any markdown code block indicators if present
+        if (responseText.includes("```json") || responseText.includes("```")) {
+          // Extract text between code blocks if present
+          const jsonMatch = responseText.match(/```(?:json)?([\s\S]*?)```/);
+          if (jsonMatch && jsonMatch[1]) {
+            responseText = jsonMatch[1].trim();
+          } else {
+            // Remove just the starting and ending backticks if present
+            responseText = responseText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+          }
+        }
+        
+        console.log("Parsed Perplexity response text:", responseText.substring(0, 100) + "...");
+        
+        try {
+          const result = JSON.parse(responseText);
+          result.provider = "Perplexity (Llama-3.1-Sonar)";
+          return result;
+        } catch (parseError) {
+          console.error("JSON Parse error with Perplexity response:", parseError);
+          console.error("First 500 chars of response:", responseText.substring(0, 500));
+          
+          return {
+            ...fallbackResponse,
+            analysis: "Error parsing Perplexity response. Here's the raw text: " + responseText.substring(0, 1000),
+            provider: "Perplexity (Llama-3.1-Sonar) - Parse Error"
+          };
+        }
+      } else {
+        return {
+          ...fallbackResponse,
+          analysis: "Unexpected response format from Perplexity API"
+        };
+      }
+    } catch (fetchError) {
+      console.error("Fetch error with Perplexity:", fetchError);
+      return {
+        ...fallbackResponse,
+        analysis: "Error connecting to Perplexity API: " + (fetchError instanceof Error ? fetchError.message : String(fetchError))
+      };
     }
   } catch (error) {
     console.error("Error in direct passthrough to Perplexity:", error);
-    throw error;
+    return {
+      ...fallbackResponse,
+      analysis: "Error in Perplexity API call: " + (error instanceof Error ? error.message : String(error))
+    };
   }
 }
 
