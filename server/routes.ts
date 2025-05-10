@@ -32,15 +32,26 @@ export async function registerRoutes(app: Express): Promise<Express> {
   // Basic API test
   app.get("/api/check-api", async (_req: Request, res: Response) => {
     try {
-      res.json({ 
+      // Check if API keys are available (don't expose the actual keys)
+      const apiStatus = {
         status: "operational",
         api_keys: {
           openai: process.env.OPENAI_API_KEY ? "configured" : "missing",
           anthropic: process.env.ANTHROPIC_API_KEY ? "configured" : "missing",
           perplexity: process.env.PERPLEXITY_API_KEY ? "configured" : "missing"
-        }
+        },
+        timestamp: new Date().toISOString()
+      };
+      
+      console.log("API Status Check:", {
+        openai: process.env.OPENAI_API_KEY ? "✓" : "✗",
+        anthropic: process.env.ANTHROPIC_API_KEY ? "✓" : "✗",  
+        perplexity: process.env.PERPLEXITY_API_KEY ? "✓" : "✗"
       });
+      
+      res.json(apiStatus);
     } catch (error: any) {
+      console.error("Error checking API status:", error);
       res.status(500).json({ message: error.message || "Error checking API status" });
     }
   });

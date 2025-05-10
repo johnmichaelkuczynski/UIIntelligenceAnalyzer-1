@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ModeToggle from "@/components/ModeToggle";
 import DocumentInput from "@/components/DocumentInput";
 import DocumentResults from "@/components/DocumentResults";
@@ -38,6 +38,39 @@ const HomePage: React.FC = () => {
   
   // State for LLM provider
   const [selectedProvider, setSelectedProvider] = useState<LLMProvider>("openai");
+  const [apiStatus, setApiStatus] = useState<{
+    openai: boolean;
+    anthropic: boolean;
+    perplexity: boolean;
+  }>({
+    openai: false,
+    anthropic: false,
+    perplexity: false
+  });
+  
+  // Check API status when component mounts
+  useEffect(() => {
+    async function checkApiStatus() {
+      try {
+        const response = await fetch("/api/check-api");
+        const data = await response.json();
+        
+        if (data.api_keys) {
+          setApiStatus({
+            openai: data.api_keys.openai === "configured",
+            anthropic: data.api_keys.anthropic === "configured",
+            perplexity: data.api_keys.perplexity === "configured"
+          });
+          
+          console.log("API Status:", data.api_keys);
+        }
+      } catch (error) {
+        console.error("Error checking API status:", error);
+      }
+    }
+    
+    checkApiStatus();
+  }, []);
 
   // Handler for checking if a document is AI-generated
   const handleCheckAI = async (documentId: "A" | "B") => {
@@ -158,6 +191,19 @@ const HomePage: React.FC = () => {
             onProviderChange={setSelectedProvider}
             label="AI Provider"
           />
+        </div>
+        
+        {/* API Status Indicators */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <div className={`px-3 py-1 rounded-full text-xs font-medium ${apiStatus.openai ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+            OpenAI API: {apiStatus.openai ? 'Active' : 'Inactive'}
+          </div>
+          <div className={`px-3 py-1 rounded-full text-xs font-medium ${apiStatus.anthropic ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+            Anthropic API: {apiStatus.anthropic ? 'Active' : 'Inactive'}
+          </div>
+          <div className={`px-3 py-1 rounded-full text-xs font-medium ${apiStatus.perplexity ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+            Perplexity API: {apiStatus.perplexity ? 'Active' : 'Inactive'}
+          </div>
         </div>
       </div>
 
