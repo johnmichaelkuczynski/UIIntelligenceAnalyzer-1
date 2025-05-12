@@ -391,11 +391,28 @@ export async function generateWordReport(
           ]
         })
       ] : []),
-      new Paragraph({ text: "" }),
+      new Paragraph({ 
+        children: [
+          new TextRun({ text: "" })
+        ]
+      }),
       ...(comparison ? [
-        new Paragraph({ text: "Comparison Summary", heading: HeadingLevel.HEADING_2 }),
-        new Paragraph({ text: comparison.finalJudgment }),
-        new Paragraph({ text: "" })
+        new Paragraph({ 
+          children: [
+            new TextRun({ text: "Comparison Summary", size: 20 })
+          ],
+          heading: HeadingLevel.HEADING_2 
+        }),
+        new Paragraph({ 
+          children: [
+            new TextRun({ text: comparison.finalJudgment })
+          ]
+        }),
+        new Paragraph({ 
+          children: [
+            new TextRun({ text: "" })
+          ]
+        })
       ] : [])
     ]
   });
@@ -405,7 +422,9 @@ export async function generateWordReport(
     properties: {},
     children: [
       new Paragraph({
-        text: "Surface Analysis",
+        children: [
+          new TextRun({ text: "Surface Analysis", size: 24 })
+        ],
         heading: HeadingLevel.HEADING_1
       }),
       new Paragraph({
@@ -432,7 +451,11 @@ export async function generateWordReport(
           new TextRun({ text: `${analysisA.surface?.surfaceFluency || 0}/100` })
         ]
       }),
-      new Paragraph({ text: "" })
+      new Paragraph({ 
+        children: [
+          new TextRun({ text: "" })
+        ]
+      })
     ]
   });
   
@@ -441,7 +464,9 @@ export async function generateWordReport(
     properties: {},
     children: [
       new Paragraph({
-        text: "Deep Semantic Analysis",
+        children: [
+          new TextRun({ text: "Deep Semantic Analysis", size: 24 })
+        ],
         heading: HeadingLevel.HEADING_1
       }),
       new Paragraph({
@@ -486,7 +511,11 @@ export async function generateWordReport(
           new TextRun({ text: `${analysisA.deep?.originality || 0}/100` })
         ]
       }),
-      new Paragraph({ text: "" })
+      new Paragraph({ 
+        children: [
+          new TextRun({ text: "" })
+        ]
+      })
     ]
   });
   
@@ -508,19 +537,35 @@ export async function generateWordReport(
       tableHeader: true,
       children: [
         new TableCell({
-          children: [new Paragraph({ text: "Dimension", bold: true })],
+          children: [
+            new Paragraph({ 
+              children: [new TextRun({ text: "Dimension", bold: true })]
+            })
+          ],
           shading: { fill: "F2F2F2" }
         }),
         new TableCell({
-          children: [new Paragraph({ 
-            text: analysisB ? "Document A Rating" : "Rating", 
-            bold: true 
-          })],
+          children: [
+            new Paragraph({ 
+              children: [
+                new TextRun({ 
+                  text: analysisB ? "Document A Rating" : "Rating", 
+                  bold: true 
+                })
+              ]
+            })
+          ],
           shading: { fill: "F2F2F2" }
         }),
         ...(analysisB ? [
           new TableCell({
-            children: [new Paragraph({ text: "Document B Rating", bold: true })],
+            children: [
+              new Paragraph({ 
+                children: [
+                  new TextRun({ text: "Document B Rating", bold: true })
+                ]
+              })
+            ],
             shading: { fill: "F2F2F2" }
           })
         ] : [])
@@ -564,7 +609,9 @@ export async function generateWordReport(
     properties: {},
     children: [
       new Paragraph({
-        text: "Dimension Analysis",
+        children: [
+          new TextRun({ text: "Dimension Analysis", size: 24 })
+        ],
         heading: HeadingLevel.HEADING_1
       }),
       new Table({
@@ -582,7 +629,11 @@ export async function generateWordReport(
           insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "D3D3D3" },
         }
       }),
-      new Paragraph({ text: "" })
+      new Paragraph({ 
+        children: [
+          new TextRun({ text: "" })
+        ]
+      })
     ]
   };
   
@@ -593,11 +644,21 @@ export async function generateWordReport(
     properties: {},
     children: [
       new Paragraph({
-        text: "Detailed Analysis",
+        children: [
+          new TextRun({ text: "Detailed Analysis", size: 24 })
+        ],
         heading: HeadingLevel.HEADING_1
       }),
-      new Paragraph({ text: analysisA.analysis || "" }),
-      new Paragraph({ text: "" }),
+      new Paragraph({ 
+        children: [
+          new TextRun({ text: analysisA.analysis || "" })
+        ]
+      }),
+      new Paragraph({ 
+        children: [
+          new TextRun({ text: "" })
+        ]
+      }),
       new Paragraph({
         children: [
           new TextRun({ 
