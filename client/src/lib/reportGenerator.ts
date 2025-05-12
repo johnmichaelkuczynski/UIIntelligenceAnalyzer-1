@@ -329,12 +329,16 @@ export async function generateWordReport(
     properties: {},
     children: [
       new Paragraph({
-        text: "Intelligence Analysis Report",
+        children: [
+          new TextRun({ text: "Intelligence Analysis Report", size: 36 })
+        ],
         heading: HeadingLevel.TITLE,
         alignment: AlignmentType.CENTER
       }),
       new Paragraph({
-        text: analysisB ? "Document Comparison" : "Document Analysis",
+        children: [
+          new TextRun({ text: analysisB ? "Document Comparison" : "Document Analysis", size: 28 })
+        ],
         heading: HeadingLevel.HEADING_1,
         alignment: AlignmentType.CENTER
       }),
@@ -354,20 +358,36 @@ export async function generateWordReport(
     properties: {},
     children: [
       new Paragraph({
-        text: "Overall Intelligence Assessment",
+        children: [
+          new TextRun({ text: "Overall Intelligence Assessment", size: 24 })
+        ],
         heading: HeadingLevel.HEADING_1
       }),
       new Paragraph({
         children: [
-          new TextRun({ text: analysisB ? "Document A Score: " : "Intelligence Score: ", bold: true }),
-          new TextRun({ text: `${analysisA.overallScore}/100`, bold: true, color: "2980B9" })
+          new TextRun({ 
+            text: analysisB ? "Document A Score: " : "Intelligence Score: ", 
+            bold: true 
+          }),
+          new TextRun({ 
+            text: `${analysisA.overallScore}/100`, 
+            bold: true, 
+            color: "2980B9" 
+          })
         ]
       }),
       ...(analysisB ? [
         new Paragraph({
           children: [
-            new TextRun({ text: "Document B Score: ", bold: true }),
-            new TextRun({ text: `${analysisB.overallScore}/100`, bold: true, color: "E74C3C" })
+            new TextRun({ 
+              text: "Document B Score: ", 
+              bold: true 
+            }),
+            new TextRun({ 
+              text: `${analysisB.overallScore}/100`, 
+              bold: true, 
+              color: "E74C3C" 
+            })
           ]
         })
       ] : []),

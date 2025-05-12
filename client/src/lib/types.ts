@@ -63,6 +63,32 @@ export interface DocumentAnalysis {
     probability: number;
   };
   provider?: string; // Which AI provider generated this analysis
+  
+  // Surface metrics for reporting
+  surface?: {
+    grammar: number;
+    structure: number;
+    jargonUsage: number;
+    surfaceFluency: number;
+  };
+  
+  // Deep metrics for reporting
+  deep?: {
+    conceptualDepth: number;
+    inferentialContinuity: number;
+    claimNecessity: number;
+    semanticCompression: number;
+    logicalLaddering: number;
+    depthFluency: number;
+    originality: number;
+  };
+  
+  // Detailed textual analysis
+  analysis?: string;
+  
+  // For numerical summary
+  surfaceScore?: number;
+  deepScore?: number;
 }
 
 export interface DocumentComparison {

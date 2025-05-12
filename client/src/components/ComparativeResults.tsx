@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Share2 } from "lucide-react";
 import ShareViaEmailModal from "./ShareViaEmailModal";
+import ReportDownloadButton from "./ReportDownloadButton";
 
 interface ComparativeResultsProps {
   analysisA: DocumentAnalysis;
@@ -36,15 +37,23 @@ const ComparativeResults: React.FC<ComparativeResultsProps> = ({
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-gray-800">Comparative Analysis</h2>
-        <Button 
-          size="sm" 
-          variant="outline" 
-          className="flex items-center gap-2"
-          onClick={() => setShowShareModal(true)}
-        >
-          <Share2 className="h-4 w-4" />
-          Share via Email
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => setShowShareModal(true)}
+          >
+            <Share2 className="h-4 w-4" />
+            Share via Email
+          </Button>
+          <ReportDownloadButton
+            analysisA={analysisA}
+            analysisB={analysisB}
+            comparison={comparison}
+            mode="compare"
+          />
+        </div>
       </div>
       
       {/* Intelligence Comparison */}
