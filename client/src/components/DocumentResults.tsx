@@ -6,6 +6,7 @@ import { Bot, Share2, FileEdit, FileText, ClipboardCopy, Download, BrainCircuit,
 import { Button } from "@/components/ui/button";
 import ShareViaEmailModal from "./ShareViaEmailModal";
 import AIDetectionModal from "./AIDetectionModal";
+import ReportDownloadButton from "./ReportDownloadButton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -371,6 +372,10 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
             <Share2 className="h-4 w-4" />
             Share via Email
           </Button>
+          <ReportDownloadButton
+            analysisA={analysis}
+            mode="single"
+          />
         </div>
       </div>
       
