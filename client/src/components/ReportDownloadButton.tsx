@@ -37,11 +37,35 @@ const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const timestamp = new Date().toISOString().slice(0, 10);
   
-  const handleDownload = async (format: 'pdf' | 'docx') => {
+  const handleDownload = async (format: 'pdf' | 'docx' | 'txt') => {
     setIsGenerating(true);
     
     try {
-      if (format === 'pdf') {
+      if (format === 'txt') {
+        // Generate plain text document
+        const content = `
+INTELLIGENCE ANALYSIS REPORT
+============================
+Analysis Provider: ${analysisA.provider || 'Unknown'}
+Overall Intelligence Score: ${analysisA.overallScore}/100
+
+SUMMARY:
+${analysisA.summary || ''}
+
+ASSESSMENT:
+${analysisA.overallAssessment || ''}
+`;
+        // Create and download text file
+        const txtBlob = new Blob([content], {type: 'text/plain'});
+        const filename = `intelligence-analysis-${mode}-${timestamp}.txt`;
+        downloadFile(txtBlob, filename);
+        
+        toast({
+          title: "Report Downloaded",
+          description: "Your text report has been downloaded successfully.",
+        });
+      }
+      else if (format === 'pdf') {
         // Generate PDF
         const doc = await generatePDFReport(
           analysisA,
@@ -113,11 +137,14 @@ const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
+        <DropdownMenuItem onClick={() => handleDownload('txt')}>
+          Text File (.txt)
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleDownload('pdf')}>
-          PDF Report
+          PDF Report (.pdf)
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleDownload('docx')}>
-          Word Document
+          Word Document (.docx)
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

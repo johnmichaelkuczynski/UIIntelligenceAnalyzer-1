@@ -6,8 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import HomePage from "@/pages/HomePage";
 import TranslationPage from "@/pages/TranslationPage";
 import RewritePage from "@/pages/RewritePage";
+import WebSearchPage from "@/pages/WebSearchPage";
 import NotFound from "@/pages/not-found";
-import { BrainCircuit, Languages, FileEdit } from "lucide-react";
+import { BrainCircuit, Languages, FileEdit, Globe } from "lucide-react";
 
 function Navigation() {
   return (
@@ -27,6 +28,12 @@ function Navigation() {
               <span>Document Translation</span>
             </Link>
           </li>
+          <li>
+            <Link href="/web-search" className="flex items-center gap-2 hover:underline">
+              <Globe className="h-5 w-5" />
+              <span>Web Search & Rewrite</span>
+            </Link>
+          </li>
         </ul>
       </div>
     </nav>
@@ -40,6 +47,7 @@ function Router() {
       <Switch>
         <Route path="/" component={HomePage} />
         <Route path="/translate" component={TranslationPage} />
+        <Route path="/web-search" component={WebSearchPage} />
         <Route component={NotFound} />
       </Switch>
     </>

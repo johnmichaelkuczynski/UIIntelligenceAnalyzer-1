@@ -348,50 +348,7 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-      {/* DIRECT DOWNLOAD BUTTON - VERY PROMINENT */}
-      {originalDocument && (
-        <div className="mb-4 bg-red-600 text-white p-6 rounded-md flex flex-col md:flex-row justify-between items-center shadow-lg">
-          <div className="mb-3 md:mb-0">
-            <h3 className="font-bold text-xl">⬇️ ONE-CLICK TEXT DOWNLOAD ⬇️</h3>
-            <p className="text-lg">Save the complete analysis with original text as TXT file</p>
-          </div>
-          <button 
-            onClick={() => {
-              // Direct export implementation
-              if (!originalDocument) return;
-              
-              const content = `
-INTELLIGENCE ANALYSIS - DIRECT EXPORT
-====================================
-Document ID: ${id}
-Analysis Provider: ${analysis.provider || 'Unknown'}
-Overall Intelligence Score: ${analysis.overallScore}/100
-
-SUMMARY:
-${analysis.summary || ''}
-
-ASSESSMENT:
-${analysis.overallAssessment || ''}
-
-ORIGINAL TEXT:
-${originalDocument.content}
-`;
-              // Create download element
-              const element = document.createElement('a');
-              const file = new Blob([content], {type: 'text/plain'});
-              element.href = URL.createObjectURL(file);
-              element.download = `intelligence-analysis-${new Date().toISOString().slice(0, 10)}.txt`;
-              document.body.appendChild(element);
-              element.click();
-              document.body.removeChild(element);
-            }}
-            className="bg-white text-red-700 font-bold text-xl py-4 px-8 rounded-md hover:bg-red-100 transition-colors flex items-center gap-3 min-w-[250px] justify-center"
-          >
-            <FileText className="h-7 w-7" />
-            DOWNLOAD AS .TXT
-          </button>
-        </div>
-      )}
+      {/* No prominent download button here - integrated with standard options */}
       
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-gray-800">Document {id} Analysis</h2>
