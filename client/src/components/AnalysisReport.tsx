@@ -447,7 +447,12 @@ const AnalysisReport: React.FC<AnalysisReportProps> = ({
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Detailed Analysis</h2>
         <div className="bg-white p-4 rounded-lg shadow">
           <div className="prose max-w-none">
-            <p className="whitespace-pre-line">{analysisA.analysis}</p>
+            {/* Use the formatted report if available, otherwise fall back to the analysis field */}
+            {analysisA.formattedReport ? (
+              <div className="whitespace-pre-line font-serif">{analysisA.formattedReport}</div>
+            ) : (
+              <p className="whitespace-pre-line">{analysisA.analysis}</p>
+            )}
           </div>
         </div>
       </div>

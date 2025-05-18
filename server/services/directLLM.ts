@@ -660,26 +660,39 @@ export async function directPerplexityAnalyze(text: string): Promise<any> {
 
       // Parse result from Perplexity response
       if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
-        // Extract JSON from the response (Perplexity might also wrap in code blocks)
+        // Get the full response text from Perplexity
         let responseText = data.choices[0].message.content;
         
-        // Remove any markdown code block indicators if present
-        if (responseText.includes("```json") || responseText.includes("```")) {
-          // Extract text between code blocks if present
-          const jsonMatch = responseText.match(/```(?:json)?([\s\S]*?)```/);
-          if (jsonMatch && jsonMatch[1]) {
-            responseText = jsonMatch[1].trim();
+        // Split the response into the formatted report and JSON parts
+        let formattedReport = "";
+        let jsonText = "";
+        
+        // Extract JSON part (usually at the end)
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          jsonText = jsonMatch[0];
+          // The formatted report is everything before the JSON
+          formattedReport = responseText.substring(0, responseText.indexOf(jsonMatch[0])).trim();
+        } else {
+          // If no JSON found, check for markdown code blocks
+          const codeBlockMatch = responseText.match(/```(?:json)?([\s\S]*?)```/);
+          if (codeBlockMatch && codeBlockMatch[1]) {
+            jsonText = codeBlockMatch[1].trim();
+            // Remove the code block from the response text to get the formatted report
+            formattedReport = responseText.replace(/```(?:json)?([\s\S]*?)```/, "").trim();
           } else {
-            // Remove just the starting and ending backticks if present
-            responseText = responseText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+            // If still no JSON found, assume the entire response is the formatted report
+            formattedReport = responseText;
+            jsonText = "{}"; // Empty JSON as fallback
           }
         }
         
-        console.log("Parsed Perplexity response text:", responseText.substring(0, 100) + "...");
+        console.log("Extracting Perplexity formatted report and JSON response...");
         
         try {
-          const result = JSON.parse(responseText);
+          const result = JSON.parse(jsonText);
           result.provider = "Perplexity (Llama-3.1-Sonar)";
+          result.formattedReport = formattedReport;
           return result;
         } catch (parseError) {
           console.error("JSON Parse error with Perplexity response:", parseError);
