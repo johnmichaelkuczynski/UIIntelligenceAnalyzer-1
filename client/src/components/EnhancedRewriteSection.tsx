@@ -330,8 +330,7 @@ const EnhancedRewriteSection: React.FC<EnhancedRewriteSectionProps> = ({
     const options: RewriteOptions = {
       instruction: finalInstruction,
       preserveLength: true,
-      preserveDepth: true,
-      provider: selectedProvider
+      preserveDepth: true
     };
     
     // Start rewrite process
@@ -351,7 +350,7 @@ const EnhancedRewriteSection: React.FC<EnhancedRewriteSectionProps> = ({
       }, 800);
       
       // Call the rewrite function with selected provider
-      const result = await rewriteDocument(originalDocument.content, options);
+      const result = await rewriteDocument(originalDocument.content, options, selectedProvider);
       
       // Clear interval and set to 100%
       clearInterval(progressInterval);
@@ -431,7 +430,7 @@ const EnhancedRewriteSection: React.FC<EnhancedRewriteSectionProps> = ({
                   <SelectValue placeholder="Use a preset (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No preset</SelectItem>
+                  <SelectItem value="none">No preset</SelectItem>
                   {REWRITE_PRESETS.map((preset) => (
                     <SelectItem key={preset.value} value={preset.value}>
                       {preset.label}
