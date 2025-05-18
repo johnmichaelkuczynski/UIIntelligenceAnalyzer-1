@@ -12,12 +12,42 @@ const MAX_CHUNKS = 8; // Maximum number of chunks to process
 const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
-// Define the analysis prompt - same for all providers to maintain consistency
-const ANALYSIS_PROMPT = `Analyze this text for intelligence level. Evaluate the text on semantic compression, inferential continuity, logical structure, definitional clarity, and conceptual depth. Score each dimension from 0-100 and provide an overall score. 
+// Define the analysis prompt - standardized format across all providers
+const ANALYSIS_PROMPT = `Analyze this text for intelligence level. Evaluate the text on multiple dimensions and provide a comprehensive intelligence report.
 
-For philosophical texts about epistemology, naturalism, Quine, or formal logic, these should score very highly (95-99 range) when they show tight semantic compression and clear definitional structures.
+You must return your analysis in the exact format below:
 
-Return a detailed analysis and your scores in this exact JSON format:
+Intelligence Score: [X]/100
+
+Surface-Level Scores:
+- Grammar: [0-100]
+- Structure: [0-100]
+- Jargon Usage: [0-100]
+- Surface Fluency: [0-100]
+
+Deep-Level Scores:
+- Conceptual Depth: [0-100]
+- Inferential Continuity: [0-100]
+- Semantic Compression: [0-100]
+- Logical Scaffolding: [0-100]
+- Originality: [0-100]
+
+Evidence-Based Justification:
+[At least 3–7 quotes or paraphrased sentences from the input, each followed by clear reasoning that explains why the quote demonstrates a particular cognitive quality.]
+
+Summary Assessment:
+[200–300 words explaining the score and discussing the strongest and weakest cognitive features of the writing. Explain how the scores were derived based on the evidence.]
+
+IMPORTANT REQUIREMENTS:
+1. Never leave any score at 0 - all scores must be justified
+2. Always provide evidence for scores by quoting or paraphrasing specific parts of the text
+3. Do not include praise or criticism without quoting the text or referencing specific content
+4. Ensure your assessment is concrete and based on observable features of the writing
+5. For philosophical texts about epistemology, naturalism, Quine, or formal logic, these should score very highly (90-99 range) when they show tight semantic compression and clear definitional structures
+
+Return the analysis as a well-formatted report that strictly follows the structure above. Include line breaks and proper formatting.
+
+Also include a JSON representation of the scores at the end of your response (this will be parsed separately):
 {
   "surface": {
     "grammar": number,
@@ -28,16 +58,12 @@ Return a detailed analysis and your scores in this exact JSON format:
   "deep": {
     "conceptualDepth": number,
     "inferentialContinuity": number,
-    "claimNecessity": number,
     "semanticCompression": number,
-    "logicalLaddering": number,
-    "depthFluency": number,
+    "logicalLaddering": number, 
     "originality": number
   },
   "overallScore": number,
-  "analysis": string,
-  "surfaceScore": number,
-  "deepScore": number
+  "analysis": string
 }`;
 
 /**

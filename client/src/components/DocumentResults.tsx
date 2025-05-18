@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { DocumentAnalysis, DocumentInput as DocumentInputType, RewriteOptions, RewriteResult, AIDetectionResult } from "@/lib/types";
+import { DocumentAnalysis, DocumentInput as DocumentInputType, RewriteOptions, RewriteResult, AIDetectionResult, EnhancedRewriteOptions } from "@/lib/types";
 import AnalysisDimension from "./AnalysisDimension";
 import { Badge } from "@/components/ui/badge";
 import { Bot, Share2, FileEdit, FileText, ClipboardCopy, Download, BrainCircuit, FileType, ShieldAlert, Sparkles, Info, RotateCw, RotateCcw, Globe, Search } from "lucide-react";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import ShareViaEmailModal from "./ShareViaEmailModal";
 import AIDetectionModal from "./AIDetectionModal";
 import ReportDownloadButton from "./ReportDownloadButton";
+import EnhancedRewriteSection from "./EnhancedRewriteSection";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
