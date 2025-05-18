@@ -29,6 +29,7 @@ import {
   EnhancedRewriteOptions 
 } from '@/lib/types';
 import { rewriteDocument } from '@/lib/analysis';
+import WebContentSearch from './WebContentSearch';
 
 // Map preset values to actual instructions (optimized for intelligence score improvement)
 const INSTRUCTION_MAP: Record<string, string> = {
