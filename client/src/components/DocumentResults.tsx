@@ -444,6 +444,259 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
         </div>
       )}
       
+      {/* Integrated Rewrite Section (directly in the main interface) */}
+      <div className="mt-8 bg-white rounded-lg shadow-md p-6 mb-8 border border-green-200">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+            <FileEdit className="h-5 w-5 mr-2 text-green-600" />
+            Intelligent Rewrite
+          </h2>
+        </div>
+        
+        <div className="grid gap-4 py-2">
+          {/* Intelligence improvement guidance */}
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+            <h4 className="text-sm font-medium text-blue-900 flex items-center gap-1.5 mb-2">
+              <BrainCircuit className="h-4 w-4" />
+              Intelligent Rewrite Guidelines - Read This First
+            </h4>
+            <div className="text-xs text-red-800 font-semibold mb-2 border-b border-blue-100 pb-1.5">
+              IMPORTANT: Our rewrite engine preserves semantic compression and logical structure, never bloating content with unnecessary words.
+            </div>
+            <p className="text-xs text-blue-800 mb-2">
+              To improve intelligence score, our rewrite engine will:
+            </p>
+            <ul className="text-xs space-y-1 text-blue-800 mb-2 list-disc pl-4">
+              <li><span className="font-medium">Preserve semantic compression</span> - Never adding words without adding value</li>
+              <li><span className="font-medium">Maintain recursive structures</span> - Keeping or enhancing logical A→B→C→A* patterns</li>
+              <li><span className="font-medium">Enhance definitional clarity</span> - Making operational definitions sharper</li>
+              <li><span className="font-medium">Reveal inferential structures</span> - Making implicit reasoning chains explicit</li>
+              <li><span className="font-medium">Strictly maintain length</span> - Never expanding text that's already concise</li>
+            </ul>
+            <div className="text-xs text-blue-800 border-t border-blue-100 pt-1.5 mt-1.5">
+              For custom instructions, focus on operational definitions and logical connections. <strong>Avoid</strong> instructions like "make it sound smarter" or "make it more academic" as these lead to lower intelligence scores.
+            </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="rewrite-instruction" className="mb-1">
+              Rewrite Instructions
+            </Label>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Select 
+                onValueChange={(value) => setInstruction(value)}
+                value={instruction}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select intelligence-enhancing approach" />
+                </SelectTrigger>
+                <SelectContent>
+                  {REWRITE_PRESETS.map((preset) => (
+                    <SelectItem key={preset.value} value={preset.value}>
+                      {preset.label}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="custom">Custom instruction</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Button
+                onClick={handleRewrite}
+                disabled={isRewriting || !originalDocument?.content}
+                className={`${isRewriting ? "animate-pulse" : ""} shrink-0`}
+              >
+                {isRewriting ? (
+                  <>
+                    <RotateCw className="h-4 w-4 mr-2 animate-spin" />
+                    Rewriting...
+                  </>
+                ) : (
+                  <>
+                    <FileEdit className="h-4 w-4 mr-2" />
+                    Rewrite Document
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+          
+          {instruction === "custom" && (
+            <div className="grid gap-2">
+              <Label htmlFor="custom-instruction">Custom Rewrite Instruction</Label>
+              <Textarea
+                id="custom-instruction"
+                value={customInstruction}
+                onChange={(e) => setCustomInstruction(e.target.value)}
+                placeholder="DO: 'Replace vague terms with precise ones'; 'Make reasoning chains explicit'; 'Add empirical grounding to claims' | DON'T: 'Make it sound more academic'; 'Use bigger words'; 'Add stylistic flair'"
+                className="min-h-[80px]"
+              />
+            </div>
+          )}
+          
+          {/* Progress bar for rewrite process */}
+          {rewriteProgressVisible && (
+            <div className="my-4">
+              <div className="flex justify-between text-sm text-gray-600 mb-1">
+                <span>Rewriting document...</span>
+                <span>{Math.min(Math.round(rewriteProgress), 100)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div 
+                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out" 
+                  style={{ width: `${Math.min(Math.round(rewriteProgress), 100)}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Processing large documents may take several minutes. Please wait...
+              </p>
+            </div>
+          )}
+
+          {rewrittenText && (
+            <div className="bg-gray-50 rounded-md p-4 mt-2">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-medium text-gray-900">Rewritten Text</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleCopyText}
+                    className="flex gap-1 items-center"
+                  >
+                    <ClipboardCopy className="h-3 w-3" />
+                    Copy
+                  </Button>
+                  
+                  {/* Export dropdown */}
+                  <div className="relative group">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="flex gap-1 items-center"
+                    >
+                      <Download className="h-3 w-3" />
+                      Export as
+                    </Button>
+                    <div className="absolute right-0 mt-1 hidden group-hover:block bg-white shadow-lg rounded-md z-10">
+                      <div className="py-1">
+                        <button
+                          onClick={() => handleExportDocument('txt')}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                        >
+                          Text (.txt)
+                        </button>
+                        <button
+                          onClick={() => handleExportDocument('docx')}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                        >
+                          Word (.docx)
+                        </button>
+                        <button
+                          onClick={() => handleExportDocument('pdf')}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                        >
+                          PDF (.pdf)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Intelligence Analysis button */}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleAnalyzeRewrite}
+                    disabled={isAnalyzingRewrite}
+                    className="flex gap-1 items-center bg-blue-50 text-blue-700 hover:bg-blue-100"
+                  >
+                    <BrainCircuit className="h-3 w-3" />
+                    {isAnalyzingRewrite ? "Analyzing..." : "Analyze Intelligence"}
+                  </Button>
+                  
+                  {/* AI Detection for Rewrite */}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="flex gap-1 items-center bg-amber-50 text-amber-700 hover:bg-amber-100"
+                    onClick={() => {
+                      setIsCheckingAI(true);
+                      setShowAIDetectionModal(true);
+                      checkForAI({ content: rewrittenText })
+                        .then(result => {
+                          setAIDetectionResult(result);
+                          console.log("AI detection for rewrite:", result);
+                        })
+                        .catch(error => {
+                          console.error("Error checking rewrite for AI:", error);
+                          toast({
+                            title: "AI detection failed",
+                            description: "Could not check if the rewritten text is AI-generated.",
+                            variant: "destructive"
+                          });
+                        })
+                        .finally(() => {
+                          setIsCheckingAI(false);
+                        });
+                    }}
+                  >
+                    <ShieldAlert className="h-3 w-3" />
+                    Check AI
+                  </Button>
+
+                  {/* Clear button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setRewrittenText("");
+                      setRewriteStats(null);
+                      setRewriteProgressVisible(false);
+                      setRewriteProgress(0);
+                    }}
+                    disabled={isRewriting}
+                    className="flex gap-1 items-center"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    Clear
+                  </Button>
+                </div>
+              </div>
+              <Textarea 
+                value={rewrittenText}
+                readOnly
+                className="min-h-[300px] font-mono text-sm w-full"
+              />
+              
+              {rewriteStats && (
+                <div className="mt-4 grid sm:grid-cols-3 gap-4 text-sm bg-white p-3 border border-gray-100 rounded-md">
+                  <div>
+                    <p className="text-gray-500 text-xs">Original Length</p>
+                    <p className="font-medium">{rewriteStats.originalLength} chars</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">Rewritten Length</p>
+                    <p className="font-medium">{rewriteStats.rewrittenLength} chars</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs">Length Change</p>
+                    <p className={`font-medium ${
+                      rewriteStats.lengthChange > 0.1 
+                        ? 'text-amber-600' 
+                        : rewriteStats.lengthChange < -0.1 
+                          ? 'text-blue-600' 
+                          : 'text-green-600'
+                    }`}>
+                      {rewriteStats.lengthChange > 0 ? '+' : ''}
+                      {Math.round(rewriteStats.lengthChange * 100)}%
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+      
       {/* Share via Email Modal */}
       <ShareViaEmailModal
         isOpen={showShareModal}
