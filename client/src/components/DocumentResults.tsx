@@ -8,6 +8,7 @@ import ShareViaEmailModal from "./ShareViaEmailModal";
 import AIDetectionModal from "./AIDetectionModal";
 import ReportDownloadButton from "./ReportDownloadButton";
 import EnhancedRewriteSection from "./EnhancedRewriteSection";
+import WebContentRewrite from "./WebContentRewrite";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
