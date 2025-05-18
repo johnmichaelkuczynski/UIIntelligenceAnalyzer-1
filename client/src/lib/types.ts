@@ -155,3 +155,31 @@ export interface TranslationRequest {
   options: TranslationOptions;
   provider?: string;
 }
+
+// For enhanced rewrite functionality
+export interface EnhancementSuggestion {
+  title: string;
+  content: string;
+  source: string;
+  relevanceScore: number; // 1-10 score
+  selected?: boolean; // For UI tracking
+}
+
+export interface GoogleSearchResult {
+  title: string;
+  link: string;
+  snippet: string;
+  selected?: boolean; // For UI tracking
+  pagemap?: {
+    metatags?: Array<{
+      [key: string]: string;
+    }>;
+  };
+}
+
+export interface EnhancedRewriteOptions extends RewriteOptions {
+  selectedSuggestions?: EnhancementSuggestion[];
+  selectedSearchResults?: GoogleSearchResult[];
+  includeSuggestions?: boolean;
+  includeSearchResults?: boolean;
+}

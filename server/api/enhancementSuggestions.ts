@@ -73,7 +73,8 @@ async function getSummary(text: string, provider: string): Promise<string> {
           temperature: 0.3,
           messages: [{ role: 'user', content: prompt }]
         });
-        return response.content[0].text;
+        const content = response.content[0];
+        return content.type === 'text' ? content.text : "";
       }
       case 'perplexity': {
         const apiKey = process.env.PERPLEXITY_API_KEY;
