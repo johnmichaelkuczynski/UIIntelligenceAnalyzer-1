@@ -22,12 +22,6 @@ function Navigation() {
             </Link>
           </li>
           <li>
-            <Link href="/rewrite" className="flex items-center gap-2 hover:underline">
-              <FileEdit className="h-5 w-5" />
-              <span>Intelligence Rewrite</span>
-            </Link>
-          </li>
-          <li>
             <Link href="/translate" className="flex items-center gap-2 hover:underline">
               <Languages className="h-5 w-5" />
               <span>Document Translation</span>
@@ -45,7 +39,6 @@ function Router() {
       <Navigation />
       <Switch>
         <Route path="/" component={HomePage} />
-        <Route path="/rewrite" component={RewritePage} />
         <Route path="/translate" component={TranslationPage} />
         <Route component={NotFound} />
       </Switch>
