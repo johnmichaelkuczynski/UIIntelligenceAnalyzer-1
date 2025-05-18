@@ -2,6 +2,8 @@ import { Express, Request, Response, NextFunction } from "express";
 import multer from "multer";
 import { extractTextFromFile } from "./api/documentParser";
 import { checkForAI } from "./api/gptZero";
+import { searchGoogle, fetchUrlContent } from "./api/googleSearch";
+import { getEnhancementSuggestions } from "./api/enhancementSuggestions";
 import path from "path";
 
 // Define the types here to avoid circular dependencies
@@ -418,6 +420,98 @@ export async function registerRoutes(app: Express): Promise<Express> {
       success: false, 
       message: "Email sharing not implemented in this version" 
     });
+  });
+  
+  // Get enhancement suggestions from AI providers for rewriting
+  app.post("/api/get-enhancement-suggestions", async (req: Request, res: Response) => {
+    try {
+      const { text, provider = "openai" } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Text content is required" 
+        });
+      }
+      
+      console.log(`Getting enhancement suggestions from ${provider}...`);
+      const suggestions = await getEnhancementSuggestions(text, provider);
+      
+      res.json({
+        success: true,
+        suggestions,
+        provider
+      });
+    } catch (error: any) {
+      console.error("Error getting enhancement suggestions:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Error getting enhancement suggestions" 
+      });
+    }
+  });
+  
+  // Search Google for relevant information
+  app.post("/api/search-google", async (req: Request, res: Response) => {
+    try {
+      const { query, numResults = 5 } = req.body;
+      
+      if (!query) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Search query is required" 
+        });
+      }
+      
+      console.log(`Searching Google for: ${query}`);
+      const searchResults = await searchGoogle(query, numResults);
+      
+      res.json({
+        success: true,
+        results: searchResults
+      });
+    } catch (error: any) {
+      console.error("Error searching Google:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Error searching Google" 
+      });
+    }
+  });
+  
+  // Fetch content from a URL
+  app.post("/api/fetch-url-content", async (req: Request, res: Response) => {
+    try {
+      const { url } = req.body;
+      
+      if (!url) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "URL is required" 
+        });
+      }
+      
+      console.log(`Fetching content from URL: ${url}`);
+      const content = await fetchUrlContent(url);
+      
+      if (!content) {
+        return res.status(404).json({
+          success: false,
+          message: "Could not extract content from the provided URL"
+        });
+      }
+      
+      res.json({
+        success: true,
+        content
+      });
+    } catch (error: any) {
+      console.error("Error fetching URL content:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Error fetching URL content" 
+      });
+    }
   });
 
   // PURE PASS-THROUGH REWRITE - Direct to LLM with no custom algorithms

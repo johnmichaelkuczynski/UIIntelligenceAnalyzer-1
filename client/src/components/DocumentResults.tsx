@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { DocumentAnalysis, DocumentInput as DocumentInputType, RewriteOptions, RewriteResult, AIDetectionResult } from "@/lib/types";
 import AnalysisDimension from "./AnalysisDimension";
 import { Badge } from "@/components/ui/badge";
-import { Bot, Share2, FileEdit, FileText, ClipboardCopy, Download, BrainCircuit, FileType, ShieldAlert, Sparkles, Info } from "lucide-react";
+import { Bot, Share2, FileEdit, FileText, ClipboardCopy, Download, BrainCircuit, FileType, ShieldAlert, Sparkles, Info, RotateCw, RotateCcw, Globe, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ShareViaEmailModal from "./ShareViaEmailModal";
 import AIDetectionModal from "./AIDetectionModal";
