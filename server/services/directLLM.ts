@@ -13,17 +13,26 @@ const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
 // Define the analysis prompt - standardized format across all providers
-const ANALYSIS_PROMPT = `Analyze this text for genuine intelligence markers. Your primary task is to distinguish between authentic intellectual value and impostor prose that uses jargon to mask emptiness.
+const ANALYSIS_PROMPT = `CRITICAL: You are analyzing this text for markers of ACTUAL INTELLIGENCE versus EMPTY ACADEMIC JARGON. Your primary task is to distinguish genuine intellectual value from impostor prose. This distinction is the SINGLE MOST IMPORTANT aspect of your analysis.
 
-CRITICAL IMPOSTOR DETECTION:
-First, determine if the text shows these warning signs of impostor prose:
-- High density of academic jargon without substantive meaning
-- Terms like "epistemic," "ontological," "hermeneutic," etc. used without clear application
-- Abstract claims that never connect to specific examples or evidence
-- Self-referential loops that appear meaningful but are circular/vacuous
-- Assertion of depth without demonstrating depth through logical development
+IMPOSTOR PROSE DETECTION - APPLY THESE TESTS FIRST AND STRICTLY:
+You MUST first determine if the text shows these warning signs of impostor prose:
+1. Uses academic jargon (epistemic, ontological, hermeneutic, paradigmatic, etc.) without clearly explaining the terms
+2. Contains abstract theoretical claims without connecting to specific examples, evidence, or applications
+3. Makes self-referential statements that seem profound but are circular or empty of actual content
+4. Asserts depth or complexity without demonstrating it through logical development
+5. Uses unnecessarily complex vocabulary where simpler terms would be clearer
+6. Contains sentences that sound intellectual but could be replaced with simpler statements without losing meaning
+7. Uses placeholder phrases like "dynamic interaction" or "ontological framework" without explaining what they mean
+8. Makes exaggerated claims about the importance or revolutionary nature of basic concepts
 
-If you detect more than 3 of these warning signs, the text is PRIMARILY IMPOSTOR PROSE and must receive scores below 30/100, regardless of grammar or surface qualities. ALL deep-level scores should be below 20/100. The evidence section must explicitly identify the warning signs.
+SCORING MANDATE: If the text exhibits 3+ of these markers, it is IMPOSTOR PROSE and MUST receive:
+- Overall Intelligence Score below 25/100
+- ALL deep-level scores below 15/100
+- In your evidence section, you MUST explicitly identify which impostor markers are present with direct quotes
+- You MUST label the text as "PRIMARILY IMPOSTOR PROSE" in your summary assessment
+
+This evaluation OVERRIDES all other considerations - even if the text has good grammar or mentions scholarly concepts. Impressive-sounding but empty text MUST receive low scores.
 
 For genuine intellectual writing, use the following complete scoring rubric:
 
