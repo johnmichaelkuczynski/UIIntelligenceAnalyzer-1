@@ -501,9 +501,12 @@ export async function registerRoutes(app: Express): Promise<Express> {
         });
       }
       
+      // Limit content to 5000 characters to avoid overwhelming the LLMs
+      const trimmedContent = content.length > 5000 ? content.substring(0, 5000) + "..." : content;
+      
       res.json({
         success: true,
-        content
+        content: trimmedContent
       });
     } catch (error: any) {
       console.error("Error fetching URL content:", error);

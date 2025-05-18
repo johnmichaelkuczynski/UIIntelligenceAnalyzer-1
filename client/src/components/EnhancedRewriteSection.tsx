@@ -106,18 +106,54 @@ const EnhancedRewriteSection: React.FC<EnhancedRewriteSectionProps> = ({
   const [includeSearchResults, setIncludeSearchResults] = useState<boolean>(true);
   const [urlContents, setUrlContents] = useState<{[key: string]: string}>({});
   
-  // Mock functions for suggestions and search (will be implemented with actual API calls)
+  // Functions to get AI suggestions and perform web searches
   const getAISuggestions = async () => {
     if (!originalDocument?.content) return;
     
     setLoadingSuggestions(true);
-    // Simulate API call for AI suggestions
+    // Call the enhancement suggestions API
     try {
-      // In a real implementation, this would call the backend
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Extract a sample of text for AI suggestions (max 3000 chars to avoid overwhelming the API)
+      const textSample = originalDocument.content.substring(0, 3000);
       
-      // Mockup suggestions (this would come from the API)
-      const mockSuggestions: EnhancementSuggestion[] = [
+      // Select a random AI provider for suggestions
+      const providers = ["openai", "anthropic", "perplexity"];
+      const selectedProvider = providers[Math.floor(Math.random() * providers.length)];
+      
+      const response = await fetch("/api/get-enhancement-suggestions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          text: textSample,
+          provider: selectedProvider
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.suggestions) {
+        setSuggestions(data.suggestions);
+        // Auto-select high relevance suggestions
+        setSelectedSuggestions(data.suggestions.filter((s: EnhancementSuggestion) => s.relevanceScore >= 8));
+        
+        toast({
+          title: "AI suggestions generated",
+          description: `Found ${data.suggestions.length} relevant enhancement suggestions`,
+        });
+      } else {
+        throw new Error(data.message || "Failed to get suggestions");
+      }
+    } catch (error) {
+      console.error("Error getting AI suggestions:", error);
+      
+      // Fallback suggestions if API fails
+      const fallbackSuggestions: EnhancementSuggestion[] = [
         {
           title: "Add context on epistemological naturalization",
           content: "Incorporate W.V. Quine's perspective on naturalized epistemology from 'Epistemology Naturalized' (1969), where he argues that epistemology should be viewed as a chapter of psychology.",
@@ -138,19 +174,12 @@ const EnhancedRewriteSection: React.FC<EnhancedRewriteSectionProps> = ({
         }
       ];
       
-      setSuggestions(mockSuggestions);
-      // Auto-select high relevance suggestions
-      setSelectedSuggestions(mockSuggestions.filter(s => s.relevanceScore >= 8));
+      setSuggestions(fallbackSuggestions);
+      setSelectedSuggestions(fallbackSuggestions.filter(s => s.relevanceScore >= 8));
       
       toast({
-        title: "AI suggestions generated",
-        description: `Found ${mockSuggestions.length} relevant enhancement suggestions`,
-      });
-    } catch (error) {
-      console.error("Error getting AI suggestions:", error);
-      toast({
-        title: "Error getting suggestions",
-        description: "Failed to generate AI suggestions",
+        title: "Using default suggestions",
+        description: "Could not get personalized suggestions. Using defaults instead.",
         variant: "destructive"
       });
     } finally {
@@ -169,44 +198,85 @@ const EnhancedRewriteSection: React.FC<EnhancedRewriteSectionProps> = ({
     }
     
     setIsSearching(true);
-    // Simulate API call for web search
     try {
-      // In a real implementation, this would call the backend
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mockup search results (this would come from the API)
-      const mockResults: GoogleSearchResult[] = [
-        {
-          title: "Naturalized Epistemology | Stanford Encyclopedia of Philosophy",
-          link: "https://plato.stanford.edu/entries/epistemology-naturalized/",
-          snippet: "Naturalized epistemology is an approach to the theory of knowledge that emphasizes the application of methods, results, and theories from the empirical sciences..."
+      // Call the Google Search API
+      const response = await fetch("/api/search-google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
         },
-        {
-          title: "W.V. Quine's Naturalized Epistemology - Philosophy Pages",
-          link: "https://www.philosophypages.com/quine/naturalized.html",
-          snippet: "Quine proposed that epistemology should be naturalized, that is, that knowledge should be studied as a natural phenomenon, subject to empirical investigation..."
-        },
-        {
-          title: "The Role of Psychology in Naturalized Epistemology",
-          link: "https://www.jstor.org/stable/43154111",
-          snippet: "This paper examines the connections between cognitive psychology and philosophical epistemology, arguing that naturalized epistemology benefits from empirical findings..."
-        }
-      ];
-      
-      setSearchResults(mockResults);
-      toast({
-        title: "Search completed",
-        description: `Found ${mockResults.length} relevant results`,
+        body: JSON.stringify({
+          query: searchQuery,
+          numResults: 5
+        })
       });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.results) {
+        setSearchResults(data.results);
+        // Auto-select top 2 results
+        setSelectedSearchResults(data.results.slice(0, 2));
+        
+        toast({
+          title: "Search completed",
+          description: `Found ${data.results.length} relevant results`,
+        });
+        
+        // Fetch content for the selected search results
+        for (const result of data.results.slice(0, 2)) {
+          fetchContentForUrl(result.link);
+        }
+      } else {
+        throw new Error(data.message || "Failed to search");
+      }
     } catch (error) {
       console.error("Error searching web:", error);
       toast({
         title: "Search failed",
-        description: "Failed to search for relevant information",
+        description: "Failed to search for relevant information. Please try again.",
         variant: "destructive"
       });
     } finally {
       setIsSearching(false);
+    }
+  };
+  
+  // Helper function to fetch content from a URL
+  const fetchContentForUrl = async (url: string) => {
+    try {
+      const response = await fetch("/api/fetch-url-content", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ url })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.content) {
+        // Update URL contents
+        setUrlContents(prev => ({
+          ...prev,
+          [url]: data.content
+        }));
+      }
+    } catch (error) {
+      console.error(`Error fetching content from ${url}:`, error);
+      // Set a fallback message
+      setUrlContents(prev => ({
+        ...prev,
+        [url]: "Could not extract content from this URL. You may need to visit it directly."
+      }));
     }
   };
   
