@@ -86,6 +86,9 @@ export interface DocumentAnalysis {
   // Detailed textual analysis
   analysis?: string;
   
+  // Standardized formatted report in the specified structure
+  formattedReport?: string;
+  
   // For numerical summary
   surfaceScore?: number;
   deepScore?: number;
