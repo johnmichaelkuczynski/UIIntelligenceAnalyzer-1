@@ -446,20 +446,7 @@ const EnhancedRewriteSection: React.FC<EnhancedRewriteSectionProps> = ({
         
         {/* Instructions Tab */}
         <TabsContent value="instructions" className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
-            <h4 className="text-sm font-medium text-blue-900 flex items-center gap-1.5 mb-2">
-              <Sparkles className="h-4 w-4" />
-              Intelligent Rewrite Guidelines
-            </h4>
-            <div className="text-xs text-blue-800 mb-2">
-              <p className="mb-1">To enhance intelligence scores, our rewrite engine:</p>
-              <ul className="space-y-1 list-disc pl-4">
-                <li><span className="font-medium">Preserves semantic compression</span> - Never adding words without adding value</li>
-                <li><span className="font-medium">Maintains recursive structures</span> - Keeping logical patterns intact</li>
-                <li><span className="font-medium">Enhances definitional clarity</span> - Making concepts precise</li>
-              </ul>
-            </div>
-          </div>
+          {/* No guidelines box */}
           
           <div className="grid gap-2">
             <Label htmlFor="rewrite-instruction" className="mb-1">

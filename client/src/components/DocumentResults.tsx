@@ -472,29 +472,7 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
         </div>
         
         <div className="grid gap-4 py-2">
-          {/* Intelligence improvement guidance */}
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
-            <h4 className="text-sm font-medium text-blue-900 flex items-center gap-1.5 mb-2">
-              <BrainCircuit className="h-4 w-4" />
-              Intelligent Rewrite Guidelines - Read This First
-            </h4>
-            <div className="text-xs text-red-800 font-semibold mb-2 border-b border-blue-100 pb-1.5">
-              IMPORTANT: Our rewrite engine preserves semantic compression and logical structure, never bloating content with unnecessary words.
-            </div>
-            <p className="text-xs text-blue-800 mb-2">
-              To improve intelligence score, our rewrite engine will:
-            </p>
-            <ul className="text-xs space-y-1 text-blue-800 mb-2 list-disc pl-4">
-              <li><span className="font-medium">Preserve semantic compression</span> - Never adding words without adding value</li>
-              <li><span className="font-medium">Maintain recursive structures</span> - Keeping or enhancing logical A→B→C→A* patterns</li>
-              <li><span className="font-medium">Enhance definitional clarity</span> - Making operational definitions sharper</li>
-              <li><span className="font-medium">Reveal inferential structures</span> - Making implicit reasoning chains explicit</li>
-              <li><span className="font-medium">Strictly maintain length</span> - Never expanding text that's already concise</li>
-            </ul>
-            <div className="text-xs text-blue-800 border-t border-blue-100 pt-1.5 mt-1.5">
-              For custom instructions, focus on operational definitions and logical connections. <strong>Avoid</strong> instructions like "make it sound smarter" or "make it more academic" as these lead to lower intelligence scores.
-            </div>
-          </div>
+          {/* No guidelines box */}
 
           <div className="grid gap-2">
             <Label htmlFor="rewrite-instruction" className="mb-1">
