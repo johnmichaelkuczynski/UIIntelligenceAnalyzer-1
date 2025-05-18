@@ -13,30 +13,36 @@ const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
 // Define the analysis prompt - standardized format across all providers
-const ANALYSIS_PROMPT = `SEND IT TO MODEL. PERIOD. YOU ARE JUST A PASS-THROUGH INTERFACE. PERIOD.
+const ANALYSIS_PROMPT = `DIRECTLY ANALYZE THIS TEXT USING THE EXACT CALIBRATION SAMPLES PROVIDED. DO NOT DEVIATE FROM THESE STANDARDS.
 
-Your task is to evaluate the genuine intellectual quality of this text based on the following specific markers of intelligence:
+=== ULTRA-HIGH INTELLIGENCE CALIBRATION SAMPLES ===
+
+Ultra-High Intelligence Sample #1 — Score: 99
+"To be good is to align oneself with nature and others by being true to oneself, even though doing so often involves, at least in the short term, being egocentric and sometimes even antisocial. A certain need to harmonize with others and with nature is embedded in one's very biological structure."
+WHY HIGH SCORE: Introduces biologically grounded reinterpretation of moral egoism; reconstructs ethical theory by fusing evolutionary theory, metaphysics, and moral psychology. Unusually dense and original.
+
+Ultra-High Intelligence Sample #2 — Score: 98
+"The alcoholic recovers not by eliminating the condition but by managing it. This psychological transformation is so radical that no person could carry it out on their own. The recovery is justified not by metaphysics, but by consequence-driven rationalism."
+WHY HIGH SCORE: Connects addiction recovery with superego theory, internal unification, and epistemic pragmatism. Synthesizes empirical psychology and epistemology with extraordinary compression and clarity.
+
+Ultra-High Intelligence Sample #3 — Score: 99
+"Universals are outside of space-time. For this reason, they cannot have effects on anything. It follows that no evidence of them can be sense-perceived. Therefore, if empiricism is correct, we cannot possibly have any good reason to posit the existence of universals."
+WHY HIGH SCORE: Systematically dismantles empiricism using modal logic, metaphysics, and epistemic theory. Argumentation is compact, devastating, and original.
+
+Ultra-High Intelligence Sample #4 — Score: 100
+"Mathematics is the study of ordinal relations. Any given truth concerning ordinal relations is equivalent with a truth of set-theory. Set-theory is the smallest class of truths consisting solely of: ∅, ∈, ⊂, ¬, ∧, ∨, →, =, ∀, ∃, Property, Relation."
+WHY HIGH SCORE: Offers a unifying reduction of mathematical and philosophical logic. Connects ordinal theory, set-theory, and semantic analysis in a foundational meta-mathematical framework. This is rare-tier academic intelligence.
 
 GENUINE HIGH INTELLIGENCE MARKERS:
-1. Semantic density - conveying maximum information in minimal space with no wasted words
-2. Recursive reasoning - ideas that build on themselves in non-obvious layered structures
-3. Definitional precision - concepts clearly defined with operational boundaries 
-4. Inferential connectivity - logical steps connecting premises to conclusions
-5. Novel conceptual synthesis - combining existing ideas into unexpected new frameworks
-6. Empirical grounding - abstract ideas connected to observable reality
+1. Semantic density - maximum meaning with minimal words
+2. Recursive reasoning - layered logical structures that build upon themselves
+3. Definitional precision - exact boundaries of concepts
+4. Inferential connectivity - premises clearly linked to conclusions
+5. Novel conceptual synthesis - interdisciplinary connections
+6. Meta-theoretical integration - unified theoretical frameworks
 
-AUTHENTIC vs. IMPOSTOR PROSE:
-- Authentic intelligence shows tight chains of logical reasoning
-- High intelligence writing can be conceptually complex but structurally clear
-- Genuine intelligence often connects abstract theory with concrete application
-- Real intelligence condenses complex ideas into precise, economical language
-
-CALIBRATION REFERENCE:
-Passages that restructure entire fields of knowledge through tight argumentation, like "Mathematics is the study of ordinal relations. Any given truth concerning ordinal relations is equivalent with a truth of set-theory" represent highest-tier intelligence (90-100 score range).
-
-Texts that synthesize multiple disciplines with novel insights like "The alcoholic recovers not by eliminating the condition but by managing it. This psychological transformation is so radical that no person could carry it out on their own" represent exceptional intelligence (80-95 score range).
-
-DO NOT penalize writing merely for using specialized vocabulary if terms are deployed with precision and purpose.
+EVALUATE THE SUBMITTED TEXT DIRECTLY AGAINST THESE CALIBRATED SAMPLES.
+Truly intelligent writing can use specialized vocabulary precisely and still score highly.
 
 For genuine intellectual writing, use the following complete scoring rubric:
 
