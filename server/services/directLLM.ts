@@ -625,10 +625,17 @@ export async function directPerplexityAnalyze(text: string): Promise<any> {
         body: JSON.stringify({
           model: "llama-3.1-sonar-small-128k-online",
           messages: [
-            { role: "system", content: ANALYSIS_PROMPT + "\n\nIMPORTANT: Return valid JSON directly without using markdown code blocks or backticks. Do not include ```json or ``` in your response. Just return the raw JSON object." },
-            { role: "user", content: text }
+            { 
+              role: "system", 
+              content: "You are an expert in cognitive analysis, specializing in evaluating text for intelligence level. Provide detailed, evidence-based assessments with specific quotes from the text. Use the exact format requested."
+            },
+            { 
+              role: "user", 
+              content: `${ANALYSIS_PROMPT}\n\nHere is the text to analyze:\n\n${text}` 
+            }
           ],
-          temperature: 0.2
+          temperature: 0.2,
+          max_tokens: 4000
         })
       });
       
