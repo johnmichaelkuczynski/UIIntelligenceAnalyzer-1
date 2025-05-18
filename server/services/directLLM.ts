@@ -227,16 +227,57 @@ export async function directOpenAIAnalyze(text: string): Promise<any> {
       const response = await openai.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
         messages: [
-          { role: "system", content: ANALYSIS_PROMPT },
-          { role: "user", content: text }
+          { 
+            role: "system", 
+            content: "You are an expert in cognitive analysis, specializing in evaluating text for intelligence level. Provide detailed, evidence-based assessments that identify specific cognitive strengths and weaknesses in writing. Focus on semantic density, logical structure, and conceptual clarity. Always cite specific quotes from the text to justify your scores."
+          },
+          { role: "user", content: `${ANALYSIS_PROMPT}\n\nHere is the text to analyze:\n\n${text}` }
         ],
-        response_format: { type: "json_object" },
+        max_tokens: 4000,
         temperature: 0.2
       });
 
-      // Return the direct GPT-4o response with no custom processing
-      const result = JSON.parse(response.choices[0].message.content || "{}");
-      result.provider = "OpenAI (GPT-4o)";
+      // Parse the response to separate the formatted report from the JSON data
+      const responseText = response.choices[0].message.content || "{}";
+      let result;
+      
+      try {
+        // Extract the JSON part from the response
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const jsonStr = jsonMatch[0];
+          result = JSON.parse(jsonStr);
+          
+          // Store the formatted report (the text before the JSON)
+          const formattedReport = responseText.substring(0, responseText.indexOf('{'));
+          result.formattedReport = formattedReport.trim();
+          
+          // Add provider information
+          result.provider = "OpenAI (GPT-4o)";
+        } else {
+          // If no JSON found, try to parse the whole response as JSON
+          result = JSON.parse(responseText);
+          result.provider = "OpenAI (GPT-4o)";
+          result.formattedReport = "Intelligence Score: " + result.overallScore + "/100\n\n" +
+            "Surface-Level Scores:\n" +
+            "- Grammar: " + result.surface.grammar + "\n" +
+            "- Structure: " + result.surface.structure + "\n" +
+            "- Jargon Usage: " + result.surface.jargonUsage + "\n" +
+            "- Surface Fluency: " + result.surface.surfaceFluency + "\n\n" +
+            "Deep-Level Scores:\n" +
+            "- Conceptual Depth: " + result.deep.conceptualDepth + "\n" +
+            "- Inferential Continuity: " + result.deep.inferentialContinuity + "\n" +
+            "- Semantic Compression: " + result.deep.semanticCompression + "\n" +
+            "- Logical Scaffolding: " + result.deep.logicalLaddering + "\n" +
+            "- Originality: " + result.deep.originality + "\n\n" +
+            "Summary Assessment:\n" + result.analysis;
+        }
+      } catch (error) {
+        console.error("Failed to parse OpenAI response:", error);
+        console.error("Raw response:", responseText);
+        throw error;
+      }
+      
       return result;
     } catch (error) {
       console.error("Error in direct passthrough to OpenAI:", error);
@@ -344,36 +385,49 @@ export async function directAnthropicAnalyze(text: string): Promise<any> {
     try {
       // Direct pass-through to Anthropic Claude with no custom algorithms
       const response = await anthropic.messages.create({
-        model: "claude-3-7-sonnet-20250219", // the newest Anthropic model, released February 24, 2025
-        system: ANALYSIS_PROMPT + "\n\nIMPORTANT: Return valid JSON directly without using markdown code blocks or backticks. Do not include ```json or ``` in your response. Just return the raw JSON object.",
+        model: "claude-3-7-sonnet-20250219", // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
+        system: "You are an expert in cognitive analysis, specializing in evaluating text for intelligence level. Provide detailed, evidence-based assessments with specific quotes from the text. Use the exact format requested.",
         max_tokens: 4000,
         messages: [
-          { role: "user", content: text }
+          { role: "user", content: `${ANALYSIS_PROMPT}\n\nHere is the text to analyze:\n\n${text}` }
         ]
       });
   
       // Parse the response content and return without custom processing
       if (response.content && response.content[0] && 'text' in response.content[0]) {
-        // Claude often wraps JSON in code blocks, so we need to extract just the JSON part
+        // Get the full response text from Claude
         let responseText = response.content[0].text as string;
         
-        // Remove any markdown code block indicators if present
-        if (responseText.includes("```json") || responseText.includes("```")) {
-          // Extract text between code blocks if present
-          const jsonMatch = responseText.match(/```(?:json)?([\s\S]*?)```/);
-          if (jsonMatch && jsonMatch[1]) {
-            responseText = jsonMatch[1].trim();
+        // Split the response into the formatted report and JSON parts
+        let formattedReport = "";
+        let jsonText = "";
+        
+        // Extract JSON part (usually at the end)
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          jsonText = jsonMatch[0];
+          // The formatted report is everything before the JSON
+          formattedReport = responseText.substring(0, responseText.indexOf(jsonMatch[0])).trim();
+        } else {
+          // If no JSON found, check for markdown code blocks
+          const codeBlockMatch = responseText.match(/```(?:json)?([\s\S]*?)```/);
+          if (codeBlockMatch && codeBlockMatch[1]) {
+            jsonText = codeBlockMatch[1].trim();
+            // Remove the code block from the response text to get the formatted report
+            formattedReport = responseText.replace(/```(?:json)?([\s\S]*?)```/, "").trim();
           } else {
-            // Remove just the starting and ending backticks if present
-            responseText = responseText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+            // If still no JSON found, assume the entire response is the formatted report
+            formattedReport = responseText;
+            jsonText = "{}"; // Empty JSON as fallback
           }
         }
         
-        console.log("Parsed Anthropic response text:", responseText.substring(0, 100) + "...");
+        console.log("Extracting Anthropic formatted report and JSON response...");
         
         try {
-          const result = JSON.parse(responseText);
+          const result = JSON.parse(jsonText);
           result.provider = "Anthropic (Claude-3.7-Sonnet)";
+          result.formattedReport = formattedReport;
           return result;
         } catch (parseError) {
           console.error("JSON Parse error with Anthropic response:", parseError);
