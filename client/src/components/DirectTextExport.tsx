@@ -18,9 +18,7 @@ INTELLIGENCE ANALYSIS REPORT
 ============================
 Overall Intelligence Score: ${analysis.overallScore}/100
 
-${analysis.summary}
-
-${analysis.evidence || ''}
+${analysis.summary || ''}
 
 Analyzed Text:
 ${originalText}

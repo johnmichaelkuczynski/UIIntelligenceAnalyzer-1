@@ -411,7 +411,15 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
 
       {/* Overall Intelligence Assessment */}
       <div className="mb-6">
-        <h3 className="font-semibold text-gray-800 mb-3">Intelligence Assessment</h3>
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="font-semibold text-gray-800">Intelligence Assessment</h3>
+          {originalDocument && (
+            <DirectTextExport 
+              analysis={analysis} 
+              originalText={originalDocument.content}
+            />
+          )}
+        </div>
         <div className="flex items-center gap-2 mb-4">
           <div className="flex-1">
             <div className="h-2 w-full bg-gray-200 rounded-full">
