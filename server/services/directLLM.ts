@@ -13,7 +13,19 @@ const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
 // Define the analysis prompt - standardized format across all providers
-const ANALYSIS_PROMPT = `Analyze this text for intelligence level. Evaluate the text on multiple dimensions and provide a comprehensive intelligence report.
+const ANALYSIS_PROMPT = `Analyze this text for genuine intelligence markers. Your primary task is to distinguish between authentic intellectual value and impostor prose that uses jargon to mask emptiness.
+
+CRITICAL IMPOSTOR DETECTION:
+First, determine if the text shows these warning signs of impostor prose:
+- High density of academic jargon without substantive meaning
+- Terms like "epistemic," "ontological," "hermeneutic," etc. used without clear application
+- Abstract claims that never connect to specific examples or evidence
+- Self-referential loops that appear meaningful but are circular/vacuous
+- Assertion of depth without demonstrating depth through logical development
+
+If you detect more than 3 of these warning signs, the text is PRIMARILY IMPOSTOR PROSE and must receive scores below 30/100, regardless of grammar or surface qualities. ALL deep-level scores should be below 20/100. The evidence section must explicitly identify the warning signs.
+
+For genuine intellectual writing, use the following complete scoring rubric:
 
 You must return your analysis in the exact format below:
 
@@ -22,28 +34,27 @@ Intelligence Score: [X]/100
 Surface-Level Scores:
 - Grammar: [0-100]
 - Structure: [0-100]
-- Jargon Usage: [0-100]
+- Jargon Usage: [0-100] (NOTE: High scores here mean APPROPRIATE use of technical language; low scores mean either excessive jargon or inappropriate use)
 - Surface Fluency: [0-100]
 
 Deep-Level Scores:
-- Conceptual Depth: [0-100]
-- Inferential Continuity: [0-100]
-- Semantic Compression: [0-100]
-- Logical Scaffolding: [0-100]
-- Originality: [0-100]
+- Conceptual Depth: [0-100] (Can only be high if concepts are clearly defined and operationalized)
+- Inferential Continuity: [0-100] (Measures how logically connected ideas are)
+- Semantic Compression: [0-100] (High information density without redundancy)
+- Logical Scaffolding: [0-100] (Explicit reasoning structures)
+- Originality: [0-100] (Novel perspectives or frameworks, not just unusual language)
 
 Evidence-Based Justification:
-[At least 3–7 quotes or paraphrased sentences from the input, each followed by clear reasoning that explains why the quote demonstrates a particular cognitive quality.]
+[At least 3–7 quotes or paraphrased sentences from the input, each followed by clear reasoning that explains why the quote demonstrates a particular cognitive quality or lack thereof. If impostor prose is detected, CLEARLY identify the warning signs.]
 
 Summary Assessment:
-[200–300 words explaining the score and discussing the strongest and weakest cognitive features of the writing. Explain how the scores were derived based on the evidence.]
+[200–300 words explaining the score and discussing the strongest and weakest cognitive features of the writing. If the text is primarily impostor prose, explicitly state this and explain the misleading elements. Make clear distinctions between genuine complexity and pseudo-intellectual language.]
 
-IMPORTANT REQUIREMENTS:
-1. Never leave any score at 0 - all scores must be justified
-2. Always provide evidence for scores by quoting or paraphrasing specific parts of the text
-3. Do not include praise or criticism without quoting the text or referencing specific content
-4. Ensure your assessment is concrete and based on observable features of the writing
-5. For philosophical texts about epistemology, naturalism, Quine, or formal logic, these should score very highly (90-99 range) when they show tight semantic compression and clear definitional structures
+CRITICAL CALIBRATION EXAMPLES:
+- Genuine high intelligence text will contain precise definitions, clear connections between ideas, and high information density without unnecessary words.
+- True semantic compression means conveying maximum information with minimum language.
+- Appropriate jargon is used consistently, defined clearly, and serves a purpose.
+- Impostor prose typically contains impressive-sounding words without developing ideas or arguments.
 
 Return the analysis as a well-formatted report that strictly follows the structure above. Include line breaks and proper formatting.
 
@@ -52,7 +63,7 @@ Also include a JSON representation of the scores at the end of your response (th
   "surface": {
     "grammar": number,
     "structure": number,
-    "jargonUsage": number,
+    "jargonUsage": number, 
     "surfaceFluency": number
   },
   "deep": {

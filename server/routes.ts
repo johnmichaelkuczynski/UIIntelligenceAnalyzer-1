@@ -539,14 +539,14 @@ export async function registerRoutes(app: Express): Promise<Express> {
       // Enhance instruction with web content if enhanced options are provided
       let enhancedInstruction = options.instruction;
       
-      // Handle web content enrichment
+      // Handle web content enrichment 
       if (options.selectedSuggestions?.length || options.selectedSearchResults?.length) {
         console.log("Using enhanced rewrite with external content");
         
         // Add AI suggestions to instruction if available
         if (options.includeSuggestions && options.selectedSuggestions?.length) {
           enhancedInstruction += "\n\nINCORPORATE THESE SPECIFIC SUGGESTIONS:\n";
-          options.selectedSuggestions.forEach((suggestion, index) => {
+          options.selectedSuggestions.forEach((suggestion: any, index: number) => {
             enhancedInstruction += `${index+1}. ${suggestion.title}: ${suggestion.content}\n`;
           });
           enhancedInstruction += "\n";
@@ -576,6 +576,25 @@ export async function registerRoutes(app: Express): Promise<Express> {
               // Continue with next result if one fails
             }
           }
+        }
+      }
+      
+      // Also support simple text-based content enrichment for all rewrite modes
+      if (options.enrichmentContent) {
+        enhancedInstruction += "\n\nINCORPORATE THIS ADDITIONAL INFORMATION:\n";
+        
+        if (typeof options.enrichmentContent === 'string') {
+          // If it's a string, add it directly
+          enhancedInstruction += options.enrichmentContent;
+        } else if (Array.isArray(options.enrichmentContent)) {
+          // If it's an array of content items
+          options.enrichmentContent.forEach((item: any, index: number) => {
+            if (typeof item === 'string') {
+              enhancedInstruction += `${index+1}. ${item}\n`;
+            } else if (item.title && item.content) {
+              enhancedInstruction += `${index+1}. ${item.title}: ${item.content}\n`;
+            }
+          });
         }
       }
       
