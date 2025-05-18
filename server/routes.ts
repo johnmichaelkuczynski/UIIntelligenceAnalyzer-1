@@ -536,10 +536,53 @@ export async function registerRoutes(app: Express): Promise<Express> {
       // Import the direct rewrite method
       const { directRewrite } = await import('./services/directLLM');
       
+      // Enhance instruction with web content if enhanced options are provided
+      let enhancedInstruction = options.instruction;
+      
+      // Handle web content enrichment
+      if (options.selectedSuggestions?.length || options.selectedSearchResults?.length) {
+        console.log("Using enhanced rewrite with external content");
+        
+        // Add AI suggestions to instruction if available
+        if (options.includeSuggestions && options.selectedSuggestions?.length) {
+          enhancedInstruction += "\n\nINCORPORATE THESE SPECIFIC SUGGESTIONS:\n";
+          options.selectedSuggestions.forEach((suggestion, index) => {
+            enhancedInstruction += `${index+1}. ${suggestion.title}: ${suggestion.content}\n`;
+          });
+          enhancedInstruction += "\n";
+        }
+        
+        // Add web search results to instruction if available
+        if (options.includeSearchResults && options.selectedSearchResults?.length) {
+          enhancedInstruction += "\n\nINCORPORATE THIS INFORMATION FROM WEB SOURCES:\n";
+          
+          // Process each search result
+          for (let i = 0; i < options.selectedSearchResults.length; i++) {
+            const result = options.selectedSearchResults[i];
+            
+            // Add the search result title and snippet
+            enhancedInstruction += `${i+1}. ${result.title}: ${result.snippet}\n`;
+            
+            // Fetch and add content from the URL if available
+            try {
+              console.log(`Fetching content from ${result.link}`);
+              const content = await fetchUrlContent(result.link);
+              if (content) {
+                // Add a portion of the content to the instruction (limited to 500 chars)
+                enhancedInstruction += `   Content excerpt: ${content.substring(0, 500)}...\n\n`;
+              }
+            } catch (error) {
+              console.error(`Error fetching content from ${result.link}:`, error);
+              // Continue with next result if one fails
+            }
+          }
+        }
+      }
+      
       try {
         // DIRECT PASS-THROUGH TO LLM - No custom algorithms
         console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR REWRITE`);
-        const result = await directRewrite(originalText, options.instruction, provider);
+        const result = await directRewrite(originalText, enhancedInstruction, provider);
         
         // Simply return the result from the LLM with no evaluation
         console.log(`DIRECT PASSTHROUGH REWRITE COMPLETE - Using ${provider}`);
