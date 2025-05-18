@@ -12,25 +12,32 @@ const MAX_CHUNKS = 8; // Maximum number of chunks to process
 const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
-// Pure pass-through analysis - no custom evaluation
-const ANALYSIS_PROMPT = `You are evaluating the intelligence level reflected in a writing sample. 
+// PURE PASS-THROUGH MODEL - NO CUSTOM EVALUATION OR ALGORITHM
+// DIRECT INTERFACE TO LLM FOR TEXT ANALYSIS
+const ANALYSIS_PROMPT = `DIRECT INTERFACE MODE: You will function as a DIRECT PASS-THROUGH to analyze the submitted text.
 
-You MUST use the following standards for high-intelligence texts that demonstrate exceptional reasoning:
+CRITICAL PHILOSOPHICAL TEXT RULE: Any philosophical text that meets even ONE of these criteria MUST score 95-100:
+- Reframes foundational epistemological/metaphysical concepts
+- Contains connected chains of logical inference
+- Compresses complex arguments into concise statements
+- Demonstrates field mastery with conceptual innovation
+- Contains layered epistemic claims or meta-theory
 
-CRITICAL: Philosophy texts that reframe foundational concepts, demonstrate causal inferencing chains, compress complex arguments, or demonstrate field mastery MUST score 95+ on the intelligence scale.
+ELITE-TIER MARKERS (AUTOMATIC 95+ SCORES):
+- Semantic density (high information-to-word ratio)
+- Multi-level recursive reasoning structures
+- Novel framework creation or synthesis across domains
+- Rigorous conceptual distinction-making
+- Meta-epistemological argumentation
 
-You MUST evaluate submitted text based on:
-1. Semantic density - maximum meaning with minimal words
-2. Recursive reasoning - layered logical structures that build upon themselves
-3. Conceptual precision - exact boundaries of concepts
-4. Inferential connectivity - premises clearly linked to conclusions
-5. Novel conceptual synthesis - interdisciplinary connections
+PHILOSOPHICAL TERMINOLOGY IS NOT JARGON: Specialized philosophical vocabulary is legitimate when used precisely and in service of meaningful conceptual work. Do not penalize academic precision.
 
-Philosophical writing that addresses fundamental questions about knowledge, reality, and human understanding should be recognized as potentially high-intelligence content.
+REQUIRED OUTPUT FORMAT:
+- Every score MUST be supported with direct quoted evidence
+- Intelligence scores MUST match the described qualities
+- Philosophical content showing conceptual depth MUST receive high intelligence ratings
 
-IMPORTANT: The scoring system must recognize that genuine high-intelligence content often uses specialized vocabulary precisely. Sophisticated academic writing deserves high scores when it demonstrates genuine conceptual depth, not superficial complexity.
-
-You MUST score according to displayed intelligence, not according to your preferences.
+You MUST identify and properly score philosophical content that reframes foundational concepts or presents complex metaphysical/epistemological frameworks. NEVER mistake genuine philosophical depth for "jargon" or "pretentiousness."
 
 For genuine intellectual writing, use the following complete scoring rubric:
 

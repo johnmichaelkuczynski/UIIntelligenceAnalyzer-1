@@ -348,6 +348,49 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+      {/* DIRECT DOWNLOAD BANNER */}
+      {originalDocument && (
+        <div className="mb-4 bg-blue-600 text-white p-4 rounded-md flex justify-between items-center">
+          <div>
+            <h3 className="font-bold text-lg">Download Document Analysis</h3>
+            <p>Save this analysis with the original text as a plain text file</p>
+          </div>
+          <button 
+            onClick={() => {
+              // Direct export implementation
+              if (!originalDocument) return;
+              
+              const content = `
+INTELLIGENCE ANALYSIS REPORT - DIRECT EXPORT
+============================================
+Overall Intelligence Score: ${analysis.overallScore}/100
+
+SUMMARY:
+${analysis.summary || ''}
+
+ASSESSMENT:
+${analysis.overallAssessment || ''}
+
+ORIGINAL TEXT:
+${originalDocument.content}
+`;
+              // Create download element
+              const element = document.createElement('a');
+              const file = new Blob([content], {type: 'text/plain'});
+              element.href = URL.createObjectURL(file);
+              element.download = `intelligence-analysis-${new Date().toISOString().slice(0, 10)}.txt`;
+              document.body.appendChild(element);
+              element.click();
+              document.body.removeChild(element);
+            }}
+            className="bg-white text-blue-700 font-bold py-3 px-6 rounded-md hover:bg-blue-100 transition-colors flex items-center gap-2"
+          >
+            <FileText className="h-5 w-5" />
+            DOWNLOAD AS TXT
+          </button>
+        </div>
+      )}
+      
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-gray-800">Document {id} Analysis</h2>
         <div className="flex gap-2">
