@@ -5,9 +5,10 @@ import DocumentResults from "@/components/DocumentResults";
 import ComparativeResults from "@/components/ComparativeResults";
 import AIDetectionModal from "@/components/AIDetectionModal";
 import ProviderSelector, { LLMProvider } from "@/components/ProviderSelector";
+import EnhancedRewriteSection from "@/components/EnhancedRewriteSection";
 
 import { Button } from "@/components/ui/button";
-import { Brain, RefreshCw, Trash2 } from "lucide-react";
+import { Brain, Trash2 } from "lucide-react";
 import { analyzeDocument, compareDocuments, checkForAI } from "@/lib/analysis";
 import { AnalysisMode, DocumentInput as DocumentInputType, AIDetectionResult, DocumentAnalysis, DocumentComparison } from "@/lib/types";
 
@@ -23,6 +24,10 @@ const HomePage: React.FC = () => {
   const [analysisA, setAnalysisA] = useState<DocumentAnalysis | null>(null);
   const [analysisB, setAnalysisB] = useState<DocumentAnalysis | null>(null);
   const [comparison, setComparison] = useState<DocumentComparison | null>(null);
+
+  // State for rewrite results
+  const [rewrittenText, setRewrittenText] = useState<string>("");
+  const [rewriteStats, setRewriteStats] = useState<any>(null);
 
   // State for loading indicators
   const [isAnalysisLoading, setIsAnalysisLoading] = useState(false);
@@ -155,6 +160,12 @@ const HomePage: React.FC = () => {
     }
   };
   
+  // Handler for rewrite completion
+  const handleRewriteComplete = (text: string, stats: any) => {
+    setRewrittenText(text);
+    setRewriteStats(stats);
+  };
+  
   // Handler for resetting the entire analysis
   const handleReset = () => {
     // Clear document inputs
@@ -165,6 +176,10 @@ const HomePage: React.FC = () => {
     setAnalysisA(null);
     setAnalysisB(null);
     setComparison(null);
+    
+    // Clear rewrite results
+    setRewrittenText("");
+    setRewriteStats(null);
     
     // Reset UI states
     setShowResults(false);
@@ -184,9 +199,8 @@ const HomePage: React.FC = () => {
       {/* Header */}
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Intelligence Analysis Tool</h1>
-        <p className="text-gray-600">Analyze and compare writing samples for deep conceptual intelligence assessment</p>
+        <p className="text-gray-600">Analyze, compare, and enhance writing samples with AI-powered intelligence evaluation</p>
       </header>
-      
 
       {/* Analysis Mode Selector */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
@@ -304,6 +318,40 @@ const HomePage: React.FC = () => {
                   analysisB={analysisB}
                   comparison={comparison}
                 />
+              )}
+              
+              {/* Integrated Enhanced Rewrite Section - only shown for single document analysis */}
+              {analysisA && mode === "single" && (
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8 mt-8">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Enhance Document with Web Search & AI Rewrite</h2>
+                  <p className="text-gray-600 mb-6">Use AI to rewrite your document with custom instructions and web search integration</p>
+                  
+                  <EnhancedRewriteSection
+                    originalDocument={documentA}
+                    onRewriteComplete={handleRewriteComplete}
+                  />
+                  
+                  {/* Rewritten Text Results */}
+                  {rewrittenText && (
+                    <div className="mt-8 p-6 border rounded-lg bg-blue-50">
+                      <h3 className="text-xl font-bold text-gray-800 mb-4">Rewritten Document</h3>
+                      <div className="whitespace-pre-wrap bg-white p-4 rounded border">{rewrittenText}</div>
+                      
+                      {rewriteStats && (
+                        <div className="mt-4">
+                          <h4 className="font-semibold text-gray-700 mb-2">Improvement Statistics:</h4>
+                          <ul className="text-sm text-gray-600">
+                            {Object.entries(rewriteStats).map(([key, value]) => (
+                              <li key={key} className="mb-1">
+                                <span className="font-medium">{key.replace(/([A-Z])/g, ' $1').trim()}:</span> {value}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}

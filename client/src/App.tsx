@@ -22,18 +22,6 @@ function Navigation() {
               <span>Intelligence Analysis</span>
             </Link>
           </li>
-          <li>
-            <Link href="/translate" className="flex items-center gap-2 hover:underline">
-              <Languages className="h-5 w-5" />
-              <span>Document Translation</span>
-            </Link>
-          </li>
-          <li>
-            <Link href="/web-search" className="flex items-center gap-2 hover:underline">
-              <Globe className="h-5 w-5" />
-              <span>Web Search & Rewrite</span>
-            </Link>
-          </li>
         </ul>
       </div>
     </nav>
@@ -46,8 +34,6 @@ function Router() {
       <Navigation />
       <Switch>
         <Route path="/" component={HomePage} />
-        <Route path="/translate" component={TranslationPage} />
-        <Route path="/web-search" component={WebSearchPage} />
         <Route component={NotFound} />
       </Switch>
     </>
