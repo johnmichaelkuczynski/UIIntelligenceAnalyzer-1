@@ -348,12 +348,12 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-      {/* DIRECT DOWNLOAD BANNER */}
+      {/* DIRECT DOWNLOAD BUTTON - VERY PROMINENT */}
       {originalDocument && (
-        <div className="mb-4 bg-blue-600 text-white p-4 rounded-md flex justify-between items-center">
-          <div>
-            <h3 className="font-bold text-lg">Download Document Analysis</h3>
-            <p>Save this analysis with the original text as a plain text file</p>
+        <div className="mb-4 bg-red-600 text-white p-6 rounded-md flex flex-col md:flex-row justify-between items-center shadow-lg">
+          <div className="mb-3 md:mb-0">
+            <h3 className="font-bold text-xl">⬇️ ONE-CLICK TEXT DOWNLOAD ⬇️</h3>
+            <p className="text-lg">Save the complete analysis with original text as TXT file</p>
           </div>
           <button 
             onClick={() => {
@@ -361,8 +361,10 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
               if (!originalDocument) return;
               
               const content = `
-INTELLIGENCE ANALYSIS REPORT - DIRECT EXPORT
-============================================
+INTELLIGENCE ANALYSIS - DIRECT EXPORT
+====================================
+Document ID: ${id}
+Analysis Provider: ${analysis.provider || 'Unknown'}
 Overall Intelligence Score: ${analysis.overallScore}/100
 
 SUMMARY:
@@ -383,10 +385,10 @@ ${originalDocument.content}
               element.click();
               document.body.removeChild(element);
             }}
-            className="bg-white text-blue-700 font-bold py-3 px-6 rounded-md hover:bg-blue-100 transition-colors flex items-center gap-2"
+            className="bg-white text-red-700 font-bold text-xl py-4 px-8 rounded-md hover:bg-red-100 transition-colors flex items-center gap-3 min-w-[250px] justify-center"
           >
-            <FileText className="h-5 w-5" />
-            DOWNLOAD AS TXT
+            <FileText className="h-7 w-7" />
+            DOWNLOAD AS .TXT
           </button>
         </div>
       )}
