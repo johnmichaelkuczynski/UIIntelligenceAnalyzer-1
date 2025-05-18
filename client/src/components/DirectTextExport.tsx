@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { DocumentAnalysis } from "@/lib/types";
 
 interface DirectTextExportProps {
@@ -43,13 +43,13 @@ ${originalText}
     <>
       <a ref={downloadLinkRef} style={{ display: 'none' }}></a>
       <Button 
-        variant="outline" 
+        variant="default" 
         size="sm" 
         onClick={exportToTxt}
-        className="flex gap-1 items-center"
+        className="flex gap-2 items-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4"
       >
-        <Download className="h-4 w-4" />
-        Export as TXT
+        <FileText className="h-5 w-5" />
+        DOWNLOAD AS TXT
       </Button>
     </>
   );

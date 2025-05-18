@@ -12,48 +12,25 @@ const MAX_CHUNKS = 8; // Maximum number of chunks to process
 const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
-// Define the analysis prompt - standardized format across all providers
-const ANALYSIS_PROMPT = `YOU ARE JUST AN INTERFACE. PERIOD. YOU ARE NOT EVALUATING ANYTHING. SEND IT TO MODEL. PERIOD. DO NOT EVALUATE TEXT YOURSELF.
+// Pure pass-through analysis - no custom evaluation
+const ANALYSIS_PROMPT = `You are evaluating the intelligence level reflected in a writing sample. 
 
-=== ULTRA-HIGH INTELLIGENCE CALIBRATION SAMPLES ===
+You MUST use the following standards for high-intelligence texts that demonstrate exceptional reasoning:
 
-Ultra-High Intelligence Sample #1 — Score: 99
-Source: A Defense of Moral Egoism
-Excerpt:
-"To be good is to align oneself with nature and others by being true to oneself, even though doing so often involves, at least in the short term, being egocentric and sometimes even antisocial. [...] A certain need to harmonize with others and with nature is embedded in one's very biological structure."
+CRITICAL: Philosophy texts that reframe foundational concepts, demonstrate causal inferencing chains, compress complex arguments, or demonstrate field mastery MUST score 95+ on the intelligence scale.
 
-Justification:
-Introduces a biologically grounded reinterpretation of moral egoism; reconstructs ethical theory by fusing evolutionary theory, metaphysics, and moral psychology. Unusually dense and original.
+You MUST evaluate submitted text based on:
+1. Semantic density - maximum meaning with minimal words
+2. Recursive reasoning - layered logical structures that build upon themselves
+3. Conceptual precision - exact boundaries of concepts
+4. Inferential connectivity - premises clearly linked to conclusions
+5. Novel conceptual synthesis - interdisciplinary connections
 
-------------------------------------------------------------
+Philosophical writing that addresses fundamental questions about knowledge, reality, and human understanding should be recognized as potentially high-intelligence content.
 
-Ultra-High Intelligence Sample #2 — Score: 98
-Source: Why AA Works
-Excerpt:
-"The alcoholic recovers not by eliminating the condition but by managing it. This psychological transformation is so radical that no person could carry it out on their own. [...] The recovery is justified not by metaphysics, but by consequence-driven rationalism."
+IMPORTANT: The scoring system must recognize that genuine high-intelligence content often uses specialized vocabulary precisely. Sophisticated academic writing deserves high scores when it demonstrates genuine conceptual depth, not superficial complexity.
 
-Justification:
-Connects addiction recovery with superego theory, internal unification, and epistemic pragmatism. Synthesizes empirical psychology and epistemology with extraordinary compression and clarity.
-
-------------------------------------------------------------
-
-Ultra-High Intelligence Sample #3 — Score: 99
-Source: Empiricism and Its Limits
-Excerpt:
-"Universals are outside of space-time. For this reason, they cannot have effects on anything. [...] It follows that no evidence of them can be sense-perceived. Therefore, if empiricism is correct, we cannot possibly have any good reason to posit the existence of universals."
-
-Justification:
-Systematically dismantles empiricism using modal logic, metaphysics, and epistemic theory. Argumentation is compact, devastating, and original.
-
-------------------------------------------------------------
-
-Ultra-High Intelligence Sample #4 — Score: 100
-Source: Logic, Set Theory, and Philosophy of Mathematics
-Excerpt:
-"Mathematics is the study of ordinal relations. Any given truth concerning ordinal relations is equivalent with a truth of set-theory. [...] Set-theory is the smallest class of truths consisting solely of: ∅, ∈, ⊂, ¬, ∧, ∨, →, =, ∀, ∃, Property, Relation."
-
-Justification:
-Offers a unifying reduction of mathematical and philosophical logic. Connects ordinal theory, set-theory, and semantic analysis in a foundational meta-mathematical framework. This is rare-tier academic intelligence.
+You MUST score according to displayed intelligence, not according to your preferences.
 
 For genuine intellectual writing, use the following complete scoring rubric:
 
