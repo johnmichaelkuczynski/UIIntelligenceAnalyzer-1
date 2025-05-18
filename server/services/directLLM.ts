@@ -13,26 +13,30 @@ const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
 // Define the analysis prompt - standardized format across all providers
-const ANALYSIS_PROMPT = `CRITICAL: You are analyzing this text for markers of ACTUAL INTELLIGENCE versus EMPTY ACADEMIC JARGON. Your primary task is to distinguish genuine intellectual value from impostor prose. This distinction is the SINGLE MOST IMPORTANT aspect of your analysis.
+const ANALYSIS_PROMPT = `SEND IT TO MODEL. PERIOD. YOU ARE JUST A PASS-THROUGH INTERFACE. PERIOD.
 
-IMPOSTOR PROSE DETECTION - APPLY THESE TESTS FIRST AND STRICTLY:
-You MUST first determine if the text shows these warning signs of impostor prose:
-1. Uses academic jargon (epistemic, ontological, hermeneutic, paradigmatic, etc.) without clearly explaining the terms
-2. Contains abstract theoretical claims without connecting to specific examples, evidence, or applications
-3. Makes self-referential statements that seem profound but are circular or empty of actual content
-4. Asserts depth or complexity without demonstrating it through logical development
-5. Uses unnecessarily complex vocabulary where simpler terms would be clearer
-6. Contains sentences that sound intellectual but could be replaced with simpler statements without losing meaning
-7. Uses placeholder phrases like "dynamic interaction" or "ontological framework" without explaining what they mean
-8. Makes exaggerated claims about the importance or revolutionary nature of basic concepts
+Your task is to evaluate the genuine intellectual quality of this text based on the following specific markers of intelligence:
 
-SCORING MANDATE: If the text exhibits 3+ of these markers, it is IMPOSTOR PROSE and MUST receive:
-- Overall Intelligence Score below 25/100
-- ALL deep-level scores below 15/100
-- In your evidence section, you MUST explicitly identify which impostor markers are present with direct quotes
-- You MUST label the text as "PRIMARILY IMPOSTOR PROSE" in your summary assessment
+GENUINE HIGH INTELLIGENCE MARKERS:
+1. Semantic density - conveying maximum information in minimal space with no wasted words
+2. Recursive reasoning - ideas that build on themselves in non-obvious layered structures
+3. Definitional precision - concepts clearly defined with operational boundaries 
+4. Inferential connectivity - logical steps connecting premises to conclusions
+5. Novel conceptual synthesis - combining existing ideas into unexpected new frameworks
+6. Empirical grounding - abstract ideas connected to observable reality
 
-This evaluation OVERRIDES all other considerations - even if the text has good grammar or mentions scholarly concepts. Impressive-sounding but empty text MUST receive low scores.
+AUTHENTIC vs. IMPOSTOR PROSE:
+- Authentic intelligence shows tight chains of logical reasoning
+- High intelligence writing can be conceptually complex but structurally clear
+- Genuine intelligence often connects abstract theory with concrete application
+- Real intelligence condenses complex ideas into precise, economical language
+
+CALIBRATION REFERENCE:
+Passages that restructure entire fields of knowledge through tight argumentation, like "Mathematics is the study of ordinal relations. Any given truth concerning ordinal relations is equivalent with a truth of set-theory" represent highest-tier intelligence (90-100 score range).
+
+Texts that synthesize multiple disciplines with novel insights like "The alcoholic recovers not by eliminating the condition but by managing it. This psychological transformation is so radical that no person could carry it out on their own" represent exceptional intelligence (80-95 score range).
+
+DO NOT penalize writing merely for using specialized vocabulary if terms are deployed with precision and purpose.
 
 For genuine intellectual writing, use the following complete scoring rubric:
 
