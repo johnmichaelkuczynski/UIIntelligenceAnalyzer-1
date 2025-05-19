@@ -3,6 +3,7 @@ import multer from "multer";
 import { extractTextFromFile } from "./api/documentParser";
 import { checkForAI } from "./api/gptZero";
 import { searchGoogle, fetchUrlContent } from "./api/googleSearch";
+import { conductAdvancedResearch } from "./api/advancedResearch";
 import { getEnhancementSuggestions } from "./api/enhancementSuggestions";
 import path from "path";
 

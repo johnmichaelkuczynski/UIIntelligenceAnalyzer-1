@@ -142,43 +142,99 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
     }
   };
   
-  // Handle web search
+  // Handle intelligent research based on complex instructions
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       toast({
-        title: "Search query required",
-        description: "Please enter a search query",
+        title: "Research instructions required",
+        description: "Please provide detailed research instructions",
         variant: "destructive"
       });
       return;
     }
     
     setIsSearching(true);
+    
     try {
-      const response = await fetch("/api/search-google", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: searchQuery, numResults: 5 })
-      });
+      // Extract relevant search terms from the complex instructions
+      // This is a simple extraction - in a full implementation this would be
+      // much more sophisticated and would use an LLM to parse the instructions
+      const extractTerms = (instructions: string) => {
+        // Remove common instruction phrases
+        let cleaned = instructions
+          .replace(/find content about/i, '')
+          .replace(/ask openai|ask claude|ask perplexity|discuss|explain/gi, '')
+          .replace(/relationship between/gi, '')
+          .replace(/what it thinks|how much|how many/gi, '')
+          .trim();
+          
+        // Extract key phrases (simplistic approach)
+        const keyPhrases = cleaned.match(/["'](.+?)["']|[A-Z][A-Za-z]{2,}(?:\s+[A-Z][A-Za-z]{2,}){0,3}/g) || [];
+        
+        // Extract remaining keywords
+        const keywords = cleaned
+          .replace(/[^\w\s-]/g, ' ')
+          .split(/\s+/)
+          .filter(word => word.length > 3 && !['about', 'what', 'when', 'where', 'which', 'there', 'their', 'that'].includes(word.toLowerCase()));
+          
+        // Combine into search queries
+        const terms = [...keyPhrases];
+        
+        // If no phrases found, use the top keywords
+        if (terms.length === 0 && keywords.length > 0) {
+          terms.push(keywords.slice(0, 5).join(' '));
+        }
+        
+        return terms.length > 0 ? terms : [cleaned.split(' ').slice(0, 6).join(' ')];
+      };
       
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      const searchTerms = extractTerms(searchQuery);
+      let allResults: any[] = [];
       
-      const data = await response.json();
-      
-      if (data.success && data.results) {
-        setSearchResults(data.results);
-        toast({
-          title: "Search completed",
-          description: `Found ${data.results.length} results for "${searchQuery}"`
+      // Perform searches with extracted terms
+      for (const term of searchTerms) {
+        const response = await fetch("/api/search-google", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: term, numResults: 3 })
         });
+        
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
+        
+        const data = await response.json();
+        
+        if (data.success && data.results) {
+          allResults = [...allResults, ...data.results];
+        }
+      }
+      
+      // Remove duplicates
+      const uniqueResults = allResults.filter((result, index, self) => 
+        index === self.findIndex(r => r.link === result.link)
+      );
+      
+      if (uniqueResults.length > 0) {
+        setSearchResults(uniqueResults);
+        toast({
+          title: "Research completed",
+          description: `Found ${uniqueResults.length} relevant results based on your instructions`
+        });
+        
+        // Automatically fetch content from the top results
+        for (const result of uniqueResults.slice(0, 3)) {
+          fetchUrlContent(result.link);
+        }
       } else {
-        throw new Error(data.message || "Failed to search");
+        toast({
+          title: "Limited results",
+          description: "No search results found. Try refining your research instructions."
+        });
       }
     } catch (error) {
-      console.error("Search error:", error);
+      console.error("Research error:", error);
       toast({
-        title: "Search failed",
-        description: "Could not perform web search",
+        title: "Research failed",
+        description: error instanceof Error ? error.message : "Could not perform web research",
         variant: "destructive"
       });
     } finally {
