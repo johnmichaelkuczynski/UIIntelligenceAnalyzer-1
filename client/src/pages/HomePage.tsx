@@ -5,7 +5,7 @@ import DocumentResults from "@/components/DocumentResults";
 import ComparativeResults from "@/components/ComparativeResults";
 import AIDetectionModal from "@/components/AIDetectionModal";
 import ProviderSelector, { LLMProvider } from "@/components/ProviderSelector";
-import EnhancedRewriteSection from "@/components/EnhancedRewriteSection";
+import UnifiedRewriteSection from "@/components/UnifiedRewriteSection";
 
 import { Button } from "@/components/ui/button";
 import { Brain, Trash2 } from "lucide-react";
@@ -326,31 +326,12 @@ const HomePage: React.FC = () => {
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">Enhance Document with Web Search & AI Rewrite</h2>
                   <p className="text-gray-600 mb-6">Use AI to rewrite your document with custom instructions and web search integration</p>
                   
-                  <EnhancedRewriteSection
+                  <UnifiedRewriteSection
                     originalDocument={documentA}
                     onRewriteComplete={handleRewriteComplete}
                   />
                   
-                  {/* Rewritten Text Results */}
-                  {rewrittenText && (
-                    <div className="mt-8 p-6 border rounded-lg bg-blue-50">
-                      <h3 className="text-xl font-bold text-gray-800 mb-4">Rewritten Document</h3>
-                      <div className="whitespace-pre-wrap bg-white p-4 rounded border">{rewrittenText}</div>
-                      
-                      {rewriteStats && (
-                        <div className="mt-4">
-                          <h4 className="font-semibold text-gray-700 mb-2">Improvement Statistics:</h4>
-                          <ul className="text-sm text-gray-600">
-                            {Object.entries(rewriteStats).map(([key, value]) => (
-                              <li key={key} className="mb-1">
-                                <span className="font-medium">{key.replace(/([A-Z])/g, ' $1').trim()}:</span> {value}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  {/* Rewrite results are now displayed inside the UnifiedRewriteSection component */}
                 </div>
               )}
             </div>
