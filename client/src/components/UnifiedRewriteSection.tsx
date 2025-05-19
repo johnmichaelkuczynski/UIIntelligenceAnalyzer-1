@@ -252,7 +252,7 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
       
       // Add web search content if enabled and results selected
       if (includeWebSearch && selectedResults.length > 0) {
-        (options as any).webContent = {
+        options.webContent = {
           results: selectedResults,
           contents: urlContents,
           instructions: searchInstructions
@@ -917,8 +917,8 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
                         {rewrittenAnalysis.dimensions && Object.entries(rewrittenAnalysis.dimensions).map(([key, dimension]) => (
                           dimension && typeof dimension === 'object' ? (
                             <div key={key} className="bg-white p-3 rounded-md border">
-                              <p className="font-medium">{(dimension as any).name || key}: {(dimension as any).score || 0}/100</p>
-                              <p className="text-xs text-gray-600 mt-1">{(dimension as any).summary || ""}</p>
+                              <p className="font-medium">{key}: {typeof dimension.score === 'number' ? dimension.score : typeof dimension.rating === 'string' ? dimension.rating : 'N/A'}</p>
+                              <p className="text-xs text-gray-600 mt-1">{dimension.summary || dimension.description || ""}</p>
                             </div>
                           ) : null
                         ))}
