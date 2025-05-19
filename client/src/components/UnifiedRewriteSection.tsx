@@ -563,15 +563,18 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
               {includeWebSearch && (
                 <>
                   <div className="space-y-2 pt-1">
-                    <Label htmlFor="search-query">Search Query</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="search-query"
-                        placeholder="Enter search query..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="flex-1"
-                      />
+                    <Label htmlFor="search-query" className="flex items-center gap-1">
+                      <Search className="h-4 w-4 text-blue-600" />
+                      <span>Research Instructions</span>
+                    </Label>
+                    <Textarea
+                      id="search-query"
+                      placeholder="Provide detailed research instructions, e.g.: 'Find content about how metaknowledge is implicated in first-order knowledge, focusing on epistemological frameworks. Ask the LLM how these concepts relate to the document's central arguments.'"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="min-h-[100px]"
+                    />
+                    <div className="flex justify-end">
                       <Button
                         variant="secondary"
                         onClick={handleSearch}
@@ -581,12 +584,12 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
                         {isSearching ? (
                           <>
                             <RotateCw className="h-4 w-4 mr-2 animate-spin" />
-                            Searching...
+                            Researching...
                           </>
                         ) : (
                           <>
-                            <Search className="h-4 w-4 mr-2" />
-                            Search Web
+                            <Globe className="h-4 w-4 mr-2" />
+                            Begin Research
                           </>
                         )}
                       </Button>
@@ -652,12 +655,12 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
                       <div className="space-y-2">
                         <Label htmlFor="search-instructions" className="flex items-center gap-2">
                           <Info className="h-4 w-4 text-blue-600" />
-                          <span>How should search results be used?</span>
+                          <span>Integration Instructions for the AI</span>
                         </Label>
                         <Textarea
                           id="search-instructions"
-                          placeholder="Example: 'Use definitions from these sources' or 'Add factual context from these sources'"
-                          className="min-h-[80px]"
+                          placeholder="Provide detailed instructions for how the AI should process and integrate the research, e.g.: 'Analyze how these sources define metacognition vs. metaknowledge. Extract key philosophical positions from each source. Compare conflicting viewpoints if present. Integrate findings by showing how they provide a more nuanced understanding of knowledge structures than was present in the original document.'"
+                          className="min-h-[120px]"
                           value={searchInstructions}
                           onChange={(e) => setSearchInstructions(e.target.value)}
                         />
