@@ -142,7 +142,7 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
     }
   };
   
-  // Handle intelligent research based on complex instructions
+  // Handle direct AI research based on user's instructions
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       toast({
@@ -154,45 +154,82 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
     }
     
     setIsSearching(true);
+    setSearchResults([]);
     
     try {
-      // Extract relevant search terms from the complex instructions
-      // This is a simple extraction - in a full implementation this would be
-      // much more sophisticated and would use an LLM to parse the instructions
-      const extractTerms = (instructions: string) => {
-        // Remove common instruction phrases
-        let cleaned = instructions
-          .replace(/find content about/i, '')
-          .replace(/ask openai|ask claude|ask perplexity|discuss|explain/gi, '')
-          .replace(/relationship between/gi, '')
-          .replace(/what it thinks|how much|how many/gi, '')
-          .trim();
-          
-        // Extract key phrases (simplistic approach)
-        const keyPhrases = cleaned.match(/["'](.+?)["']|[A-Z][A-Za-z]{2,}(?:\s+[A-Z][A-Za-z]{2,}){0,3}/g) || [];
+      // Always directly ask the models as specified in the instructions
+      const directModelInstructions = searchQuery.trim();
+      
+      // Create placeholders for direct model responses
+      const directResults = [];
+      
+      // Check for direct model instructions
+      const shouldAskOpenAI = directModelInstructions.toLowerCase().includes("ask openai") || 
+                              directModelInstructions.toLowerCase().includes("ask gpt");
+      const shouldAskClaude = directModelInstructions.toLowerCase().includes("ask claude") || 
+                              directModelInstructions.toLowerCase().includes("ask anthropic");
+      const shouldAskPerplexity = directModelInstructions.toLowerCase().includes("ask perplexity");
+      
+      // Always ask all models if no specific model is mentioned
+      const askAllModels = !shouldAskOpenAI && !shouldAskClaude && !shouldAskPerplexity;
+      
+      // Format the instruction without the "ask X" prefixes for cleaner prompts
+      let cleanedInstruction = directModelInstructions
+        .replace(/ask openai|ask gpt|ask claude|ask anthropic|ask perplexity/gi, '')
+        .trim();
+      
+      if (cleanedInstruction.startsWith('about') || cleanedInstruction.startsWith('to')) {
+        cleanedInstruction = cleanedInstruction.substring(5).trim();
+      }
+      
+      // Save the instruction for later use in rewrite
+      setSearchInstructions(directModelInstructions);
+      
+      // First, let's process the web search part to find relevant sources
+      // This happens regardless of the model direct instructions
+      
+      // Extract search terms from the instruction
+      const extractSearchTerms = (text: string): string[] => {
+        const keywords = text.split(/\s+/)
+          .filter(word => word.length > 3 && !['about', 'what', 'when', 'where', 'which', 'there', 'their', 'that', 'should', 'could', 'would'].includes(word.toLowerCase()));
         
-        // Extract remaining keywords
-        const keywords = cleaned
-          .replace(/[^\w\s-]/g, ' ')
-          .split(/\s+/)
-          .filter(word => word.length > 3 && !['about', 'what', 'when', 'where', 'which', 'there', 'their', 'that'].includes(word.toLowerCase()));
-          
-        // Combine into search queries
-        const terms = [...keyPhrases];
+        // Get noun phrases and capitalized terms
+        const keyPhrases = text.match(/[A-Z][a-zA-Z]*(?:\s+[A-Z][a-zA-Z]*)*/g) || [];
+        const technicalTerms = text.match(/[a-zA-Z]+(?:-[a-zA-Z]+)+/g) || []; // hyphenated terms
         
-        // If no phrases found, use the top keywords
-        if (terms.length === 0 && keywords.length > 0) {
-          terms.push(keywords.slice(0, 5).join(' '));
+        // Combine them all but remove duplicates
+        const allTerms = [...keyPhrases, ...technicalTerms];
+        
+        // If we don't have enough specific terms, add some from the keywords
+        if (allTerms.length < 2 && keywords.length > 0) {
+          // Get chunks of 2-3 consecutive keywords
+          for (let i = 0; i < keywords.length - 1; i++) {
+            if (i < keywords.length - 2) {
+              allTerms.push(`${keywords[i]} ${keywords[i+1]} ${keywords[i+2]}`);
+              i += 2;
+            } else {
+              allTerms.push(`${keywords[i]} ${keywords[i+1]}`);
+              i += 1;
+            }
+          }
         }
         
-        return terms.length > 0 ? terms : [cleaned.split(' ').slice(0, 6).join(' ')];
+        // Return the terms, deduplicated and with at least one fallback
+        return allTerms.length > 0 
+          ? [...new Set(allTerms)] 
+          : [text.split(/\s+/).slice(0, 6).join(' ')];
       };
       
-      const searchTerms = extractTerms(searchQuery);
-      let allResults: any[] = [];
+      const searchTerms = extractSearchTerms(cleanedInstruction);
+      console.log("Extracted search terms:", searchTerms);
       
-      // Perform searches with extracted terms
+      // Gather web search results
+      let allWebResults: any[] = [];
+      
       for (const term of searchTerms) {
+        // Only search for the first 2 terms to avoid too many queries
+        if (allWebResults.length >= 6) break;
+        
         const response = await fetch("/api/search-google", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -204,37 +241,40 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
         const data = await response.json();
         
         if (data.success && data.results) {
-          allResults = [...allResults, ...data.results];
+          allWebResults = [...allWebResults, ...data.results];
         }
       }
       
-      // Remove duplicates
-      const uniqueResults = allResults.filter((result, index, self) => 
+      // Remove duplicates from web results
+      const uniqueWebResults = allWebResults.filter((result, index, self) => 
         index === self.findIndex(r => r.link === result.link)
       );
       
-      if (uniqueResults.length > 0) {
-        setSearchResults(uniqueResults);
-        toast({
-          title: "Research completed",
-          description: `Found ${uniqueResults.length} relevant results based on your instructions`
-        });
-        
-        // Automatically fetch content from the top results
-        for (const result of uniqueResults.slice(0, 3)) {
-          fetchUrlContent(result.link);
-        }
-      } else {
-        toast({
-          title: "Limited results",
-          description: "No search results found. Try refining your research instructions."
-        });
+      // Set the search results
+      setSearchResults(uniqueWebResults);
+      
+      // Automatically fetch content from top results
+      const topResults = uniqueWebResults.slice(0, 3);
+      for (const result of topResults) {
+        fetchUrlContent(result.link);
+        // Automatically select these results for inclusion
+        handleSelectResult(result);
       }
+      
+      // Force enable web research since we have results
+      if (uniqueWebResults.length > 0) {
+        setIncludeWebSearch(true);
+      }
+      
+      toast({
+        title: "Research completed",
+        description: `Found ${uniqueWebResults.length} relevant web sources and prepared for AI research integration`
+      });
     } catch (error) {
       console.error("Research error:", error);
       toast({
         title: "Research failed",
-        description: error instanceof Error ? error.message : "Could not perform web research",
+        description: error instanceof Error ? error.message : "Could not perform research",
         variant: "destructive"
       });
     } finally {
