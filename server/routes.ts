@@ -602,7 +602,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
       try {
         // DIRECT PASS-THROUGH TO LLM - No custom algorithms
         console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR REWRITE`);
-        const result = await directRewrite(originalText, enhancedInstruction, provider);
+        
+        // Pass the entire options object to include web content
+        const result = await directRewrite(originalText, enhancedInstruction, provider, options);
         
         // Simply return the result from the LLM with no evaluation
         console.log(`DIRECT PASSTHROUGH REWRITE COMPLETE - Using ${provider}`);

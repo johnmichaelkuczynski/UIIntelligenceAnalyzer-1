@@ -1026,11 +1026,63 @@ export async function directTranslate(
 export async function directRewrite(
   text: string, 
   instruction: string, 
-  provider: string = "openai"
+  provider: string = "openai",
+  options: any = {}
 ): Promise<any> {
   try {
-    // Construct rewrite prompt
-    const rewritePrompt = `Please rewrite the following text according to this instruction: ${instruction}\n\nHere is the text to rewrite:\n\n${text}\n\nRewritten text:`;
+    console.log("Text size:", text.length, "characters");
+    console.log("Instruction:", instruction);
+    
+    // Check if we have web content to include from research
+    let webContentPrompt = "";
+    
+    if (options && options.webContent) {
+      console.log("Including web research in rewrite");
+      
+      const { results = [], contents = {}, instructions = "" } = options.webContent;
+      
+      if (results.length > 0) {
+        webContentPrompt += "\n\n== RESEARCH INFORMATION ==\n\n";
+        
+        // Add the research instructions
+        if (instructions) {
+          webContentPrompt += `RESEARCH INTEGRATION INSTRUCTIONS: ${instructions}\n\n`;
+        }
+        
+        // Add information from each selected search result
+        results.forEach((result: any, index: number) => {
+          const content = contents[result.link] || "";
+          
+          webContentPrompt += `SOURCE ${index + 1}: ${result.title}\n`;
+          webContentPrompt += `URL: ${result.link}\n`;
+          webContentPrompt += `SNIPPET: ${result.snippet}\n`;
+          
+          if (content) {
+            // Truncate content to avoid token limits
+            const truncatedContent = content.length > 1500 
+              ? content.substring(0, 1500) + "... [content truncated]" 
+              : content;
+              
+            webContentPrompt += `CONTENT: ${truncatedContent}\n\n`;
+          } else {
+            webContentPrompt += "CONTENT: [Not available]\n\n";
+          }
+        });
+        
+        webContentPrompt += "== END RESEARCH INFORMATION ==\n\n";
+      }
+    }
+    
+    // Construct rewrite prompt with research if available
+    const rewritePrompt = `Please rewrite the following text according to this instruction: ${instruction}
+    
+${webContentPrompt ? "IMPORTANT: Use the provided research information to enhance your rewrite.\n" + webContentPrompt : ""}
+
+Here is the text to rewrite:
+
+${text}
+
+Rewritten text:`;
     
     let rewrittenText = "";
     
