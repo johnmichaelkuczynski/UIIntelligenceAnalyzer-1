@@ -630,15 +630,15 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
                 />
               </div>
               
-              {/* Web Search Integration */}
+              {/* AI Research Integration */}
               <div className="space-y-2 pt-4 border-t border-gray-100">
                 <div className="flex items-center gap-3">
                   <Label 
                     htmlFor="include-web-search" 
                     className="flex items-center gap-2 text-blue-800 font-medium"
                   >
-                    <Globe className="h-4 w-4 text-blue-600" />
-                    <span>Web Search Integration</span>
+                    <Bot className="h-4 w-4 text-blue-600" />
+                    <span>Direct AI Research</span>
                   </Label>
                   <div className="flex items-center space-x-2">
                     <Checkbox 
@@ -650,7 +650,7 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
                       htmlFor="include-web-search" 
                       className="text-sm font-normal cursor-pointer"
                     >
-                      Include web research
+                      Include research in rewrite
                     </Label>
                   </div>
                 </div>
