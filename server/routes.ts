@@ -690,6 +690,41 @@ export async function registerRoutes(app: Express): Promise<Express> {
     }
   });
 
+  // DIRECT MODEL REQUEST - Send instructions directly to AI models
+  app.post("/api/direct-model-request", async (req: Request, res: Response) => {
+    try {
+      const { instructions, models = ['openai', 'claude', 'perplexity'] } = req.body;
+      
+      if (!instructions) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Instructions parameter is required" 
+        });
+      }
+      
+      // Import our direct model request functions
+      const { directMultiModelRequest } = await import('./api/directModelRequest');
+      
+      console.log(`Processing direct model request to: ${models.join(', ')}`);
+      console.log(`Instructions: ${instructions.substring(0, 100)}...`);
+      
+      const results = await directMultiModelRequest(instructions, models);
+      
+      res.json({
+        success: true,
+        instructions,
+        results,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error("Direct model request error:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "Error processing direct model request" 
+      });
+    }
+  });
+
   // Return the Express app
   return app;
 }
