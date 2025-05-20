@@ -144,12 +144,45 @@ const HomePage: React.FC = () => {
         setAnalysisB(null);
         setComparison(null);
       } else {
-        // Use the selected provider for comparison
+        // Compare by analyzing each document separately
         console.log(`Comparing with ${selectedProvider}...`);
-        const results = await compareDocuments(documentA, documentB, selectedProvider);
-        setAnalysisA(results.analysisA);
-        setAnalysisB(results.analysisB);
-        setComparison(results.comparison);
+        
+        // Step 1: Analyze each document individually
+        const resultA = await analyzeDocument(documentA, selectedProvider);
+        const resultB = await analyzeDocument(documentB, selectedProvider);
+        
+        setAnalysisA(resultA);
+        setAnalysisB(resultB);
+        
+        // Step 2: Create a simple comparison object for display
+        const simpleComparison = {
+          id: 0,
+          documentAId: 0,
+          documentBId: 0,
+          overallDifference: Math.abs((resultA.overallScore || 0) - (resultB.overallScore || 0)),
+          comparisonTable: [
+            // Create comparison table entries from dimension data
+            ...Object.keys(resultA.dimensions || {}).map(key => ({
+              dimension: resultA.dimensions[key].name,
+              documentA: resultA.dimensions[key].rating,
+              documentB: resultB.dimensions[key].rating
+            }))
+          ],
+          documentA: {
+            score: resultA.overallScore || 0,
+            strengths: [],
+            style: []
+          },
+          documentB: {
+            score: resultB.overallScore || 0,
+            strengths: [],
+            style: []
+          },
+          finalJudgment: `Direct comparison using ${selectedProvider}. Both documents were analyzed independently.`,
+          createdAt: new Date().toISOString()
+        };
+        
+        setComparison(simpleComparison);
       }
     } catch (error) {
       console.error("Error analyzing documents:", error);
