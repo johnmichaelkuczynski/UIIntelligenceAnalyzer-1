@@ -73,6 +73,7 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
   const { toast } = useToast();
   const [showShareModal, setShowShareModal] = useState(false);
   const [showRewriteModal, setShowRewriteModal] = useState(false);
+  const [showFullReportModal, setShowFullReportModal] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
   const [rewrittenText, setRewrittenText] = useState("");
   const [rewriteStats, setRewriteStats] = useState<RewriteResult["stats"] | null>(null);
@@ -438,11 +439,15 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
         <p className="text-gray-700">{analysis.overallAssessment}</p>
       </div>
 
-      {/* Detailed Analysis Accordion */}
-      <div className="border border-gray-200 rounded-md divide-y divide-gray-200 mb-6">
-        {dimensions.map((dimension, index) => (
-          <AnalysisDimension key={index} dimension={dimension} />
-        ))}
+      {/* Full Report Button */}
+      <div className="mb-6">
+        <Button
+          onClick={() => setShowFullReportModal(true)}
+          className="flex items-center gap-2 w-full justify-center py-3 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
+        >
+          <Info className="h-4 w-4" />
+          <span>View Full Analysis Report</span>
+        </Button>
       </div>
 
       {/* AI Detection Result (if available) */}
