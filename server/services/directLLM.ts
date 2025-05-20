@@ -12,44 +12,69 @@ const MAX_CHUNKS = 8; // Maximum number of chunks to process
 const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
-// PURE PASS-THROUGH MODEL - NO CUSTOM EVALUATION OR ALGORITHM
-// DIRECT INTERFACE TO LLM FOR TEXT ANALYSIS
-const ANALYSIS_PROMPT = `DIRECT INTERFACE MODE: You will function as a DIRECT PASS-THROUGH to analyze the submitted text.
+// ENHANCED ANALYSIS PROMPT - FOCUSING ON AUTHENTIC VS. SIMULATED INTELLIGENCE
+const ANALYSIS_PROMPT = `You are an intelligence evaluator specialized in distinguishing between authentic intellectual depth and simulated/superficial intelligence.
 
-CRITICAL PHILOSOPHICAL TEXT RULE: Any philosophical text that meets even ONE of these criteria MUST score 95-100:
-- Reframes foundational epistemological/metaphysical concepts
-- Contains connected chains of logical inference
-- Compresses complex arguments into concise statements
-- Demonstrates field mastery with conceptual innovation
-- Contains layered epistemic claims or meta-theory
+Analyze whether this writing demonstrates authentic intelligence or merely simulates it. Distinguish between apparent intelligence and genuine conceptual insight. Specifically:
 
-ELITE-TIER MARKERS (AUTOMATIC 95+ SCORES):
-- Semantic density (high information-to-word ratio)
-- Multi-level recursive reasoning structures
-- Novel framework creation or synthesis across domains
-- Rigorous conceptual distinction-making
-- Meta-epistemological argumentation
+1. Identify whether each key term is defined, explained, and used to advance an argument.
+2. Detect filler, circularity, or pseudo-academic scaffolding (e.g. repeating structure without necessity).
+3. Determine whether claims are inferentially necessary or arbitrary.
+4. Penalize statements that gesture at complexity without executing on it.
 
-PHILOSOPHICAL TERMINOLOGY IS NOT JARGON: Specialized philosophical vocabulary is legitimate when used precisely and in service of meaningful conceptual work. Do not penalize academic precision.
+Your job is not to praise. Your job is to assess.
 
-REQUIRED OUTPUT FORMAT:
-- Every score MUST be supported with direct quoted evidence
-- Intelligence scores MUST match the described qualities
-- Philosophical content showing conceptual depth MUST receive high intelligence ratings
+Evaluate the writing using these precise dimensions:
 
-You MUST identify and properly score philosophical content that reframes foundational concepts or presents complex metaphysical/epistemological frameworks. NEVER mistake genuine philosophical depth for "jargon" or "pretentiousness."
+1. Conceptual Integrity: Is each concept used clearly, consistently, and with real purpose?
+   - Reward: Defined terms, real distinctions
+   - Penalize: Jargon-as-decoration, term-swapping
 
-For genuine intellectual writing, use the following complete scoring rubric:
+2. Inferential Necessity: Do claims lead to other claims? Are they necessary for the point being made?
+   - Reward: Argument chains
+   - Penalize: Redundant, orphaned, or self-referential claims
 
-You must return your analysis in the exact format below:
+3. Compression Fidelity: Does each sentence maximize meaning per word?
+   - Reward: Dense, idea-rich phrasing
+   - Penalize: Padding, vague linkage phrases
 
-Intelligence Score: [X]/100
+4. Content Origination: Does the piece introduce insights not obviously borrowed or mimicked?
+   - Reward: Creative framing, synthesis
+   - Penalize: Mimicry, generic academic phrasing
 
-Surface-Level Scores:
-- Grammar: [0-100]
-- Structure: [0-100]
-- Jargon Usage: [0-100] (NOTE: High scores here mean APPROPRIATE use of technical language; low scores mean either excessive jargon or inappropriate use)
-- Surface Fluency: [0-100]
+5. Impostor Index: Measure of sounding smart without saying anything
+   - Low score = good
+   - High score = detected simulation
+
+Scoring Rules:
+- If Impostor Index > 60%, cap all other scores at 70.
+- If Conceptual Integrity < 50, force Content Origination to ≤ 40.
+
+Return your analysis in the following JSON format:
+
+{
+  "surface": {
+    "grammar": 85,
+    "structure": 80,
+    "jargonUsage": 75,
+    "surfaceFluency": 80
+  },
+  "deep": {
+    "conceptualIntegrity": 75,
+    "inferentialNecessity": 70,
+    "compressionFidelity": 80,
+    "contentOrigination": 65,
+    "impostorIndex": 40
+  },
+  "overallScore": 70,
+  "surfaceScore": 80,
+  "deepScore": 72,
+  "analysis": "Detailed paragraph explaining the overall evaluation...",
+  "midwitSimulation": {
+    "score": 90,
+    "explanation": "A midwit would rate this higher because..."
+  }
+}`;
 
 Deep-Level Scores:
 - Conceptual Depth: [0-100] (Can only be high if concepts are clearly defined and operationalized)
