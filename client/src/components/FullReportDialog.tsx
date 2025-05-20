@@ -76,56 +76,77 @@ ${analysis.analysis || analysis.overallAssessment || ''}
               </div>
             )}
             
-            {/* Detailed Metrics */}
-            <div className="mt-6 space-y-4">
-              <h3 className="font-semibold text-gray-800 border-b pb-2">Detailed Metrics</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                {/* Surface Metrics */}
-                <div className="bg-white p-4 rounded-md border">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Grammar</h4>
-                  <p className="text-sm">Based on analysis of language correctness</p>
-                </div>
-                <div className="bg-white p-4 rounded-md border">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Structure</h4>
-                  <p className="text-sm">Organization and flow of document</p>
-                </div>
-                <div className="bg-white p-4 rounded-md border">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Jargon Usage</h4>
-                  <p className="text-sm">Appropriate technical language</p>
-                </div>
-                <div className="bg-white p-4 rounded-md border">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Surface Fluency</h4>
-                  <p className="text-sm">Readability and expression</p>
-                </div>
+            {/* Dimensions Analysis */}
+            {analysis.dimensions && (
+              <div className="mt-6 space-y-4">
+                <h3 className="font-semibold text-gray-800 border-b pb-2">Detailed Dimensions</h3>
                 
-                {/* Deep Metrics */}
-                <div className="bg-white p-4 rounded-md border">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Conceptual Depth</h4>
-                  <p className="text-sm">Sophistication of ideas presented</p>
-                </div>
-                <div className="bg-white p-4 rounded-md border">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Inferential Continuity</h4>
-                  <p className="text-sm">Logical flow between concepts</p>
-                </div>
-                <div className="bg-white p-4 rounded-md border">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Claim Necessity</h4>
-                  <p className="text-sm">How well claims are justified</p>
-                </div>
-                <div className="bg-white p-4 rounded-md border">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Semantic Compression</h4>
-                  <p className="text-sm">Information density in language</p>
-                </div>
-                <div className="bg-white p-4 rounded-md border">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Logical Scaffolding</h4>
-                  <p className="text-sm">Structural foundation of arguments</p>
-                </div>
-                <div className="bg-white p-4 rounded-md border">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Originality</h4>
-                  <p className="text-sm">Novel thinking and insights</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Object.entries(analysis.dimensions).map(([key, dimension]) => (
+                    <div key={key} className="bg-white p-4 rounded-md border">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
+                      </h4>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-sm font-medium">Rating:</span>
+                        <span className={`text-sm font-semibold ${
+                          dimension.rating === 'Exceptional' || dimension.rating === 'Very Strong' 
+                            ? 'text-green-600' 
+                            : dimension.rating === 'Strong' || dimension.rating === 'Moderate'
+                            ? 'text-blue-600'
+                            : 'text-red-600'
+                        }`}>
+                          {dimension.rating}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700 mb-2">{dimension.description}</p>
+                      {dimension.quote && (
+                        <div className="border-l-4 border-gray-300 pl-3 italic text-sm text-gray-600">
+                          "{dimension.quote}"
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
+            
+            {/* Surface & Deep Metrics */}
+            {(analysis.surface || analysis.deep) && (
+              <div className="mt-6 space-y-4">
+                <h3 className="font-semibold text-gray-800 border-b pb-2">Detailed Metrics</h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Surface Metrics */}
+                  {analysis.surface && Object.entries(analysis.surface).map(([key, value]) => (
+                    <div key={key} className="bg-white p-4 rounded-md border">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
+                      </h4>
+                      <p className="text-sm">
+                        {typeof value === 'number' 
+                          ? `Score: ${value}/100` 
+                          : String(value)}
+                      </p>
+                    </div>
+                  ))}
+                  
+                  {/* Deep Metrics */}
+                  {analysis.deep && Object.entries(analysis.deep).map(([key, value]) => (
+                    <div key={key} className="bg-white p-4 rounded-md border">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
+                      </h4>
+                      <p className="text-sm">
+                        {typeof value === 'number' 
+                          ? `Score: ${value}/100` 
+                          : String(value)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
         

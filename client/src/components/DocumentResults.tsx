@@ -448,10 +448,11 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
       <div className="mb-6">
         <Button
           onClick={() => setShowFullReportModal(true)}
-          className="flex items-center gap-2 w-full justify-center py-3 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
+          className="flex items-center gap-2 w-full justify-center py-3 bg-blue-600 text-white hover:bg-blue-700 border border-blue-800"
+          size="lg"
         >
-          <Info className="h-4 w-4" />
-          <span>View Full Analysis Report</span>
+          <BrainCircuit className="h-5 w-5" />
+          <span className="font-medium">View Complete Intelligence Report</span>
         </Button>
       </div>
 
