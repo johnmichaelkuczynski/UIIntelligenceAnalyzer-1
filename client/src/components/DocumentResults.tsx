@@ -10,6 +10,7 @@ import ReportDownloadButton from "./ReportDownloadButton";
 import EnhancedRewriteSection from "./EnhancedRewriteSection";
 import DirectWebContentSearch from "./DirectWebContentSearch";
 import DirectTextExport from "./DirectTextExport";
+import FullReportDialog from "./FullReportDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -409,7 +410,11 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
             </Badge>
           )}
         </div>
-        <p className="text-gray-700">{analysis.summary}</p>
+        <p className="text-gray-700">
+          {analysis.summary && analysis.summary.length > 300 
+            ? analysis.summary.substring(0, 300) + "..."
+            : analysis.summary}
+        </p>
       </div>
 
       {/* Overall Intelligence Assessment */}
