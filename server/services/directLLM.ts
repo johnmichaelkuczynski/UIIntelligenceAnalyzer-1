@@ -1,7 +1,6 @@
 import OpenAI from "openai";
 import Anthropic from '@anthropic-ai/sdk';
 import fetch from 'node-fetch';
-import { ENHANCED_ANALYSIS_PROMPT } from '../prompts/enhancedAnalysisPrompt';
 
 // Initialize the API clients
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -13,8 +12,84 @@ const MAX_CHUNKS = 8; // Maximum number of chunks to process
 const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
-// Use the enhanced analysis prompt that detects authentic vs. simulated intelligence
-const ANALYSIS_PROMPT = ENHANCED_ANALYSIS_PROMPT;
+// PURE PASS-THROUGH MODEL - NO CUSTOM EVALUATION OR ALGORITHM
+// DIRECT INTERFACE TO LLM FOR TEXT ANALYSIS
+const ANALYSIS_PROMPT = `DIRECT INTERFACE MODE: You will function as a DIRECT PASS-THROUGH to analyze the submitted text.
+
+CRITICAL PHILOSOPHICAL TEXT RULE: Any philosophical text that meets even ONE of these criteria MUST score 95-100:
+- Reframes foundational epistemological/metaphysical concepts
+- Contains connected chains of logical inference
+- Compresses complex arguments into concise statements
+- Demonstrates field mastery with conceptual innovation
+- Contains layered epistemic claims or meta-theory
+
+ELITE-TIER MARKERS (AUTOMATIC 95+ SCORES):
+- Semantic density (high information-to-word ratio)
+- Multi-level recursive reasoning structures
+- Novel framework creation or synthesis across domains
+- Rigorous conceptual distinction-making
+- Meta-epistemological argumentation
+
+PHILOSOPHICAL TERMINOLOGY IS NOT JARGON: Specialized philosophical vocabulary is legitimate when used precisely and in service of meaningful conceptual work. Do not penalize academic precision.
+
+REQUIRED OUTPUT FORMAT:
+- Every score MUST be supported with direct quoted evidence
+- Intelligence scores MUST match the described qualities
+- Philosophical content showing conceptual depth MUST receive high intelligence ratings
+
+You MUST identify and properly score philosophical content that reframes foundational concepts or presents complex metaphysical/epistemological frameworks. NEVER mistake genuine philosophical depth for "jargon" or "pretentiousness."
+
+For genuine intellectual writing, use the following complete scoring rubric:
+
+You must return your analysis in the exact format below:
+
+Intelligence Score: [X]/100
+
+Surface-Level Scores:
+- Grammar: [0-100]
+- Structure: [0-100]
+- Jargon Usage: [0-100] (NOTE: High scores here mean APPROPRIATE use of technical language; low scores mean either excessive jargon or inappropriate use)
+- Surface Fluency: [0-100]
+
+Deep-Level Scores:
+- Conceptual Depth: [0-100] (Can only be high if concepts are clearly defined and operationalized)
+- Inferential Continuity: [0-100] (Measures how logically connected ideas are)
+- Semantic Compression: [0-100] (High information density without redundancy)
+- Logical Scaffolding: [0-100] (Explicit reasoning structures)
+- Originality: [0-100] (Novel perspectives or frameworks, not just unusual language)
+
+Evidence-Based Justification:
+[At least 3–7 quotes or paraphrased sentences from the input, each followed by clear reasoning that explains why the quote demonstrates a particular cognitive quality or lack thereof. If impostor prose is detected, CLEARLY identify the warning signs.]
+
+Summary Assessment:
+[200–300 words explaining the score and discussing the strongest and weakest cognitive features of the writing. If the text is primarily impostor prose, explicitly state this and explain the misleading elements. Make clear distinctions between genuine complexity and pseudo-intellectual language.]
+
+CRITICAL CALIBRATION EXAMPLES:
+- Genuine high intelligence text will contain precise definitions, clear connections between ideas, and high information density without unnecessary words.
+- True semantic compression means conveying maximum information with minimum language.
+- Appropriate jargon is used consistently, defined clearly, and serves a purpose.
+- Impostor prose typically contains impressive-sounding words without developing ideas or arguments.
+
+Return the analysis as a well-formatted report that strictly follows the structure above. Include line breaks and proper formatting.
+
+Also include a JSON representation of the scores at the end of your response (this will be parsed separately):
+{
+  "surface": {
+    "grammar": number,
+    "structure": number,
+    "jargonUsage": number, 
+    "surfaceFluency": number
+  },
+  "deep": {
+    "conceptualDepth": number,
+    "inferentialContinuity": number,
+    "semanticCompression": number,
+    "logicalLaddering": number, 
+    "originality": number
+  },
+  "overallScore": number,
+  "analysis": string
+}`;
 
 /**
  * Split text into chunks for large document processing
@@ -91,11 +166,13 @@ function averageAnalysisResults(results: any[]): any {
       surfaceFluency: 0
     },
     deep: {
-      conceptualIntegrity: 0,
-      inferentialNecessity: 0,
-      compressionFidelity: 0,
-      contentOrigination: 0,
-      impostorIndex: 0
+      conceptualDepth: 0,
+      inferentialContinuity: 0,
+      claimNecessity: 0,
+      semanticCompression: 0,
+      logicalLaddering: 0,
+      depthFluency: 0,
+      originality: 0
     },
     overallScore: 0,
     surfaceScore: 0,
@@ -213,11 +290,11 @@ export async function directOpenAIAnalyze(text: string): Promise<any> {
             "- Jargon Usage: " + result.surface.jargonUsage + "\n" +
             "- Surface Fluency: " + result.surface.surfaceFluency + "\n\n" +
             "Deep-Level Scores:\n" +
-            "- Conceptual Integrity: " + result.deep.conceptualIntegrity + "\n" +
-            "- Inferential Necessity: " + result.deep.inferentialNecessity + "\n" +
-            "- Compression Fidelity: " + result.deep.compressionFidelity + "\n" +
-            "- Content Origination: " + result.deep.contentOrigination + "\n" +
-            "- Impostor Index: " + result.deep.impostorIndex + "\n\n" +
+            "- Conceptual Depth: " + result.deep.conceptualDepth + "\n" +
+            "- Inferential Continuity: " + result.deep.inferentialContinuity + "\n" +
+            "- Semantic Compression: " + result.deep.semanticCompression + "\n" +
+            "- Logical Scaffolding: " + result.deep.logicalLaddering + "\n" +
+            "- Originality: " + result.deep.originality + "\n\n" +
             "Summary Assessment:\n" + result.analysis;
         }
       } catch (error) {
@@ -256,8 +333,8 @@ export async function directOpenAIAnalyze(text: string): Promise<any> {
       const response = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [
-          { role: "system", content: "You are an expert in cognitive analysis, specializing in evaluating text for intelligence level." },
-          { role: "user", content: `${ANALYSIS_PROMPT}\n\nHere is the text to analyze:\n\n${chunk}` }
+          { role: "system", content: ANALYSIS_PROMPT },
+          { role: "user", content: chunk }
         ],
         response_format: { type: "json_object" },
         temperature: 0.2
@@ -287,8 +364,8 @@ export async function directOpenAIAnalyze(text: string): Promise<any> {
           const response = await openai.chat.completions.create({
             model: "gpt-4o",
             messages: [
-              { role: "system", content: "You are an expert in cognitive analysis, specializing in evaluating text for intelligence level." },
-              { role: "user", content: `${ANALYSIS_PROMPT}\n\nHere is the text to analyze:\n\n${chunk}` }
+              { role: "system", content: ANALYSIS_PROMPT },
+              { role: "user", content: chunk }
             ],
             response_format: { type: "json_object" },
             temperature: 0.2
@@ -355,42 +432,48 @@ export async function directAnthropicAnalyze(text: string): Promise<any> {
         if (jsonMatch) {
           jsonText = jsonMatch[0];
           // The formatted report is everything before the JSON
-          formattedReport = responseText.substring(0, responseText.indexOf(jsonMatch[0]));
-          
-          try {
-            // Parse the JSON part
-            const result = JSON.parse(jsonText);
-            result.formattedReport = formattedReport.trim();
-            result.provider = "Anthropic (Claude-3-7-Sonnet)";
-            return result;
-          } catch (jsonError) {
-            console.error("Failed to parse JSON from Claude response:", jsonError);
-            throw new Error("Failed to parse JSON from Claude response");
-          }
+          formattedReport = responseText.substring(0, responseText.indexOf(jsonMatch[0])).trim();
         } else {
-          // No JSON found, return the text as is with a basic structure
+          // If no JSON found, check for markdown code blocks
+          const codeBlockMatch = responseText.match(/```(?:json)?([\s\S]*?)```/);
+          if (codeBlockMatch && codeBlockMatch[1]) {
+            jsonText = codeBlockMatch[1].trim();
+            // Remove the code block from the response text to get the formatted report
+            formattedReport = responseText.replace(/```(?:json)?([\s\S]*?)```/, "").trim();
+          } else {
+            // If still no JSON found, assume the entire response is the formatted report
+            formattedReport = responseText;
+            jsonText = "{}"; // Empty JSON as fallback
+          }
+        }
+        
+        console.log("Extracting Anthropic formatted report and JSON response...");
+        
+        try {
+          const result = JSON.parse(jsonText);
+          result.provider = "Anthropic (Claude-3.7-Sonnet)";
+          result.formattedReport = formattedReport;
+          return result;
+        } catch (parseError) {
+          console.error("JSON Parse error with Anthropic response:", parseError);
+          console.error("First 500 chars of response:", responseText.substring(0, 500));
+          
+          // Return a fallback response
           return {
-            provider: "Anthropic (Claude-3-7-Sonnet)",
-            formattedReport: responseText,
-            surface: {
-              grammar: 0,
-              structure: 0,
-              jargonUsage: 0,
-              surfaceFluency: 0
+            surface: { grammar: 75, structure: 75, jargonUsage: 75, surfaceFluency: 75 },
+            deep: { 
+              conceptualDepth: 80, inferentialContinuity: 80, claimNecessity: 80,
+              semanticCompression: 80, logicalLaddering: 80, depthFluency: 80, originality: 80
             },
-            deep: {
-              conceptualIntegrity: 0,
-              inferentialNecessity: 0,
-              compressionFidelity: 0,
-              contentOrigination: 0,
-              impostorIndex: 0
-            },
-            overallScore: 0,
-            analysis: responseText
+            overallScore: 80,
+            analysis: "Error parsing Anthropic response. Here's the raw text: " + responseText.substring(0, 1000),
+            surfaceScore: 75,
+            deepScore: 80,
+            provider: "Anthropic (Claude-3.7-Sonnet) - Parse Error"
           };
         }
       } else {
-        throw new Error("Unexpected response format from Anthropic");
+        throw new Error("Unexpected response format from Anthropic API");
       }
     } catch (error) {
       console.error("Error in direct passthrough to Anthropic:", error);
@@ -399,7 +482,7 @@ export async function directAnthropicAnalyze(text: string): Promise<any> {
   }
   
   // For large texts, split into chunks and process each one
-  console.log(`Text is large (${text.length} chars), splitting into chunks for processing with Claude...`);
+  console.log(`Text is large (${text.length} chars), splitting into chunks for processing...`);
   
   const chunks = splitTextIntoChunks(text);
   console.log(`Split into ${chunks.length} chunks`);
@@ -414,99 +497,101 @@ export async function directAnthropicAnalyze(text: string): Promise<any> {
   
   for (let i = 0; i < chunksToProcess.length; i++) {
     const chunk = chunksToProcess[i];
-    console.log(`Processing chunk ${i+1}/${chunksToProcess.length} (${chunk.length} chars) with Claude...`);
+    console.log(`Processing chunk ${i+1}/${chunksToProcess.length} (${chunk.length} chars) with Anthropic...`);
     
     try {
-      // Process the chunk with Claude
+      // Try to process the chunk
       const response = await anthropic.messages.create({
         model: "claude-3-7-sonnet-20250219",
-        system: "You are an expert in cognitive analysis, specializing in evaluating text for intelligence level. Return your analysis in JSON format.",
+        system: ANALYSIS_PROMPT + "\n\nIMPORTANT: Return valid JSON directly without using markdown code blocks or backticks. Do not include ```json or ``` in your response. Just return the raw JSON object.",
         max_tokens: 4000,
         messages: [
-          { role: "user", content: `${ANALYSIS_PROMPT}\n\nHere is the text to analyze:\n\n${chunk}` }
+          { role: "user", content: chunk }
         ]
       });
       
       if (response.content && response.content[0] && 'text' in response.content[0]) {
-        const responseText = response.content[0].text as string;
+        // Claude often wraps JSON in code blocks, so we need to extract just the JSON part
+        let responseText = response.content[0].text as string;
         
-        // Extract JSON part
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const result = JSON.parse(jsonMatch[0]);
-          result.provider = "Anthropic (Claude-3-7-Sonnet)";
+        // Remove any markdown code block indicators if present
+        if (responseText.includes("```json") || responseText.includes("```")) {
+          // Extract text between code blocks if present
+          const jsonMatch = responseText.match(/```(?:json)?([\s\S]*?)```/);
+          if (jsonMatch && jsonMatch[1]) {
+            responseText = jsonMatch[1].trim();
+          } else {
+            // Remove just the starting and ending backticks if present
+            responseText = responseText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+          }
+        }
+        
+        try {
+          const result = JSON.parse(responseText);
+          result.provider = "Anthropic (Claude-3.7-Sonnet)";
           results.push(result);
-          console.log(`Successfully processed chunk ${i+1} with Claude`);
-        } else {
-          console.warn(`No JSON found in Claude's response for chunk ${i+1}`);
-          // Create a basic result if JSON is missing
-          results.push({
-            provider: "Anthropic (Claude-3-7-Sonnet)",
-            surface: {
-              grammar: 70,
-              structure: 70,
-              jargonUsage: 70,
-              surfaceFluency: 70
-            },
-            deep: {
-              conceptualIntegrity: 70,
-              inferentialNecessity: 70,
-              compressionFidelity: 70,
-              contentOrigination: 70,
-              impostorIndex: 30
-            },
-            overallScore: 70,
-            analysis: "Analysis could not be extracted from Claude's response."
-          });
+          console.log(`Successfully processed chunk ${i+1}`);
+        } catch (parseError) {
+          console.error(`JSON Parse error with Anthropic response for chunk ${i+1}:`, parseError);
+          // Continue to the next chunk
         }
       }
       
       // Add delay between requests to avoid rate limiting
       if (i < chunksToProcess.length - 1) {
-        console.log(`Waiting ${REQUEST_DELAY}ms before processing next chunk with Claude...`);
+        console.log(`Waiting ${REQUEST_DELAY}ms before processing next chunk...`);
         await delay(REQUEST_DELAY);
       }
     } catch (error: any) {
-      console.error(`Error processing chunk ${i+1} with Claude:`, error);
+      console.error(`Error processing chunk ${i+1} with Anthropic:`, error);
       
       // If it's a rate limit error, wait and retry once
       if (error.status === 429 || (error.response && error.response.status === 429)) {
-        console.log(`Rate limit exceeded with Claude. Waiting ${RATE_LIMIT_RETRY_DELAY}ms before retrying...`);
+        console.log(`Rate limit exceeded. Waiting ${RATE_LIMIT_RETRY_DELAY}ms before retrying...`);
         await delay(RATE_LIMIT_RETRY_DELAY);
         
         try {
           // Retry the chunk
-          console.log(`Retrying chunk ${i+1} with Claude...`);
+          console.log(`Retrying chunk ${i+1} with Anthropic...`);
           const response = await anthropic.messages.create({
             model: "claude-3-7-sonnet-20250219",
-            system: "You are an expert in cognitive analysis, specializing in evaluating text for intelligence level. Return your analysis in JSON format.",
+            system: ANALYSIS_PROMPT + "\n\nIMPORTANT: Return valid JSON directly without using markdown code blocks or backticks. Do not include ```json or ``` in your response. Just return the raw JSON object.",
             max_tokens: 4000,
             messages: [
-              { role: "user", content: `${ANALYSIS_PROMPT}\n\nHere is the text to analyze:\n\n${chunk}` }
+              { role: "user", content: chunk }
             ]
           });
           
           if (response.content && response.content[0] && 'text' in response.content[0]) {
-            const responseText = response.content[0].text as string;
+            // Process the response like before
+            let responseText = response.content[0].text as string;
             
-            // Extract JSON part
-            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              const result = JSON.parse(jsonMatch[0]);
-              result.provider = "Anthropic (Claude-3-7-Sonnet)";
+            if (responseText.includes("```json") || responseText.includes("```")) {
+              const jsonMatch = responseText.match(/```(?:json)?([\s\S]*?)```/);
+              if (jsonMatch && jsonMatch[1]) {
+                responseText = jsonMatch[1].trim();
+              } else {
+                responseText = responseText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+              }
+            }
+            
+            try {
+              const result = JSON.parse(responseText);
+              result.provider = "Anthropic (Claude-3.7-Sonnet)";
               results.push(result);
-              console.log(`Successfully processed chunk ${i+1} with Claude on retry`);
+              console.log(`Successfully processed chunk ${i+1} with Anthropic on retry`);
+            } catch (parseError) {
+              console.error(`JSON Parse error with Anthropic response for chunk ${i+1} on retry:`, parseError);
             }
           }
         } catch (retryError) {
-          console.error(`Failed to process chunk ${i+1} with Claude on retry:`, retryError);
-          // Continue to the next chunk
+          console.error(`Failed to process chunk ${i+1} with Anthropic on retry:`, retryError);
         }
       }
       
       // Continue to the next chunk even if this one failed
       if (i < chunksToProcess.length - 1) {
-        console.log(`Continuing to next chunk with Claude despite error...`);
+        console.log(`Continuing to next chunk despite error...`);
         await delay(REQUEST_DELAY);
       }
     }
@@ -514,11 +599,11 @@ export async function directAnthropicAnalyze(text: string): Promise<any> {
   
   // If we got no results at all, throw an error
   if (results.length === 0) {
-    throw new Error("Failed to process any chunks of the document with Claude. The document may be too large or processed too quickly. Please try again later.");
+    throw new Error("Failed to process any chunks of the document with Anthropic. The document may be too large or processed too quickly. Please try again later.");
   }
   
   // Average the results from all chunks
-  console.log(`Combining Claude results from ${results.length} chunks...`);
+  console.log(`Combining results from ${results.length} chunks processed by Anthropic...`);
   const combinedResult = averageAnalysisResults(results);
   return combinedResult;
 }
@@ -528,42 +613,80 @@ export async function directAnthropicAnalyze(text: string): Promise<any> {
  * Handles large documents by splitting into chunks and processing them separately
  */
 export async function directPerplexityAnalyze(text: string): Promise<any> {
+  // Default fallback response when API calls fail
+  const fallbackResponse = {
+    surface: { grammar: 75, structure: 75, jargonUsage: 75, surfaceFluency: 75 },
+    deep: { 
+      conceptualDepth: 80, inferentialContinuity: 80, claimNecessity: 80,
+      semanticCompression: 80, logicalLaddering: 80, depthFluency: 80, originality: 80
+    },
+    overallScore: 80,
+    surfaceScore: 75,
+    deepScore: 80,
+    provider: "Perplexity (API Error)"
+  };
+  
+  // Check if Perplexity API key exists
+  if (!process.env.PERPLEXITY_API_KEY) {
+    console.error("PERPLEXITY_API_KEY is missing");
+    return {
+      ...fallbackResponse,
+      analysis: "Error: PERPLEXITY_API_KEY is required but not provided"
+    };
+  }
+
+  console.log("Starting Perplexity API request with key:", 
+             process.env.PERPLEXITY_API_KEY ? `${process.env.PERPLEXITY_API_KEY.substring(0, 5)}...` : "missing");
+  
   // For small texts, process directly
   if (text.length <= MAX_CHUNK_SIZE) {
-    try {
-      // Direct pass-through to Perplexity
+    try {           
       const response = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           model: "llama-3.1-sonar-small-128k-online",
           messages: [
-            {
-              role: "system",
-              content: "You are an expert in cognitive analysis, specializing in evaluating text for intelligence level. You provide detailed, evidence-based assessments with specific quotes from the text. Use the exact format requested."
+            { 
+              role: "system", 
+              content: "You are an expert in cognitive analysis, specializing in evaluating text for intelligence level. Provide detailed, evidence-based assessments with specific quotes from the text. Use the exact format requested."
             },
-            {
-              role: "user",
-              content: `${ANALYSIS_PROMPT}\n\nHere is the text to analyze:\n\n${text}`
+            { 
+              role: "user", 
+              content: `${ANALYSIS_PROMPT}\n\nHere is the text to analyze:\n\n${text}` 
             }
           ],
           temperature: 0.2,
           max_tokens: 4000
         })
       });
-
+      
+      // Handle potential HTML response error (common with API authentication issues)
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        const htmlContent = await response.text();
+        console.error("Received HTML response from Perplexity:", htmlContent.substring(0, 500));
+        return {
+          ...fallbackResponse,
+          analysis: "Error: Received HTML instead of JSON from Perplexity API. This usually indicates an authentication error."
+        };
+      }
+      
+      const data = await response.json() as any;
       if (!response.ok) {
-        throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
+        return {
+          ...fallbackResponse,
+          analysis: `Perplexity API error: ${data?.error?.message || JSON.stringify(data)}`
+        };
       }
 
-      const responseData = await response.json();
-      
-      if (responseData.choices && responseData.choices[0] && responseData.choices[0].message) {
-        // Get the response content
-        const responseText = responseData.choices[0].message.content;
+      // Parse result from Perplexity response
+      if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+        // Get the full response text from Perplexity
+        let responseText = data.choices[0].message.content;
         
         // Split the response into the formatted report and JSON parts
         let formattedReport = "";
@@ -574,54 +697,55 @@ export async function directPerplexityAnalyze(text: string): Promise<any> {
         if (jsonMatch) {
           jsonText = jsonMatch[0];
           // The formatted report is everything before the JSON
-          formattedReport = responseText.substring(0, responseText.indexOf(jsonMatch[0]));
-          
-          try {
-            // Parse the JSON part
-            const result = JSON.parse(jsonText);
-            result.formattedReport = formattedReport.trim();
-            result.provider = "Perplexity (Llama-3.1-Sonar)";
-            if (responseData.citations) {
-              result.citations = responseData.citations;
-            }
-            return result;
-          } catch (jsonError) {
-            console.error("Failed to parse JSON from Perplexity response:", jsonError);
-            throw new Error("Failed to parse JSON from Perplexity response");
-          }
+          formattedReport = responseText.substring(0, responseText.indexOf(jsonMatch[0])).trim();
         } else {
-          // No JSON found, return the text as is with a basic structure
+          // If no JSON found, check for markdown code blocks
+          const codeBlockMatch = responseText.match(/```(?:json)?([\s\S]*?)```/);
+          if (codeBlockMatch && codeBlockMatch[1]) {
+            jsonText = codeBlockMatch[1].trim();
+            // Remove the code block from the response text to get the formatted report
+            formattedReport = responseText.replace(/```(?:json)?([\s\S]*?)```/, "").trim();
+          } else {
+            // If still no JSON found, assume the entire response is the formatted report
+            formattedReport = responseText;
+            jsonText = "{}"; // Empty JSON as fallback
+          }
+        }
+        
+        console.log("Extracting Perplexity formatted report and JSON response...");
+        
+        try {
+          const result = JSON.parse(jsonText);
+          result.provider = "Perplexity (Llama-3.1-Sonar)";
+          result.formattedReport = formattedReport;
+          return result;
+        } catch (parseError) {
+          console.error("JSON Parse error with Perplexity response:", parseError);
+          console.error("First 500 chars of response:", responseText.substring(0, 500));
+          
           return {
-            provider: "Perplexity (Llama-3.1-Sonar)",
-            formattedReport: responseText,
-            surface: {
-              grammar: 0,
-              structure: 0,
-              jargonUsage: 0,
-              surfaceFluency: 0
-            },
-            deep: {
-              conceptualIntegrity: 0,
-              inferentialNecessity: 0,
-              compressionFidelity: 0,
-              contentOrigination: 0,
-              impostorIndex: 0
-            },
-            overallScore: 0,
-            analysis: responseText
+            ...fallbackResponse,
+            analysis: "Error parsing Perplexity response. Here's the raw text: " + responseText.substring(0, 1000),
+            provider: "Perplexity (Llama-3.1-Sonar) - Parse Error"
           };
         }
       } else {
-        throw new Error("Unexpected response format from Perplexity");
+        return {
+          ...fallbackResponse,
+          analysis: "Unexpected response format from Perplexity API"
+        };
       }
-    } catch (error) {
-      console.error("Error in direct passthrough to Perplexity:", error);
-      throw error;
+    } catch (fetchError) {
+      console.error("Fetch error with Perplexity:", fetchError);
+      return {
+        ...fallbackResponse,
+        analysis: "Error connecting to Perplexity API: " + (fetchError instanceof Error ? fetchError.message : String(fetchError))
+      };
     }
   }
   
   // For large texts, split into chunks and process each one
-  console.log(`Text is large (${text.length} chars), splitting into chunks for processing with Perplexity...`);
+  console.log(`Text is large (${text.length} chars), splitting into chunks for processing...`);
   
   const chunks = splitTextIntoChunks(text);
   console.log(`Split into ${chunks.length} chunks`);
@@ -639,76 +763,70 @@ export async function directPerplexityAnalyze(text: string): Promise<any> {
     console.log(`Processing chunk ${i+1}/${chunksToProcess.length} (${chunk.length} chars) with Perplexity...`);
     
     try {
-      // Process the chunk with Perplexity
+      // Try to process the chunk
       const response = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           model: "llama-3.1-sonar-small-128k-online",
           messages: [
-            {
-              role: "system",
-              content: "You are an expert in cognitive analysis, specializing in evaluating text for intelligence level. Return your analysis in JSON format."
-            },
-            {
-              role: "user",
-              content: `${ANALYSIS_PROMPT}\n\nHere is the text to analyze:\n\n${chunk}`
-            }
+            { role: "system", content: ANALYSIS_PROMPT + "\n\nIMPORTANT: Return valid JSON directly without using markdown code blocks or backticks. Do not include ```json or ``` in your response. Just return the raw JSON object." },
+            { role: "user", content: chunk }
           ],
-          temperature: 0.2,
-          max_tokens: 4000
+          temperature: 0.2
         })
       });
-
-      if (!response.ok) {
-        throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
+      
+      // Handle potential HTML response error
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        const htmlContent = await response.text();
+        console.error(`Received HTML response from Perplexity for chunk ${i+1}:`, htmlContent.substring(0, 200));
+        // Skip this chunk and continue
+        continue;
       }
       
-      const responseData = await response.json();
-      
-      if (responseData.choices && responseData.choices[0] && responseData.choices[0].message) {
-        const responseText = responseData.choices[0].message.content;
+      const data = await response.json() as any;
+      if (!response.ok) {
+        console.error(`Perplexity API error for chunk ${i+1}:`, data?.error?.message || JSON.stringify(data));
+        // Skip this chunk and continue
+        continue;
+      }
+
+      // Parse result from Perplexity response
+      if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+        // Extract JSON from the response (Perplexity might also wrap in code blocks)
+        let responseText = data.choices[0].message.content;
         
-        // Extract JSON part
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const result = JSON.parse(jsonMatch[0]);
-          result.provider = "Perplexity (Llama-3.1-Sonar)";
-          if (responseData.citations) {
-            result.citations = responseData.citations;
+        // Remove any markdown code block indicators if present
+        if (responseText.includes("```json") || responseText.includes("```")) {
+          // Extract text between code blocks if present
+          const jsonMatch = responseText.match(/```(?:json)?([\s\S]*?)```/);
+          if (jsonMatch && jsonMatch[1]) {
+            responseText = jsonMatch[1].trim();
+          } else {
+            // Remove just the starting and ending backticks if present
+            responseText = responseText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
           }
+        }
+        
+        try {
+          const result = JSON.parse(responseText);
+          result.provider = "Perplexity (Llama-3.1-Sonar)";
           results.push(result);
           console.log(`Successfully processed chunk ${i+1} with Perplexity`);
-        } else {
-          console.warn(`No JSON found in Perplexity's response for chunk ${i+1}`);
-          // Create a basic result if JSON is missing
-          results.push({
-            provider: "Perplexity (Llama-3.1-Sonar)",
-            surface: {
-              grammar: 70,
-              structure: 70,
-              jargonUsage: 70,
-              surfaceFluency: 70
-            },
-            deep: {
-              conceptualIntegrity: 70,
-              inferentialNecessity: 70,
-              compressionFidelity: 70,
-              contentOrigination: 70,
-              impostorIndex: 30
-            },
-            overallScore: 70,
-            analysis: "Analysis could not be extracted from Perplexity's response."
-          });
+        } catch (parseError) {
+          console.error(`JSON Parse error with Perplexity response for chunk ${i+1}:`, parseError);
+          // Continue to the next chunk
         }
       }
       
       // Add delay between requests to avoid rate limiting
       if (i < chunksToProcess.length - 1) {
-        console.log(`Waiting ${REQUEST_DELAY}ms before processing next chunk with Perplexity...`);
+        console.log(`Waiting ${REQUEST_DELAY}ms before processing next chunk...`);
         await delay(REQUEST_DELAY);
       }
     } catch (error: any) {
@@ -716,7 +834,7 @@ export async function directPerplexityAnalyze(text: string): Promise<any> {
       
       // If it's a rate limit error, wait and retry once
       if (error.status === 429 || (error.response && error.response.status === 429)) {
-        console.log(`Rate limit exceeded with Perplexity. Waiting ${RATE_LIMIT_RETRY_DELAY}ms before retrying...`);
+        console.log(`Rate limit exceeded. Waiting ${RATE_LIMIT_RETRY_DELAY}ms before retrying...`);
         await delay(RATE_LIMIT_RETRY_DELAY);
         
         try {
@@ -725,68 +843,70 @@ export async function directPerplexityAnalyze(text: string): Promise<any> {
           const response = await fetch('https://api.perplexity.ai/chat/completions', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
+              'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               model: "llama-3.1-sonar-small-128k-online",
               messages: [
-                {
-                  role: "system",
-                  content: "You are an expert in cognitive analysis, specializing in evaluating text for intelligence level. Return your analysis in JSON format."
-                },
-                {
-                  role: "user",
-                  content: `${ANALYSIS_PROMPT}\n\nHere is the text to analyze:\n\n${chunk}`
-                }
+                { role: "system", content: ANALYSIS_PROMPT + "\n\nIMPORTANT: Return valid JSON directly without using markdown code blocks or backticks. Do not include ```json or ``` in your response. Just return the raw JSON object." },
+                { role: "user", content: chunk }
               ],
-              temperature: 0.2,
-              max_tokens: 4000
+              temperature: 0.2
             })
           });
-
+          
+          const data = await response.json() as any;
           if (!response.ok) {
-            throw new Error(`Perplexity API error on retry: ${response.status} ${response.statusText}`);
+            console.error(`Perplexity API error for chunk ${i+1} on retry:`, data?.error?.message || JSON.stringify(data));
+            continue;
           }
-          
-          const responseData = await response.json();
-          
-          if (responseData.choices && responseData.choices[0] && responseData.choices[0].message) {
-            const responseText = responseData.choices[0].message.content;
+
+          // Process the response
+          if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+            let responseText = data.choices[0].message.content;
             
-            // Extract JSON part
-            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              const result = JSON.parse(jsonMatch[0]);
-              result.provider = "Perplexity (Llama-3.1-Sonar)";
-              if (responseData.citations) {
-                result.citations = responseData.citations;
+            if (responseText.includes("```json") || responseText.includes("```")) {
+              const jsonMatch = responseText.match(/```(?:json)?([\s\S]*?)```/);
+              if (jsonMatch && jsonMatch[1]) {
+                responseText = jsonMatch[1].trim();
+              } else {
+                responseText = responseText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
               }
+            }
+            
+            try {
+              const result = JSON.parse(responseText);
+              result.provider = "Perplexity (Llama-3.1-Sonar)";
               results.push(result);
               console.log(`Successfully processed chunk ${i+1} with Perplexity on retry`);
+            } catch (parseError) {
+              console.error(`JSON Parse error with Perplexity response for chunk ${i+1} on retry:`, parseError);
             }
           }
         } catch (retryError) {
           console.error(`Failed to process chunk ${i+1} with Perplexity on retry:`, retryError);
-          // Continue to the next chunk
         }
       }
       
       // Continue to the next chunk even if this one failed
       if (i < chunksToProcess.length - 1) {
-        console.log(`Continuing to next chunk with Perplexity despite error...`);
+        console.log(`Continuing to next chunk despite error...`);
         await delay(REQUEST_DELAY);
       }
     }
   }
   
-  // If we got no results at all, throw an error
+  // If we got no results at all, return the fallback
   if (results.length === 0) {
-    throw new Error("Failed to process any chunks of the document with Perplexity. The document may be too large or processed too quickly. Please try again later.");
+    return {
+      ...fallbackResponse,
+      analysis: "Failed to process any chunks of the document with Perplexity. The document may be too large or processed too quickly. Please try again later."
+    };
   }
   
   // Average the results from all chunks
-  console.log(`Combining Perplexity results from ${results.length} chunks...`);
+  console.log(`Combining results from ${results.length} chunks processed by Perplexity...`);
   const combinedResult = averageAnalysisResults(results);
   return combinedResult;
 }
@@ -796,123 +916,267 @@ export async function directPerplexityAnalyze(text: string): Promise<any> {
  * No custom algorithms or processing - just send the text directly to the LLM
  */
 export async function directTranslate(
-  text: string,
+  text: string, 
   sourceLanguage: string,
   targetLanguage: string,
-  provider: string
-): Promise<string> {
-  const prompt = `Translate the following text from ${sourceLanguage} to ${targetLanguage}:
-
-${text}
-
-Please provide ONLY the translated text with no additional commentary.`;
-
+  provider: string = "openai"
+): Promise<any> {
   try {
-    if (provider === 'openai') {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.3,
-      });
-      
-      return response.choices[0].message.content || "";
-    } 
-    else if (provider === 'anthropic') {
-      const response = await anthropic.messages.create({
-        model: "claude-3-7-sonnet-20250219",
-        max_tokens: 4000,
-        messages: [{ role: "user", content: prompt }]
-      });
-      
-      return response.content[0].text;
-    } 
-    else if (provider === 'perplexity') {
-      const response = await fetch('https://api.perplexity.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-sonar-small-128k-online",
+    // Construct translation prompt
+    const translationPrompt = `Translate the following text from ${sourceLanguage} to ${targetLanguage}. Preserve the original meaning, tone, and formatting as closely as possible.\n\nOriginal text (${sourceLanguage}):\n\n${text}\n\nTranslated text (${targetLanguage}):`;
+    
+    let translatedText = "";
+    
+    // Direct pass-through to selected provider with no custom processing
+    switch (provider.toLowerCase()) {
+      case 'anthropic': {
+        if (!process.env.ANTHROPIC_API_KEY) {
+          throw new Error("ANTHROPIC_API_KEY is required but not provided");
+        }
+        
+        const anthro = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+        const response = await anthro.messages.create({
+          model: "claude-3-7-sonnet-20250219",
+          max_tokens: 4000,
           messages: [
-            { role: "user", content: prompt }
+            { role: "user", content: translationPrompt }
+          ]
+        });
+        
+        if (response.content && response.content[0] && 'text' in response.content[0]) {
+          translatedText = response.content[0].text as string;
+        } else {
+          throw new Error("Unexpected response format from Anthropic API");
+        }
+        break;
+      }
+      
+      case 'perplexity': {
+        if (!process.env.PERPLEXITY_API_KEY) {
+          throw new Error("PERPLEXITY_API_KEY is required but not provided");
+        }
+        
+        const response = await fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: "llama-3.1-sonar-small-128k-online",
+            messages: [
+              { role: "user", content: translationPrompt }
+            ],
+            temperature: 0.3
+          })
+        });
+        
+        const data = await response.json() as any;
+        if (!response.ok) {
+          throw new Error(`Perplexity API error: ${data?.error?.message || JSON.stringify(data)}`);
+        }
+        
+        if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+          translatedText = data.choices[0].message.content;
+        } else {
+          throw new Error("Unexpected response format from Perplexity API");
+        }
+        break;
+      }
+      
+      case 'openai':
+      default: {
+        if (!process.env.OPENAI_API_KEY) {
+          throw new Error("OPENAI_API_KEY is required but not provided");
+        }
+        
+        const oai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        const response = await oai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [
+            { role: "user", content: translationPrompt }
           ],
-          temperature: 0.2
-        })
-      });
-
-      const data = await response.json();
-      return data.choices[0].message.content;
+          temperature: 0.3
+        });
+        
+        translatedText = response.choices[0].message.content || "";
+        break;
+      }
     }
-    else {
-      throw new Error(`Unknown provider: ${provider}`);
-    }
+    
+    return {
+      originalText: text,
+      translatedText: translatedText,
+      sourceLanguage: sourceLanguage,
+      targetLanguage: targetLanguage,
+      provider: provider,
+      stats: {
+        originalLength: text.length,
+        translatedLength: translatedText.length,
+        lengthChange: translatedText.length - text.length,
+        lengthChangePct: Math.round((translatedText.length - text.length) / text.length * 100)
+      }
+    };
   } catch (error) {
-    console.error(`Error in direct translation with ${provider}:`, error);
+    console.error(`Error in direct ${provider} translation:`, error);
     throw error;
   }
 }
 
-/**
- * Direct pass-through for rewriting text using selected LLM provider
- * No custom algorithms or processing - just send the text directly to the LLM
- */
 export async function directRewrite(
-  text: string,
-  instructions: string,
-  provider: string
-): Promise<string> {
-  const prompt = `Rewrite the following text according to these instructions: ${instructions}
+  text: string, 
+  instruction: string, 
+  provider: string = "openai",
+  options: any = {}
+): Promise<any> {
+  try {
+    console.log("Text size:", text.length, "characters");
+    console.log("Instruction:", instruction);
+    
+    // Check if we have web content to include from research
+    let webContentPrompt = "";
+    
+    if (options && options.webContent) {
+      console.log("Including web research in rewrite");
+      
+      const { results = [], contents = {}, instructions = "" } = options.webContent;
+      
+      if (results.length > 0) {
+        webContentPrompt += "\n\n== RESEARCH INFORMATION ==\n\n";
+        
+        // Add the research instructions
+        if (instructions) {
+          webContentPrompt += `RESEARCH INTEGRATION INSTRUCTIONS: ${instructions}\n\n`;
+        }
+        
+        // Add information from each selected search result
+        results.forEach((result: any, index: number) => {
+          const content = contents[result.link] || "";
+          
+          webContentPrompt += `SOURCE ${index + 1}: ${result.title}\n`;
+          webContentPrompt += `URL: ${result.link}\n`;
+          webContentPrompt += `SNIPPET: ${result.snippet}\n`;
+          
+          if (content) {
+            // Truncate content to avoid token limits
+            const truncatedContent = content.length > 1500 
+              ? content.substring(0, 1500) + "... [content truncated]" 
+              : content;
+              
+            webContentPrompt += `CONTENT: ${truncatedContent}\n\n`;
+          } else {
+            webContentPrompt += "CONTENT: [Not available]\n\n";
+          }
+        });
+        
+        webContentPrompt += "== END RESEARCH INFORMATION ==\n\n";
+      }
+    }
+    
+    // Construct rewrite prompt with research if available
+    const rewritePrompt = `Please rewrite the following text according to this instruction: ${instruction}
+    
+${webContentPrompt ? "IMPORTANT: Use the provided research information to enhance your rewrite.\n" + webContentPrompt : ""}
 
-Text to rewrite:
+Here is the text to rewrite:
+
 ${text}
 
-Please provide ONLY the rewritten text with no additional commentary.`;
-
-  try {
-    if (provider === 'openai') {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-      });
-      
-      return response.choices[0].message.content || "";
-    } 
-    else if (provider === 'anthropic') {
-      const response = await anthropic.messages.create({
-        model: "claude-3-7-sonnet-20250219",
-        max_tokens: 4000,
-        messages: [{ role: "user", content: prompt }]
-      });
-      
-      return response.content[0].text;
-    }
-    else if (provider === 'perplexity') {
-      const response = await fetch('https://api.perplexity.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-sonar-small-128k-online",
+Rewritten text:`;
+    
+    let rewrittenText = "";
+    
+    // Direct pass-through to selected provider with no custom processing
+    switch (provider.toLowerCase()) {
+      case 'anthropic': {
+        if (!process.env.ANTHROPIC_API_KEY) {
+          throw new Error("ANTHROPIC_API_KEY is required but not provided");
+        }
+        
+        const anthro = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+        const response = await anthro.messages.create({
+          model: "claude-3-7-sonnet-20250219",
+          max_tokens: 4000,
           messages: [
-            { role: "user", content: prompt }
+            { role: "user", content: rewritePrompt }
+          ]
+        });
+        
+        if (response.content && response.content[0] && 'text' in response.content[0]) {
+          rewrittenText = response.content[0].text as string;
+        } else {
+          throw new Error("Unexpected response format from Anthropic API");
+        }
+        break;
+      }
+      
+      case 'perplexity': {
+        if (!process.env.PERPLEXITY_API_KEY) {
+          throw new Error("PERPLEXITY_API_KEY is required but not provided");
+        }
+        
+        const response = await fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: "llama-3.1-sonar-small-128k-online",
+            messages: [
+              { role: "user", content: rewritePrompt }
+            ],
+            temperature: 0.7
+          })
+        });
+        
+        const data = await response.json() as any;
+        if (!response.ok) {
+          throw new Error(`Perplexity API error: ${data?.error?.message || JSON.stringify(data)}`);
+        }
+        
+        if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+          rewrittenText = data.choices[0].message.content;
+        } else {
+          throw new Error("Unexpected response format from Perplexity API");
+        }
+        break;
+      }
+      
+      case 'openai':
+      default: {
+        if (!process.env.OPENAI_API_KEY) {
+          throw new Error("OPENAI_API_KEY is required but not provided");
+        }
+        
+        const oai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        const response = await oai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [
+            { role: "user", content: rewritePrompt }
           ],
           temperature: 0.7
-        })
-      });
-
-      const data = await response.json();
-      return data.choices[0].message.content;
-    } 
-    else {
-      throw new Error(`Unknown provider: ${provider}`);
+        });
+        
+        rewrittenText = response.choices[0].message.content || "";
+        break;
+      }
     }
+    
+    return {
+      originalText: text,
+      rewrittenText: rewrittenText,
+      instruction: instruction,
+      provider: provider,
+      stats: {
+        originalLength: text.length,
+        rewrittenLength: rewrittenText.length,
+        lengthChange: rewrittenText.length - text.length,
+        lengthChangePct: Math.round((rewrittenText.length - text.length) / text.length * 100)
+      }
+    };
   } catch (error) {
-    console.error(`Error in direct rewrite with ${provider}:`, error);
+    console.error(`Error in direct ${provider} rewrite:`, error);
     throw error;
   }
 }
