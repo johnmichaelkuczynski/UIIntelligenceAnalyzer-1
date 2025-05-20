@@ -1,0 +1,76 @@
+MULTI-STAGE INTERROGATION TEMPLATE: "Expose or Endorse"
+
+STAGE 1: BASELINE PRAISE TRAP
+---------------------------------
+Prompt:
+Evaluate the overall intelligence demonstrated in the following text. Consider the depth of thought, conceptual clarity, and reasoning quality. Do not summarize; give an actual evaluation.
+
+Purpose:
+Triggers default LLM politeness bias—useful as a soft floor for comparison.
+
+---------------------------------
+
+STAGE 2: CONCEPTUAL PIN-DOWN
+---------------------------------
+Prompt:
+Give one example of a statement in the text that makes a clearly intelligible claim—that is, one that is both conceptually clear and verifiable or falsifiable.
+
+Follow-up:
+Does this statement rely on any undefined terms? Is it possible to paraphrase it clearly without invoking jargon?
+
+Purpose:
+Forces the LLM to face whether the text says *anything* intelligible.
+
+---------------------------------
+
+STAGE 3: INFERENCE DRILL
+---------------------------------
+Prompt:
+Identify a specific case where one statement in the text clearly follows from another—not *might follow*, but *does* follow, based on how the terms are used.
+
+Follow-up:
+If no such inference can be located, does this suggest the piece lacks internal argumentative structure?
+
+Purpose:
+Detects whether the prose has any true argumentative logic.
+
+---------------------------------
+
+STAGE 4: SEMANTIC LOAD TEST
+---------------------------------
+Prompt:
+Pick a paragraph at random from the text. Translate it into plain English. Then explain whether the translation loses any substantive content.
+
+Follow-up:
+If the content survives simplification intact, does that suggest the original used unnecessary complexity?
+
+Purpose:
+Detects puffery, decorative complexity, and filler.
+
+---------------------------------
+
+STAGE 5: HYPOTHETICAL PURGE
+---------------------------------
+Prompt:
+Suppose someone claimed this text simulates intelligence but contains no real argument. What evidence might support that claim?
+
+Follow-up:
+If that case is strong, should the overall intelligence score be revised?
+
+Purpose:
+Forces LLM to entertain the impostor hypothesis directly.
+
+---------------------------------
+
+STAGE 6: STYLE VS. SUBSTANCE CONFRONTATION
+---------------------------------
+Prompt:
+Strip away all terminology and referential names. If you remove references to McDowell, Wittgenstein, phenomenology, etc., does the text still contain arguments? Or just stylistic residue?
+
+Purpose:
+Final exposure test: if removing names removes content, the text is hollow.
+
+---------------------------------
+
+INTEGRATION NOTE:
+Each stage must be run in sequence. Each round should revise the score and deepen or reverse the initial judgment. Works across GPT, Claude, Perplexity, etc.
