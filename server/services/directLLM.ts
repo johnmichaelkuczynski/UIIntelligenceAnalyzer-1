@@ -1,409 +1,603 @@
+import OpenAI from "openai";
 import Anthropic from '@anthropic-ai/sdk';
-import OpenAI from 'openai';
 import fetch from 'node-fetch';
 
-// The core cognitive profiler prompt that treats the text as evidence, not something to be graded
-const COGNITIVE_PROFILER_PROMPT = `
-You are not grading this text.
-You are not evaluating its style, quality, clarity, or completeness.
+// Initialize the API clients
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-You are treating this text as evidence — a cognitive fingerprint of its author.
+// Constants for text processing
+const MAX_CHUNK_SIZE = 3000; // Characters per chunk (approx. 500 words)
+const MAX_CHUNKS = 20; // Maximum number of chunks to process
+const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
+const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
-Your task is to infer the author's intelligence and cognitive profile solely from the structure and content of the text.
+// PURE PASS-THROUGH MODEL - USING EXACT INSTRUCTIONS WITHOUT MODIFICATION
+const ANALYSIS_PROMPT = `You are a highly intelligent, philosophically rigorous reader. You have just read the following passage. Your task is to assess what the text reveals about the intelligence of its author. Do not grade the quality of the text. Instead, assess the probable intelligence of the person who wrote it, based solely on this passage.
 
-This may be a full paper, abstract, fragment, or rough sketch. That does not matter. Treat it as evidence, not an argument.
+Here is what to consider:
 
-Estimate the author's intelligence on a scale from 1 to 100.
-Then describe the cognitive character of the mind behind the text.
+Epistemic Novelty:
+Did you learn anything new from this text?
+If all its claims were true, would you have learned something new from it?
 
-You may comment on:
-- Is this mind analytical, synthetic, mechanical, imitative, original, confused, creative, disciplined, superficial, visionary?
-- Does it show evidence of deep reasoning, abstraction, novelty, inferential control, or originality?
-- What kind of thought is being performed? What kind of thinker is revealed?
+Inferential Integrity:
+How well does one statement follow from the next?
+Are the claims logically and inferentially tight, or loose and impressionistic?
 
-DO NOT penalize for:
-- Incompleteness
-- Lack of clarity or polish
-- Informality or lack of structure
-- Absence of citations or full arguments
+Linguistic Transparency vs. Jargon Dependence:
+How reliant is the text on undefined or ornamental jargon?
+Are terms used with precision and continuity?
 
-Your job is to evaluate intelligence, not to give feedback.
+Cognitive Forthrightness:
+Does the author confront the difficult or controversial parts of their claims?
+Or is the prose evasive, hedged, or padded?
 
-This is a cognitive profiling task. Be precise. Be bold. Be honest.
-`;
+Theoretical Consequences:
+Assuming what is said is true, what would follow?
+Would there be any consequences for philosophy, science, policy, or practical thought?
 
-// The newest OpenAI model - do not change unless requested
-const GPT_MODEL = 'gpt-4o';
+Originality vs. Recycling:
+Does this seem like an original mind at work, or is it a paint-by-numbers regurgitation of standard material?
 
-// The newest Anthropic model - do not change unless requested
-const CLAUDE_MODEL = 'claude-3-7-sonnet-20250219';
+Cognitive Load & Conceptual Control:
+Is the author dealing with complex, interlocking ideas?
+If so, do they seem to have a firm grasp over those ideas, or is the complexity merely stylistic?
+
+Model of Mind Implied by the Text:
+Based on this sample, what kind of mind does this text reveal—e.g., analytical, synthetic, imitative, mechanical, confused?
+
+Meta-Cognitive Clues:
+Does the author show awareness of the limits or implications of their own claims?
+Is there evidence of dialectical self-checking?
+
+Compression vs. Diffusion:
+Does the author say more with less, or less with more?
+
+IMPORTANT: After your analysis, please provide a single numerical score between 0 and 100 that represents your assessment of the author's intellectual capabilities, with 0 being completely lacking and 100 being exceptionally intelligent. Format this as "Intelligence Score: [score]/100" at the top of your response.`;
 
 /**
- * Direct OpenAI analysis - pure passthrough without any scoring manipulation
+ * Split text into chunks for large document processing
+ * Attempts to split at paragraph or sentence boundaries
  */
-export async function directOpenAIAnalyze(content: string): Promise<any> {
-  console.log('Sending direct request to OpenAI...');
-  
-  try {
-    if (!process.env.OPENAI_API_KEY) {
-      return {
-        provider: 'OpenAI (Not Configured)',
-        formattedReport: "Error: OpenAI API key is not configured. Please add your API key to continue."
-      };
-    }
-    
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
-    });
-    
-    // Construct the full prompt with cognitive profiler instructions
-    const prompt = `
-${COGNITIVE_PROFILER_PROMPT}
-
-TEXT TO PROFILE:
-${content}
-`;
-    
-    // Make direct API call to OpenAI
-    const response = await openai.chat.completions.create({
-      model: GPT_MODEL,
-      messages: [
-        {
-          role: "system",
-          content: "You are a cognitive profiler who analyzes writing to understand the mind behind it."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.1,
-      max_tokens: 3000
-    });
-    
-    // Extract the raw response text
-    const analysisText = response.choices[0]?.message?.content || "No analysis was generated.";
-    
-    // Return the raw analysis without any additional processing
-    return {
-      provider: 'OpenAI (GPT-4o)',
-      formattedReport: analysisText,
-      rawResponse: response
-    };
-  } catch (error: any) {
-    console.error("OpenAI API error:", error);
-    
-    return {
-      provider: 'OpenAI (Error)',
-      formattedReport: `Error: ${error.message || "Unknown error occurred when calling OpenAI API"}`
-    };
+function splitTextIntoChunks(textInput: string, maxChunkSize = MAX_CHUNK_SIZE): string[] {
+  const text = textInput || "";
+  if (text.length <= maxChunkSize) {
+    return [text];
   }
-}
 
-/**
- * Direct Anthropic Claude analysis - pure passthrough without any scoring manipulation
- */
-export async function directAnthropicAnalyze(content: string): Promise<any> {
-  console.log('Sending direct request to Anthropic Claude...');
-  
-  try {
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return {
-        provider: 'Anthropic (Not Configured)',
-        formattedReport: "Error: Anthropic API key is not configured. Please add your API key to continue."
-      };
-    }
-    
-    const anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY
-    });
-    
-    // Construct the full prompt with cognitive profiler instructions
-    const prompt = `
-${COGNITIVE_PROFILER_PROMPT}
+  const chunks: string[] = [];
+  let currentPos = 0;
 
-TEXT TO PROFILE:
-${content}
-`;
+  while (currentPos < text.length) {
+    // Determine the potential end of the current chunk
+    let endPos = Math.min(currentPos + maxChunkSize, text.length);
     
-    // Make direct API call to Anthropic
-    const response = await anthropic.messages.create({
-      model: CLAUDE_MODEL,
-      messages: [
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      max_tokens: 3000
-    });
-    
-    // Extract the raw response text safely
-    let analysisText = "No analysis was generated.";
-    if (response.content && response.content.length > 0) {
-      if (response.content[0].type === 'text') {
-        analysisText = response.content[0].text;
-      }
-    }
-    
-    // Return the raw analysis without any additional processing
-    return {
-      provider: 'Anthropic (Claude 3 Sonnet)',
-      formattedReport: analysisText,
-      rawResponse: response
-    };
-  } catch (error: any) {
-    console.error("Anthropic API error:", error);
-    
-    return {
-      provider: 'Anthropic (Error)',
-      formattedReport: `Error: ${error.message || "Unknown error occurred when calling Anthropic API"}`
-    };
-  }
-}
-
-/**
- * Direct Perplexity analysis - pure passthrough without any scoring manipulation
- */
-export async function directPerplexityAnalyze(content: string): Promise<any> {
-  console.log('Sending direct request to Perplexity...');
-  
-  try {
-    if (!process.env.PERPLEXITY_API_KEY) {
-      return {
-        provider: 'Perplexity (Not Configured)',
-        formattedReport: "Error: Perplexity API key is not configured. Please add your API key to continue."
-      };
-    }
-    
-    // Construct the full prompt with cognitive profiler instructions
-    const prompt = `
-${COGNITIVE_PROFILER_PROMPT}
-
-TEXT TO PROFILE:
-${content}
-`;
-    
-    // Make direct API call to Perplexity
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "llama-3.1-sonar-small-128k-online",
-        messages: [
-          {
-            role: "system",
-            content: "You are a cognitive profiler who analyzes writing to understand the mind behind it."
-          },
-          {
-            role: "user",
-            content: prompt
+    // Try to find a paragraph break
+    if (endPos < text.length) {
+      const newlineBreak = text.lastIndexOf('\n\n', endPos);
+      if (newlineBreak > currentPos && newlineBreak > endPos - 300) {
+        endPos = newlineBreak + 2; // Include the double newline
+      } else {
+        // Try to find a single newline
+        const newlineBreak = text.lastIndexOf('\n', endPos);
+        if (newlineBreak > currentPos && newlineBreak > endPos - 300) {
+          endPos = newlineBreak + 1; // Include the newline
+        } else {
+          // Try to find a sentence boundary
+          const sentenceBreak = Math.max(
+            text.lastIndexOf('. ', endPos),
+            text.lastIndexOf('! ', endPos),
+            text.lastIndexOf('? ', endPos)
+          );
+          if (sentenceBreak > currentPos && sentenceBreak > endPos - 200) {
+            endPos = sentenceBreak + 2; // Include the period and space
           }
-        ],
-        max_tokens: 3000,
-        temperature: 0.1
-      })
-    });
-    
-    const data = await response.json() as any;
-    
-    // Extract the raw response text
-    const analysisText = data?.choices?.[0]?.message?.content || "No analysis was generated.";
-    
-    // Return the raw analysis without any additional processing
-    return {
-      provider: 'Perplexity (Llama-3.1-Sonar)',
-      formattedReport: analysisText,
-      rawResponse: data
-    };
-  } catch (error: any) {
-    console.error("Perplexity API error:", error);
-    
-    return {
-      provider: 'Perplexity (Error)',
-      formattedReport: `Error: ${error.message || "Unknown error occurred when calling Perplexity API"}`
-    };
-  }
-}
-
-/**
- * Direct comparison of two documents for cognitive profile comparison
- */
-export async function directCompare(documentA: string, documentB: string, provider: string): Promise<any> {
-  console.log(`Sending direct comparison request to ${provider}...`);
-  
-  // Construct the comparison prompt using the cognitive profiler instructions
-  const prompt = `
-${COGNITIVE_PROFILER_PROMPT}
-
-I need you to analyze and compare TWO separate writing samples. For each sample, create a cognitive profile of the author according to the instructions above. Then compare the two profiles.
-
-DOCUMENT A:
-${documentA}
-
-DOCUMENT B:
-${documentB}
-
-For each document:
-1. Estimate the author's intelligence on a scale from 1 to 100
-2. Describe the cognitive character of the mind behind the text
-3. Identify key cognitive patterns and reasoning styles
-
-Then provide a comparative analysis:
-- How do these minds differ?
-- What cognitive strengths does each exhibit?
-- Which author demonstrates more sophisticated reasoning or greater intelligence?
-
-Remember: This is forensic cognitive profiling. You are not grading the texts.
-`;
-
-  try {
-    // Use the selected provider for the comparison
-    switch (provider.toLowerCase()) {
-      case 'anthropic':
-        return await directAnthropicCompare(prompt);
-      case 'perplexity':
-        return await directPerplexityCompare(prompt);
-      case 'openai':
-      default:
-        return await directOpenAICompare(prompt);
-    }
-  } catch (error: any) {
-    console.error(`Error in ${provider} comparison:`, error);
-    
-    return {
-      provider: `${provider} (Error)`,
-      comparisonResult: `Error: ${error.message || "Unknown error occurred during comparison"}`,
-      error: true
-    };
-  }
-}
-
-/**
- * Helper function for OpenAI comparison
- */
-async function directOpenAICompare(prompt: string): Promise<any> {
-  if (!process.env.OPENAI_API_KEY) {
-    return {
-      provider: 'OpenAI (Not Configured)',
-      comparisonResult: "Error: OpenAI API key is not configured. Please add your API key to continue."
-    };
-  }
-  
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-  });
-  
-  const response = await openai.chat.completions.create({
-    model: GPT_MODEL,
-    messages: [
-      {
-        role: "system",
-        content: "You are a cognitive profiler who analyzes writing to understand the minds behind the texts."
-      },
-      {
-        role: "user",
-        content: prompt
-      }
-    ],
-    temperature: 0.1,
-    max_tokens: 4000
-  });
-  
-  const comparisonText = response.choices[0]?.message?.content || "No comparison was generated.";
-  
-  return {
-    provider: 'OpenAI (GPT-4o)',
-    comparisonResult: comparisonText,
-    rawResponse: response
-  };
-}
-
-/**
- * Helper function for Anthropic comparison
- */
-async function directAnthropicCompare(prompt: string): Promise<any> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return {
-      provider: 'Anthropic (Not Configured)',
-      comparisonResult: "Error: Anthropic API key is not configured. Please add your API key to continue."
-    };
-  }
-  
-  const anthropic = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY
-  });
-  
-  const response = await anthropic.messages.create({
-    model: CLAUDE_MODEL,
-    messages: [
-      {
-        role: "user",
-        content: prompt
-      }
-    ],
-    max_tokens: 4000
-  });
-  
-  // Extract the raw response text safely
-  let comparisonText = "No comparison was generated.";
-  if (response.content && response.content.length > 0) {
-    if (response.content[0].type === 'text') {
-      comparisonText = response.content[0].text;
-    }
-  }
-  
-  return {
-    provider: 'Anthropic (Claude 3 Sonnet)',
-    comparisonResult: comparisonText,
-    rawResponse: response
-  };
-}
-
-/**
- * Helper function for Perplexity comparison
- */
-async function directPerplexityCompare(prompt: string): Promise<any> {
-  if (!process.env.PERPLEXITY_API_KEY) {
-    return {
-      provider: 'Perplexity (Not Configured)',
-      comparisonResult: "Error: Perplexity API key is not configured. Please add your API key to continue."
-    };
-  }
-  
-  const response = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: "llama-3.1-sonar-small-128k-online",
-      messages: [
-        {
-          role: "system",
-          content: "You are a cognitive profiler who analyzes writing to understand the minds behind the texts."
-        },
-        {
-          role: "user",
-          content: prompt
         }
-      ],
-      max_tokens: 4000,
-      temperature: 0.1
-    })
+      }
+    }
+    
+    // If we couldn't find a good break point, just use the max size
+    if (endPos <= currentPos) {
+      endPos = Math.min(currentPos + maxChunkSize, text.length);
+    }
+    
+    // Add the chunk and move to the next position
+    chunks.push(text.substring(currentPos, endPos));
+    currentPos = endPos;
+  }
+  
+  return chunks;
+}
+
+/**
+ * Delay execution with a promise
+ */
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Combine multiple analysis results into a single result
+ * Used when a document is split into chunks
+ */
+function combineAnalysisResults(results: any[]): any {
+  if (results.length === 0) return null;
+  if (results.length === 1) return results[0];
+  
+  // Create a simple combined result with just the formatted reports
+  const combined: any = {
+    provider: results[0].provider,
+    formattedReport: ""
+  };
+  
+  // Combine the raw reports from each chunk
+  const formattedReports = results.map((result, index) => {
+    return `SECTION ${index + 1}:\n\n${result.formattedReport || "No analysis available for this section."}`;
   });
   
-  const data = await response.json();
+  combined.formattedReport = [
+    "This document was analyzed in multiple sections due to its length. Below are the analyses for each section:",
+    ...formattedReports
+  ].join("\n\n");
   
-  const comparisonText = data?.choices?.[0]?.message?.content || "No comparison was generated.";
+  return combined;
+}
+
+/**
+ * Direct pass-through to OpenAI's GPT-4o model without custom processing
+ */
+export async function directOpenAIAnalyze(textInput: string): Promise<any> {
+  // Ensure we have text to analyze
+  const text = textInput || "";
   
-  return {
-    provider: 'Perplexity (Llama-3.1-Sonar)',
-    comparisonResult: comparisonText,
-    rawResponse: data
+  // For small texts, process directly
+  if (text.length <= MAX_CHUNK_SIZE) {
+    console.log("DIRECT OPENAI PASSTHROUGH FOR ANALYSIS");
+    console.log("Sending direct request to OpenAI...");
+    
+    try {
+      // Make a single request to OpenAI with pure text output
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: ANALYSIS_PROMPT },
+          { role: "user", content: text }
+        ],
+        temperature: 0.2
+      });
+      
+      // Return the raw text response
+      return {
+        provider: "OpenAI (GPT-4o)",
+        formattedReport: response.choices[0].message.content || "No analysis available."
+      };
+    } catch (error: any) {
+      // Handle OpenAI API errors
+      console.error(`Error in direct passthrough to OpenAI:`, error);
+      
+      return {
+        provider: "OpenAI (GPT-4o) - Error",
+        formattedReport: `Error: ${error.message || "Unknown error occurred"}`
+      };
+    }
+  }
+  
+  // For large texts, split into chunks and process each one
+  console.log(`Text is large (${text.length} chars), splitting into chunks for processing...`);
+  
+  const chunks = splitTextIntoChunks(text);
+  console.log(`Split into ${chunks.length} chunks`);
+  
+  // Limit the number of chunks to prevent excessive API usage
+  const chunksToProcess = chunks.slice(0, MAX_CHUNKS);
+  if (chunksToProcess.length < chunks.length) {
+    console.log(`Processing only the first ${MAX_CHUNKS} chunks to limit API usage`);
+  }
+  
+  const results = [];
+  
+  for (let i = 0; i < chunksToProcess.length; i++) {
+    const chunk = chunksToProcess[i];
+    console.log(`Processing chunk ${i+1}/${chunksToProcess.length} (${chunk.length} chars)...`);
+    
+    try {
+      // Process each chunk
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: ANALYSIS_PROMPT },
+          { role: "user", content: chunk }
+        ],
+        temperature: 0.2
+      });
+      
+      // Store the raw text result
+      const result = { 
+        formattedReport: response.choices[0].message.content || "",
+        provider: "OpenAI (GPT-4o)"
+      };
+      results.push(result);
+      console.log(`Successfully processed chunk ${i+1}`);
+      
+      // Add delay between requests to avoid rate limiting
+      if (i < chunksToProcess.length - 1) {
+        console.log(`Waiting ${REQUEST_DELAY}ms before processing next chunk...`);
+        await delay(REQUEST_DELAY);
+      }
+    } catch (error: any) {
+      console.error(`Error processing chunk ${i+1}:`, error);
+      
+      // If it's a rate limit error, wait and retry once
+      if (error.status === 429 || (error.response && error.response.status === 429)) {
+        console.log(`Rate limit exceeded. Waiting ${RATE_LIMIT_RETRY_DELAY}ms before retrying...`);
+        await delay(RATE_LIMIT_RETRY_DELAY);
+        
+        try {
+          // Retry the chunk
+          console.log(`Retrying chunk ${i+1}...`);
+          const response = await openai.chat.completions.create({
+            model: "gpt-4o",
+            messages: [
+              { role: "system", content: ANALYSIS_PROMPT },
+              { role: "user", content: chunk }
+            ],
+            temperature: 0.2
+          });
+          
+          const result = {
+            formattedReport: response.choices[0].message.content || "",
+            provider: "OpenAI (GPT-4o)"
+          };
+          results.push(result);
+          console.log(`Successfully processed chunk ${i+1} on retry`);
+        } catch (retryError) {
+          console.error(`Error retrying chunk ${i+1}:`, retryError);
+        }
+      }
+      
+      // Continue to the next chunk even if this one failed
+      if (i < chunksToProcess.length - 1) {
+        console.log(`Continuing to next chunk despite error...`);
+        await delay(REQUEST_DELAY);
+      }
+    }
+  }
+  
+  // If we got no results at all, throw an error
+  if (results.length === 0) {
+    throw new Error("Failed to process any chunks of the document. The document may be too large or processed too quickly. Please try again later.");
+  }
+  
+  // Combine the results from all chunks
+  console.log(`Combining results from ${results.length} chunks...`);
+  const combinedResult = combineAnalysisResults(results);
+  return combinedResult;
+}
+
+/**
+ * Direct pass-through to Anthropic's Claude model
+ */
+export async function directAnthropicAnalyze(textInput: string): Promise<any> {
+  // Ensure we have text to analyze
+  const text = textInput || "";
+  
+  // For small texts, process directly
+  if (text.length <= MAX_CHUNK_SIZE) {
+    try {
+      // Direct pass-through to Anthropic Claude with the intelligence analysis prompt
+      const response = await anthropic.messages.create({
+        model: "claude-3-7-sonnet-20250219", // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
+        system: ANALYSIS_PROMPT,
+        max_tokens: 4000,
+        messages: [
+          { role: "user", content: `Here is the text to analyze:\n\n${text}` }
+        ]
+      });
+      
+      // Parse the response content and return the raw text
+      if (response.content && response.content[0] && 'text' in response.content[0]) {
+        return {
+          provider: "Anthropic (Claude 3 Sonnet)",
+          formattedReport: response.content[0].text
+        };
+      } else {
+        return {
+          provider: "Anthropic (Claude 3 Sonnet) - Error",
+          formattedReport: "Error: Unable to extract text from Anthropic response."
+        };
+      }
+    } catch (error: any) {
+      console.error(`Error in direct passthrough to Anthropic:`, error);
+      
+      return {
+        provider: "Anthropic (Claude 3 Sonnet) - Error",
+        formattedReport: `Error: ${error.message || "Unknown error occurred"}`
+      };
+    }
+  }
+  
+  // For large texts, split into chunks and process each one
+  console.log(`Text is large (${text.length} chars), splitting into chunks for processing...`);
+  
+  const chunks = splitTextIntoChunks(text);
+  console.log(`Split into ${chunks.length} chunks`);
+  
+  // Limit the number of chunks to prevent excessive API usage
+  const chunksToProcess = chunks.slice(0, MAX_CHUNKS);
+  if (chunksToProcess.length < chunks.length) {
+    console.log(`Processing only the first ${MAX_CHUNKS} chunks to limit API usage`);
+  }
+  
+  const results = [];
+  
+  for (let i = 0; i < chunksToProcess.length; i++) {
+    const chunk = chunksToProcess[i];
+    console.log(`Processing chunk ${i+1}/${chunksToProcess.length} (${chunk.length} chars)...`);
+    
+    try {
+      // Process each chunk
+      const response = await anthropic.messages.create({
+        model: "claude-3-7-sonnet-20250219", // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
+        system: ANALYSIS_PROMPT,
+        max_tokens: 4000,
+        messages: [
+          { role: "user", content: `Here is the text to analyze:\n\n${chunk}` }
+        ]
+      });
+      
+      // Extract the text from the response
+      if (response.content && response.content[0] && 'text' in response.content[0]) {
+        const result = { 
+          formattedReport: response.content[0].text,
+          provider: "Anthropic (Claude 3 Sonnet)"
+        };
+        results.push(result);
+        console.log(`Successfully processed chunk ${i+1}`);
+      } else {
+        console.error(`Error: Unable to extract text from Anthropic response for chunk ${i+1}`);
+      }
+      
+      // Add delay between requests to avoid rate limiting
+      if (i < chunksToProcess.length - 1) {
+        console.log(`Waiting ${REQUEST_DELAY}ms before processing next chunk...`);
+        await delay(REQUEST_DELAY);
+      }
+    } catch (error: any) {
+      console.error(`Error processing chunk ${i+1}:`, error);
+      
+      // If it's a rate limit error, wait and retry once
+      if (error.status === 429 || (error.response && error.response.status === 429)) {
+        console.log(`Rate limit exceeded. Waiting ${RATE_LIMIT_RETRY_DELAY}ms before retrying...`);
+        await delay(RATE_LIMIT_RETRY_DELAY);
+        
+        try {
+          // Retry the chunk
+          console.log(`Retrying chunk ${i+1}...`);
+          const response = await anthropic.messages.create({
+            model: "claude-3-7-sonnet-20250219", // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
+            system: ANALYSIS_PROMPT,
+            max_tokens: 4000,
+            messages: [
+              { role: "user", content: `Here is the text to analyze:\n\n${chunk}` }
+            ]
+          });
+          
+          // Extract the text from the response
+          if (response.content && response.content[0] && 'text' in response.content[0]) {
+            const result = { 
+              formattedReport: response.content[0].text,
+              provider: "Anthropic (Claude 3 Sonnet)"
+            };
+            results.push(result);
+            console.log(`Successfully processed chunk ${i+1} on retry`);
+          }
+        } catch (retryError) {
+          console.error(`Error retrying chunk ${i+1}:`, retryError);
+        }
+      }
+      
+      // Continue to the next chunk even if this one failed
+      if (i < chunksToProcess.length - 1) {
+        console.log(`Continuing to next chunk despite error...`);
+        await delay(REQUEST_DELAY);
+      }
+    }
+  }
+  
+  // If we got no results at all, throw an error
+  if (results.length === 0) {
+    throw new Error("Failed to process any chunks of the document. The document may be too large or processed too quickly. Please try again later.");
+  }
+  
+  // Combine the results from all chunks
+  console.log(`Combining results from ${results.length} chunks processed by Anthropic...`);
+  const combinedResult = combineAnalysisResults(results);
+  return combinedResult;
+}
+
+/**
+ * Direct pass-through to Perplexity AI
+ */
+export async function directPerplexityAnalyze(textInput: string): Promise<any> {
+  // Fallback response in case all chunks fail
+  const fallbackResponse = {
+    provider: "Perplexity (LLaMA 3.1) - Error",
+    formattedReport: "Failed to analyze document with Perplexity. Please try again or use a different AI provider."
   };
+  
+  // Ensure we have text to analyze
+  const text = textInput || "";
+  
+  // For small texts, process directly
+  if (text.length <= MAX_CHUNK_SIZE) {
+    try {
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-sonar-small-128k-online",
+          messages: [
+            {
+              role: "system",
+              content: ANALYSIS_PROMPT
+            },
+            {
+              role: "user",
+              content: text
+            }
+          ],
+          temperature: 0.2
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      return {
+        provider: "Perplexity (LLaMA 3.1)",
+        formattedReport: data.choices[0].message.content
+      };
+    } catch (error: any) {
+      console.error(`Error in direct passthrough to Perplexity:`, error);
+      
+      return {
+        provider: "Perplexity (LLaMA 3.1) - Error",
+        formattedReport: `Error: ${error.message || "Unknown error occurred"}`
+      };
+    }
+  }
+  
+  // For large texts, split into chunks and process each one
+  console.log(`Text is large (${text.length} chars), splitting into chunks for processing...`);
+  
+  const chunks = splitTextIntoChunks(text);
+  console.log(`Split into ${chunks.length} chunks`);
+  
+  // Limit the number of chunks to prevent excessive API usage
+  const chunksToProcess = chunks.slice(0, MAX_CHUNKS);
+  if (chunksToProcess.length < chunks.length) {
+    console.log(`Processing only the first ${MAX_CHUNKS} chunks to limit API usage`);
+  }
+  
+  const results = [];
+  
+  for (let i = 0; i < chunksToProcess.length; i++) {
+    const chunk = chunksToProcess[i];
+    console.log(`Processing chunk ${i+1}/${chunksToProcess.length} (${chunk.length} chars) with Perplexity...`);
+    
+    try {
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-sonar-small-128k-online",
+          messages: [
+            {
+              role: "system",
+              content: ANALYSIS_PROMPT
+            },
+            {
+              role: "user",
+              content: chunk
+            }
+          ],
+          temperature: 0.2
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      const result = { 
+        formattedReport: data.choices[0].message.content,
+        provider: "Perplexity (LLaMA 3.1)"
+      };
+      results.push(result);
+      console.log(`Successfully processed chunk ${i+1} with Perplexity`);
+      
+      // Add delay between requests to avoid rate limiting
+      if (i < chunksToProcess.length - 1) {
+        console.log(`Waiting ${REQUEST_DELAY}ms before processing next chunk with Perplexity...`);
+        await delay(REQUEST_DELAY);
+      }
+    } catch (error: any) {
+      console.error(`Error processing chunk ${i+1} with Perplexity:`, error);
+      
+      // If it's a rate limit error, wait and retry once
+      if (error.message.includes('429') || error.message.includes('rate limit')) {
+        console.log(`Perplexity rate limit exceeded. Waiting ${RATE_LIMIT_RETRY_DELAY}ms before retrying...`);
+        await delay(RATE_LIMIT_RETRY_DELAY);
+        
+        try {
+          // Retry the chunk
+          console.log(`Retrying chunk ${i+1} with Perplexity...`);
+          const response = await fetch('https://api.perplexity.ai/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: "llama-3.1-sonar-small-128k-online",
+              messages: [
+                {
+                  role: "system",
+                  content: ANALYSIS_PROMPT
+                },
+                {
+                  role: "user",
+                  content: chunk
+                }
+              ],
+              temperature: 0.2
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Perplexity API error on retry: ${response.status} ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+          
+          const result = { 
+            formattedReport: data.choices[0].message.content,
+            provider: "Perplexity (LLaMA 3.1)"
+          };
+          results.push(result);
+          console.log(`Successfully processed chunk ${i+1} with Perplexity on retry`);
+        } catch (retryError) {
+          console.error(`Error retrying chunk ${i+1} with Perplexity:`, retryError);
+        }
+      }
+      
+      // Continue to the next chunk even if this one failed
+      if (i < chunksToProcess.length - 1) {
+        console.log(`Continuing to next Perplexity chunk despite error...`);
+        await delay(REQUEST_DELAY);
+      }
+    }
+  }
+  
+  // If we got no results at all, return the fallback
+  if (results.length === 0) {
+    return fallbackResponse;
+  }
+  
+  // Combine the results from all chunks
+  console.log(`Combining results from ${results.length} chunks processed by Perplexity...`);
+  const combinedResult = combineAnalysisResults(results);
+  return combinedResult;
 }

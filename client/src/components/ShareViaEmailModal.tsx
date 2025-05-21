@@ -1,163 +1,204 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import React, { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Mail, Loader2 } from "lucide-react";
+import { Mail, X, Send, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { DocumentAnalysis, DocumentComparison, ShareViaEmailRequest } from "@/lib/types";
 
 interface ShareViaEmailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  reportContent: string;
-  subjectPrefix?: string;
+  analysisA: DocumentAnalysis;
+  analysisB?: DocumentAnalysis;
+  comparison?: DocumentComparison;
+  rewrittenAnalysis?: DocumentAnalysis;
 }
 
 const ShareViaEmailModal: React.FC<ShareViaEmailModalProps> = ({
   isOpen,
   onClose,
-  reportContent,
-  subjectPrefix = "Cognitive Profile Analysis"
+  analysisA,
+  analysisB,
+  comparison,
+  rewrittenAnalysis
 }) => {
   const { toast } = useToast();
   const [recipientEmail, setRecipientEmail] = useState("");
   const [senderEmail, setSenderEmail] = useState("");
   const [senderName, setSenderName] = useState("");
-  const [subject, setSubject] = useState(`${subjectPrefix}`);
-  const [isSending, setIsSending] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [includeRewrite, setIncludeRewrite] = useState(!!rewrittenAnalysis);
   
+  // Determine the document type based on available analyses
+  let documentType: 'single' | 'comparison' | 'rewrite' = 'single';
+  if (analysisB && comparison) {
+    documentType = 'comparison';
+  } else if (rewrittenAnalysis) {
+    documentType = 'rewrite';
+  }
+  
+  const subjectText = 
+    documentType === 'comparison' ? "Document Comparison Analysis Results" :
+    documentType === 'rewrite' ? "Document Analysis with Rewrite Results" :
+    "Intelligence Analysis Results";
+
   const handleSendEmail = async () => {
-    if (!recipientEmail.trim()) {
+    // Validate email
+    if (!recipientEmail || !recipientEmail.includes('@')) {
       toast({
-        title: "Missing information",
-        description: "Please enter a recipient email address.",
+        title: "Invalid email",
+        description: "Please enter a valid recipient email address.",
         variant: "destructive"
       });
       return;
     }
-    
-    setIsSending(true);
-    
+
+    // Prepare email data
+    const emailData: ShareViaEmailRequest = {
+      recipientEmail,
+      senderEmail: senderEmail || undefined,
+      senderName: senderName || undefined,
+      subject: subjectText,
+      documentType,
+      analysisA,
+      analysisB,
+      comparison,
+      rewrittenAnalysis: (documentType === 'rewrite' && includeRewrite) ? rewrittenAnalysis : undefined
+    };
+
+    setIsLoading(true);
+
     try {
-      const response = await fetch("/api/share-simple-email", {
-        method: "POST",
+      // Send the API request
+      const response = await fetch('/api/share-via-email', {
+        method: 'POST',
+        body: JSON.stringify(emailData),
         headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          recipientEmail: recipientEmail.trim(),
-          senderEmail: senderEmail.trim() || undefined,
-          senderName: senderName.trim() || undefined,
-          subject: subject.trim() || "Cognitive Profile Analysis",
-          content: reportContent
-        })
+          'Content-Type': 'application/json'
+        }
       });
-      
+
       const result = await response.json();
       
       if (result.success) {
         toast({
           title: "Email sent",
-          description: "The cognitive profile has been sent successfully."
+          description: "The analysis has been shared successfully.",
+          variant: "default"
         });
         onClose();
       } else {
-        throw new Error(result.message || "Failed to send email");
+        toast({
+          title: "Error sending email",
+          description: result.message || "Failed to send email",
+          variant: "destructive"
+        });
       }
-    } catch (error) {
-      console.error("Error sending email:", error);
+    } catch (error: any) {
       toast({
-        title: "Failed to send email",
-        description: error.message || "An unexpected error occurred. Please try again.",
+        title: "Error sending email",
+        description: error.message || "An unexpected error occurred while sharing the analysis.",
         variant: "destructive"
       });
     } finally {
-      setIsSending(false);
+      setIsLoading(false);
     }
   };
-  
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
-            Share Cognitive Profile via Email
+            Share Analysis via Email
           </DialogTitle>
+          <DialogDescription>
+            Send the {
+              documentType === 'comparison' ? 'document comparison analysis' :
+              documentType === 'rewrite' ? 'document analysis with rewrite' :
+              'document analysis'
+            } to yourself or others via email.
+          </DialogDescription>
         </DialogHeader>
         
-        <div className="mt-4 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="recipientEmail">Recipient Email <span className="text-red-500">*</span></Label>
-              <Input
-                id="recipientEmail"
-                placeholder="recipient@example.com"
-                value={recipientEmail}
-                onChange={(e) => setRecipientEmail(e.target.value)}
+        <div className="grid gap-4 py-4">
+          {rewrittenAnalysis && (
+            <div className="flex items-center space-x-2 bg-green-50 p-3 rounded-md mb-1">
+              <input
+                type="checkbox"
+                id="include-rewrite"
+                checked={includeRewrite}
+                onChange={(e) => setIncludeRewrite(e.target.checked)}
+                className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
               />
+              <label htmlFor="include-rewrite" className="text-sm font-medium text-gray-700">
+                Include intelligence-enhanced rewrite in email
+              </label>
             </div>
-            <div>
-              <Label htmlFor="senderEmail">Your Email (optional)</Label>
-              <Input
-                id="senderEmail"
-                placeholder="you@example.com"
-                value={senderEmail}
-                onChange={(e) => setSenderEmail(e.target.value)}
-              />
-            </div>
+          )}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="recipient-email" className="text-right">
+              To
+            </Label>
+            <Input
+              id="recipient-email"
+              type="email"
+              placeholder="recipient@example.com"
+              value={recipientEmail}
+              onChange={(e) => setRecipientEmail(e.target.value)}
+              className="col-span-3"
+              required
+            />
           </div>
           
-          <div>
-            <Label htmlFor="senderName">Your Name (optional)</Label>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="sender-name" className="text-right">
+              From Name
+            </Label>
             <Input
-              id="senderName"
-              placeholder="Your Name"
+              id="sender-name"
+              placeholder="Your Name (optional)"
               value={senderName}
               onChange={(e) => setSenderName(e.target.value)}
+              className="col-span-3"
             />
           </div>
           
-          <div>
-            <Label htmlFor="subject">Subject</Label>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="sender-email" className="text-right">
+              From Email
+            </Label>
             <Input
-              id="subject"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
+              id="sender-email"
+              type="email"
+              placeholder="your.email@example.com (optional)"
+              value={senderEmail}
+              onChange={(e) => setSenderEmail(e.target.value)}
+              className="col-span-3"
             />
-          </div>
-          
-          <div>
-            <Label htmlFor="preview">Content Preview</Label>
-            <Textarea
-              id="preview"
-              className="h-32 font-mono text-sm"
-              value={reportContent.substring(0, 200) + (reportContent.length > 200 ? '...' : '')}
-              readOnly
-            />
-            <p className="text-sm text-gray-500 mt-1">
-              The complete cognitive profile will be sent in the email.
-            </p>
           </div>
         </div>
         
-        <DialogFooter className="mt-6">
-          <Button type="button" variant="outline" onClick={onClose} disabled={isSending}>
+        <DialogFooter className="sm:justify-between">
+          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+            <X className="h-4 w-4 mr-2" />
             Cancel
           </Button>
-          <Button 
-            type="button" 
-            onClick={handleSendEmail}
-            disabled={isSending}
-            className="ml-2"
-          >
-            {isSending ? (
+          <Button onClick={handleSendEmail} disabled={isLoading}>
+            {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Sending...
               </>
-            ) : 'Send Email'}
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Send Email
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
