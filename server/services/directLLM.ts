@@ -54,15 +54,19 @@ Is there evidence of dialectical self-checking?
 Compression vs. Diffusion:
 Does the author say more with less, or less with more?
 
-IMPORTANT: At the very beginning of your response, provide a single numerical intelligence score between 0 and 100 that represents your assessment of the author's intellectual capabilities. Use this scale:
-- 0-20: Limited intellectual ability
-- 21-40: Below average intellectual ability
-- 41-60: Average intellectual ability
-- 61-80: Above average intellectual ability 
-- 81-90: Highly intelligent
-- 91-100: Exceptionally intelligent
+IMPORTANT: Based on your detailed analysis, at the VERY BEGINNING of your response, provide a single numerical intelligence score between 0 and 100 that ACCURATELY represents your assessment of the author's intellectual capabilities. 
 
-Format this as "Intelligence Score: [score]/100" as the first line of your response. Make sure your score is consistent with your detailed analysis that follows.`;
+Use this precise scale:
+- 0-20: Limited intellectual ability (significant deficiencies in critical thinking and conceptual understanding)
+- 21-40: Below average intellectual ability (some weaknesses in reasoning, limited conceptual depth)
+- 41-60: Average intellectual ability (adequate reasoning with standard concepts)
+- 61-80: Above average intellectual ability (strong reasoning with some conceptual sophistication)
+- 81-90: Highly intelligent (sophisticated reasoning with significant conceptual depth)
+- 91-100: Exceptionally intelligent (remarkable conceptual sophistication and intellectual originality)
+
+Format this exactly as "Intelligence Score: [score]/100" on its own line at the very beginning of your response.
+
+IMPORTANT: Make absolutely certain your score ACTUALLY MATCHES your detailed analysis that follows. For example, if your analysis identifies significant conceptual sophistication and original thinking, the score should be in the 80-100 range. If you find flaws in reasoning or conceptual limitations, adjust the score accordingly.`;
 
 /**
  * Split text into chunks for large document processing
