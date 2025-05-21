@@ -43,31 +43,126 @@ export async function analyzeDocument(
       }, 1000);
       
       try {
-        const response = await apiRequest("POST", "/api/analyze", {
-          ...document,
-          provider,
-          requireProgress: isLargeDocument
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            content: document.content,
+            provider,
+            requireProgress: isLargeDocument
+          })
         });
         
         clearInterval(progressTimer);
         onProgress(100); // Complete
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`API Error: ${response.status} - ${errorText.substring(0, 200)}`);
+        }
+        
         return await response.json();
       } catch (error) {
         clearInterval(progressTimer);
-        throw error;
+        console.error("Error analyzing document:", error);
+        
+        // Create a graceful fallback result with error information
+        return {
+          id: 0,
+          documentId: 0,
+          provider: `${provider} (Error)`,
+          formattedReport: `**Analysis Error**\n\nWe encountered an issue while analyzing your text: ${error.message || "Unknown error"}\n\nPlease try again or select a different AI provider.`,
+          overallScore: 0,
+          surface: {
+            grammar: 0, 
+            structure: 0, 
+            jargonUsage: 0,
+            surfaceFluency: 0
+          },
+          deep: {
+            conceptualDepth: 0,
+            inferentialContinuity: 0,
+            semanticCompression: 0,
+            logicalLaddering: 0,
+            originality: 0
+          },
+          error: true
+        };
       }
     } else {
       // For small documents, use the regular endpoint
-      const response = await apiRequest("POST", "/api/analyze", {
-        ...document,
-        provider
-      });
-      
-      return await response.json();
+      try {
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            content: document.content,
+            provider
+          })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`API Error: ${response.status} - ${errorText.substring(0, 200)}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error("Error analyzing document:", error);
+        
+        // Create a graceful fallback result with error information
+        return {
+          id: 0,
+          documentId: 0,
+          provider: `${provider} (Error)`,
+          formattedReport: `**Analysis Error**\n\nWe encountered an issue while analyzing your text: ${error.message || "Unknown error"}\n\nPlease try again or select a different AI provider.`,
+          overallScore: 0,
+          surface: {
+            grammar: 0, 
+            structure: 0, 
+            jargonUsage: 0,
+            surfaceFluency: 0
+          },
+          deep: {
+            conceptualDepth: 0,
+            inferentialContinuity: 0,
+            semanticCompression: 0,
+            logicalLaddering: 0,
+            originality: 0
+          },
+          error: true
+        };
+      }
     }
   } catch (error) {
-    console.error("Error analyzing document:", error);
-    throw error;
+    console.error("Unexpected error analyzing document:", error);
+    
+    // Create a graceful fallback result with error information
+    return {
+      id: 0,
+      documentId: 0,
+      provider: `${provider} (Error)`,
+      formattedReport: `**Analysis Error**\n\nWe encountered an issue while analyzing your text: ${error.message || "Unknown error"}\n\nPlease try again or select a different AI provider.`,
+      overallScore: 0,
+      surface: {
+        grammar: 0, 
+        structure: 0, 
+        jargonUsage: 0,
+        surfaceFluency: 0
+      },
+      deep: {
+        conceptualDepth: 0,
+        inferentialContinuity: 0,
+        semanticCompression: 0,
+        logicalLaddering: 0,
+        originality: 0
+      },
+      error: true
+    };
   }
 }
 

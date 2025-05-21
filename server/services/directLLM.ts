@@ -336,7 +336,7 @@ export async function directOpenAIAnalyze(text: string): Promise<any> {
           conceptualDepth: 0,
           inferentialContinuity: 0,
           semanticCompression: 0,
-          logicalScaffolding: 0,
+          logicalLaddering: 0,
           originality: 0
         }
       };
