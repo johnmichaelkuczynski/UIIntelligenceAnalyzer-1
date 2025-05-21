@@ -54,12 +54,36 @@ export default function PhilosophicalIntelligenceReport({ analysis }: Philosophi
     }
   ];
   
-  // Extract section for scoring (optional)
-  const scoreMatch = formattedReport.match(/(\d+)\s*\/\s*100/i);
+  // Extract intelligence score using a more robust regex that looks for the specific format
+  const scoreMatch = formattedReport.match(/Intelligence Score:\s*(\d+)\s*\/\s*100/i);
   const score = scoreMatch ? parseInt(scoreMatch[1]) : null;
   
-  // Overall assessment/impression extraction (look for the first few sentences)
-  const overallImpressionMatch = formattedReport.split(/\.\s+/g).slice(0, 3).join(". ");
+  // Get score tier description based on score value
+  const getScoreTier = (score: number | null) => {
+    if (score === null) return "";
+    if (score >= 91) return "Exceptionally Intelligent";
+    if (score >= 81) return "Highly Intelligent";
+    if (score >= 61) return "Above Average Intelligence";
+    if (score >= 41) return "Average Intelligence";
+    if (score >= 21) return "Below Average Intelligence";
+    return "Limited Intelligence";
+  };
+  
+  // Get tier color based on score
+  const getTierColor = (score: number | null) => {
+    if (score === null) return "bg-gray-600";
+    if (score >= 91) return "bg-purple-700";
+    if (score >= 81) return "bg-indigo-600";
+    if (score >= 61) return "bg-blue-600"; 
+    if (score >= 41) return "bg-green-600";
+    if (score >= 21) return "bg-yellow-500";
+    return "bg-red-500";
+  };
+  
+  // Overall assessment/impression extraction (look for the first paragraph after the score)
+  // This assumes the score is on the first line, followed by analysis paragraphs
+  const paragraphs = formattedReport.split(/\n\n+/);
+  const overallImpressionMatch = paragraphs.length > 1 ? paragraphs[1] : "";
   
   return (
     <div className="space-y-4">
@@ -82,18 +106,30 @@ export default function PhilosophicalIntelligenceReport({ analysis }: Philosophi
       </div>
       
       {score !== null && (
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex-1">
-            <div className="h-2 w-full bg-gray-200 rounded-full">
-              <div 
-                className="h-2 bg-blue-600 rounded-full" 
-                style={{ width: `${score}%` }}
-              ></div>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+          <div className="flex flex-col mb-2">
+            <span className="text-sm text-gray-500">Intelligence Score</span>
+            <div className="flex items-center">
+              <span className="text-3xl font-bold text-gray-800">{score}</span>
+              <span className="text-xl text-gray-400 ml-1">/100</span>
+              <span className={`ml-3 px-3 py-1 text-xs text-white rounded-full ${getTierColor(score)}`}>
+                {getScoreTier(score)}
+              </span>
             </div>
           </div>
-          <span className="text-lg font-semibold text-blue-800">
-            {score}/100
-          </span>
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+            <div 
+              className={`h-2.5 rounded-full ${getTierColor(score)}`}
+              style={{ width: `${score}%` }}
+            ></div>
+          </div>
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>0</span>
+            <span>25</span>
+            <span>50</span>
+            <span>75</span>
+            <span>100</span>
+          </div>
         </div>
       )}
       
