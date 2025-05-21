@@ -56,8 +56,11 @@ Does the author say more with less, or less with more?
 
 Follow the format below for your response:
 
-1. First provide a detailed analysis for each category listed above
-2. Conclude with a summary of your overall assessment of the author's intelligence`;
+1. For each category listed above, provide a detailed analysis that includes direct quotes from the text to justify your assessment.
+2. Include specific examples from the text that reveal the author's intellectual capabilities.
+3. Conclude with a summary of your overall assessment of the author's intelligence based solely on this specific text.
+
+IMPORTANT: Make sure to include actual quotes from the text to support your analysis. Do not make generalizations without backing them up with specific evidence from this particular text.`;
 
 /**
  * Split text into chunks for large document processing
