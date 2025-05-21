@@ -62,7 +62,8 @@ IMPORTANT: After your analysis, please provide a single numerical score between 
  */
 function splitTextIntoChunks(textInput: string, maxChunkSize = MAX_CHUNK_SIZE): string[] {
   const text = textInput || "";
-  if (text.length <= maxChunkSize) {
+  // Never split short documents at all - fix the document splitting issue
+  if (text.length <= 25000) {
     return [text];
   }
 
