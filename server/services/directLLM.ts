@@ -273,9 +273,9 @@ export async function directOpenAIAnalyze(text: string): Promise<any> {
       
       // No JSON parsing, keep the raw text
       const result = { 
-        formattedReport: response.choices[0].message.content || "" 
+        formattedReport: response.choices[0].message.content || "",
+        provider: "OpenAI (GPT-4o)"
       };
-      result.provider = "OpenAI (GPT-4o)";
       results.push(result);
       console.log(`Successfully processed chunk ${i+1}`);
       

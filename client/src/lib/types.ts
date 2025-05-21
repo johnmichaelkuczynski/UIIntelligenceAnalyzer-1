@@ -52,52 +52,18 @@ export interface AnalysisDimension {
 }
 
 export interface DocumentAnalysis {
-  summary: string;
-  overallScore: number;
-  overallAssessment: string;
-  dimensions: {
-    definitionCoherence: AnalysisDimension;
-    claimFormation: AnalysisDimension;
-    inferentialContinuity: AnalysisDimension;
-    semanticLoad: AnalysisDimension;
-    jargonDetection: AnalysisDimension;
-    surfaceComplexity: AnalysisDimension;
-    deepComplexity: AnalysisDimension;
-  };
-  aiDetection?: {
-    isAI: boolean;
-    probability: number;
-  };
-  provider?: string; // Which AI provider generated this analysis
+  id?: number;
+  documentId?: number;
+  summary?: string;
+  overallScore?: number;
   
-  // Surface metrics for reporting
-  surface?: {
-    grammar: number;
-    structure: number;
-    jargonUsage: number;
-    surfaceFluency: number;
-  };
-  
-  // Deep metrics for reporting
-  deep?: {
-    conceptualDepth: number;
-    inferentialContinuity: number;
-    claimNecessity: number;
-    semanticCompression: number;
-    logicalLaddering: number;
-    depthFluency: number;
-    originality: number;
-  };
-  
-  // Detailed textual analysis
-  analysis?: string;
-  
-  // Standardized formatted report in the specified structure
+  // Critical fields needed by the simplified interface
   formattedReport?: string;
+  provider?: string;
   
-  // For numerical summary
-  surfaceScore?: number;
-  deepScore?: number;
+  // Optional fields for error handling and AI detection
+  aiDetection?: AIDetectionResult;
+  error?: boolean;
 }
 
 export interface DocumentComparison {
