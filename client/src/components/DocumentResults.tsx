@@ -11,6 +11,7 @@ import EnhancedRewriteSection from "./EnhancedRewriteSection";
 import DirectWebContentSearch from "./DirectWebContentSearch";
 import DirectTextExport from "./DirectTextExport";
 import FullReportDialog from "./FullReportDialog";
+import ReportExportButtons from "./ReportExportButtons";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -454,6 +455,17 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
           <BrainCircuit className="h-5 w-5" />
           <span className="font-medium">View Complete Intelligence Report</span>
         </Button>
+        
+        {/* Export Options */}
+        <div className="mt-3 pt-3 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-700">Export Report</span>
+            <ReportExportButtons 
+              analysis={analysis} 
+              originalText={originalDocument?.content || ''}
+            />
+          </div>
+        </div>
       </div>
 
       {/* AI Detection Result (if available) */}

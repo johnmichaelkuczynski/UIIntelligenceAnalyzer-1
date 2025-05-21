@@ -690,6 +690,40 @@ export async function registerRoutes(app: Express): Promise<Express> {
     }
   });
 
+  // Simple Email Sharing - Send report via email
+  app.post("/api/share-simple-email", async (req: Request, res: Response) => {
+    try {
+      const { recipientEmail, senderEmail, senderName, subject, content } = req.body;
+      
+      if (!recipientEmail || !subject || !content) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing required fields: recipientEmail, subject, or content"
+        });
+      }
+      
+      // Import the email service
+      const { sendSimpleEmail } = await import('./api/simpleEmailService');
+      
+      // Send the email
+      const result = await sendSimpleEmail({
+        recipientEmail,
+        senderEmail,
+        senderName,
+        subject,
+        content
+      });
+      
+      return res.json(result);
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Error sending email"
+      });
+    }
+  });
+  
   // DIRECT MODEL REQUEST - Send instructions directly to AI models
   app.post("/api/direct-model-request", async (req: Request, res: Response) => {
     try {
