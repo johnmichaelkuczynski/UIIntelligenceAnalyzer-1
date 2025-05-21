@@ -1,13 +1,16 @@
 import { Express, Request, Response, NextFunction } from "express";
 import multer from "multer";
-import { extractTextFromFile } from "./api/documentParser";
-import { checkForAI } from "./api/gptZero";
-import { searchGoogle, fetchUrlContent } from "./api/googleSearch";
-import { conductAdvancedResearch } from "./api/advancedResearch";
-import { getEnhancementSuggestions } from "./api/enhancementSuggestions";
+import { storage } from "./storage";
 import path from "path";
+import { extractTextFromFile } from "./api/documentParser";
+import { sendSimpleEmail } from "./api/simpleEmailService";
 
-// Define the types here to avoid circular dependencies
+// Configure multer for file uploads
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
+
 interface DocumentInput {
   content: string;
   filename?: string;
@@ -25,87 +28,97 @@ interface AIDetectionResult {
   probability: number;
 }
 
-// Set up multer for file uploads
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
-});
-
 export async function registerRoutes(app: Express): Promise<Express> {
-  // Basic API test
+  
+  // API health check endpoint
   app.get("/api/check-api", async (_req: Request, res: Response) => {
-    try {
-      // Check if API keys are available (don't expose the actual keys)
-      const apiStatus = {
-        status: "operational",
-        api_keys: {
-          openai: process.env.OPENAI_API_KEY ? "configured" : "missing",
-          anthropic: process.env.ANTHROPIC_API_KEY ? "configured" : "missing",
-          perplexity: process.env.PERPLEXITY_API_KEY ? "configured" : "missing"
-        },
-        timestamp: new Date().toISOString()
-      };
-      
-      console.log("API Status Check:", {
-        openai: process.env.OPENAI_API_KEY ? "✓" : "✗",
-        anthropic: process.env.ANTHROPIC_API_KEY ? "✓" : "✗",  
-        perplexity: process.env.PERPLEXITY_API_KEY ? "✓" : "✗"
-      });
-      
-      res.json(apiStatus);
-    } catch (error: any) {
-      console.error("Error checking API status:", error);
-      res.status(500).json({ message: error.message || "Error checking API status" });
-    }
+    const openai_key = process.env.OPENAI_API_KEY;
+    const anthropic_key = process.env.ANTHROPIC_API_KEY;
+    const perplexity_key = process.env.PERPLEXITY_API_KEY;
+    
+    // Check API keys
+    res.json({
+      status: "operational",
+      api_keys: {
+        openai: openai_key ? "configured" : "missing",
+        anthropic: anthropic_key ? "configured" : "missing",
+        perplexity: perplexity_key ? "configured" : "missing"
+      }
+    });
+    
+    // Log API status for monitoring
+    console.log("API Status Check:", { 
+      openai: openai_key ? "✓" : "✗", 
+      anthropic: anthropic_key ? "✓" : "✗", 
+      perplexity: perplexity_key ? "✓" : "✗" 
+    });
   });
-
-  // Extract text from an uploaded file
+  
+  // Extract text from uploaded document
   app.post("/api/extract-text", upload.single("file"), async (req: Request, res: Response) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
+      if (!req.file && !req.body.content) {
+        return res.status(400).json({ error: "No file or content provided" });
       }
       
-      const uploadedFile = req.file;
-      const documentInput = await extractTextFromFile(uploadedFile);
-      res.json(documentInput);
+      // Direct content input
+      if (req.body.content) {
+        return res.json({
+          content: req.body.content,
+          filename: req.body.filename || "direct-input.txt",
+          mimeType: "text/plain",
+          metadata: {}
+        });
+      }
+      
+      // Process uploaded file
+      const result = await extractTextFromFile(req.file!);
+      return res.json(result);
     } catch (error: any) {
       console.error("Error extracting text:", error);
-      res.status(500).json({ message: error.message || "Error extracting text from file" });
+      return res.status(500).json({ 
+        error: true, 
+        message: error.message || "Failed to extract text from document"
+      });
     }
   });
-
-  // Check if a document is AI-generated
+  
+  // Check if text is AI-generated
   app.post("/api/check-ai", async (req: Request, res: Response) => {
     try {
       const document: DocumentInput = req.body;
       
-      if (!document.content) {
-        return res.status(400).json({ message: "Document content is required" });
+      if (!document || !document.content) {
+        return res.status(400).json({ error: "Document content is required" });
       }
+
+      // Import the AI detection method
+      const { checkForAI } = await import('./api/gptZero');
       
+      // Check for AI using the selected service
+      console.log("DETECTING AI CONTENT");
       const result = await checkForAI(document);
-      res.json(result);
+      return res.json(result);
     } catch (error: any) {
       console.error("Error checking for AI:", error);
-      res.status(500).json({ message: error.message || "Error checking for AI" });
+      return res.status(500).json({ 
+        error: true, 
+        message: error.message || "Failed to check for AI"
+      });
     }
   });
-
-  // PURE PASS-THROUGH SINGLE ANALYSIS - Direct to LLM with no custom algorithms
+  
+  // Analyze document
   app.post("/api/analyze", async (req: Request, res: Response) => {
     try {
-      const { content, provider = "openai" } = req.body;
+      const { content, provider = "openai", requireProgress = false } = req.body;
       
       if (!content) {
         return res.status(400).json({ 
           error: true, 
           message: "Document content is required",
           formattedReport: "Error: Document content is required",
-          provider: provider,
-          overallScore: 0,
-          surface: { grammar: 0, structure: 0, jargonUsage: 0, surfaceFluency: 0 },
-          deep: { conceptualDepth: 0, inferentialContinuity: 0, semanticCompression: 0, logicalLaddering: 0, originality: 0 }
+          provider: provider
         });
       }
       
@@ -135,585 +148,266 @@ export async function registerRoutes(app: Express): Promise<Express> {
             break;
         }
         
-        // Format the result for frontend display
-        const extractQuote = (content: string, position: number): string => {
-          if (!content) return "";
-          const words = content.split(/\s+/);
-          const start = Math.max(0, Math.min(Math.floor(words.length * position / 100) - 10, words.length - 20));
-          const extract = words.slice(start, start + 20).join(" ");
-          return extract || "Sample quote not available";
-        };
-        
-        const getScoreRating = (score: number): string => {
-          if (score >= 95) return "Exceptional";
-          if (score >= 90) return "Very Strong";
-          if (score >= 85) return "Strong";
-          if (score >= 80) return "Moderate";
-          if (score >= 70) return "Basic";
-          if (score >= 60) return "Weak";
-          if (score >= 40) return "Very Weak";
-          return "Critically Deficient";
-        };
-        
-        const formattedResult = {
+        // Simple passthrough of the direct AI model response
+        const result = {
           id: 0,
           documentId: 0,
           provider: directResult.provider || provider,
-          summary: directResult.analysis?.substring(0, 300) + "..." || "Analysis not available",
-          overallScore: directResult.overallScore,
-          overallAssessment: directResult.analysis?.substring(0, 500) || "Analysis not available",
-          dimensions: {
-            definitionCoherence: {
-              name: "Definition Coherence",
-              rating: getScoreRating(directResult.deep?.claimNecessity || 60),
-              description: "How well concepts are defined and build on each other",
-              quote: extractQuote(content, 10)
-            },
-            claimFormation: {
-              name: "Claim Formation", 
-              rating: getScoreRating(directResult.deep?.conceptualDepth || 60),
-              description: "How clearly claims are formulated and supported",
-              quote: extractQuote(content, 30)
-            },
-            inferentialContinuity: {
-              name: "Inferential Continuity",
-              rating: getScoreRating(directResult.deep?.inferentialContinuity || 60),
-              description: "How clearly claims follow from previous claims",
-              quote: extractQuote(content, 50)
-            },
-            semanticLoad: {
-              name: "Semantic Compression",
-              rating: getScoreRating(directResult.deep?.semanticCompression || 60),
-              description: "How much meaning is packed into minimal language",
-              quote: extractQuote(content, 70)
-            },
-            jargonDetection: {
-              name: "Jargon Usage",
-              rating: getScoreRating(directResult.deep?.originality || 60),
-              description: "How appropriately technical language is employed",
-              quote: extractQuote(content, 20)
-            },
-            surfaceComplexity: {
-              name: "Surface Structure",
-              rating: getScoreRating(directResult.deep?.depthFluency || 60), 
-              description: "How well the text is organized at a high level",
-              quote: extractQuote(content, 40)
-            },
-            deepComplexity: {
-              name: "Logical Laddering",
-              rating: getScoreRating(directResult.deep?.logicalLaddering || 60),
-              description: "How well the text builds recursive argument structures",
-              quote: extractQuote(content, 60)
-            }
-          },
-          analysis: directResult.analysis,
-          rawResponse: directResult,
-          createdAt: new Date().toISOString()
+          formattedReport: directResult.formattedReport || "Analysis not available"
         };
         
-        // Return the result to the client
-        res.json(formattedResult);
-      } catch (analysisError: any) {
-        console.error(`Error with direct ${provider} analysis:`, analysisError);
-        res.status(500).json({ 
-          message: `Error analyzing document with direct ${provider} passthrough`, 
-          error: analysisError.message 
+        return res.json(result);
+      } catch (error: any) {
+        console.error(`Error in direct passthrough to ${provider}:`, error);
+        return res.status(200).json({
+          id: 0,
+          documentId: 0, 
+          provider: `${provider} (Error)`,
+          formattedReport: `Error analyzing document with direct ${provider} passthrough: ${error.message || "Unknown error"}`
         });
       }
     } catch (error: any) {
-      console.error("Error starting document analysis:", error);
-      res.status(500).json({ message: error.message || "Error starting document analysis" });
+      console.error("Error analyzing document:", error);
+      return res.status(500).json({ 
+        error: true, 
+        message: `Error analyzing document: ${error.message}`
+      });
     }
   });
-
-  // PURE PASS-THROUGH COMPARISON - Direct LLM with no custom algorithms
+  
+  // Compare two documents
   app.post("/api/compare", async (req: Request, res: Response) => {
     try {
       const { documentA, documentB, provider = "openai" } = req.body;
       
-      if (!documentA?.content || !documentB?.content) {
-        return res.status(400).json({ message: "Two documents with content are required" });
+      if (!documentA || !documentB) {
+        return res.status(400).json({ error: "Both documents are required for comparison" });
       }
       
-      // Import the direct analysis methods
-      const { 
-        directOpenAIAnalyze, 
-        directAnthropicAnalyze, 
-        directPerplexityAnalyze 
-      } = await import('./services/directLLM');
+      // Import the document comparison service
+      const { compareDocuments } = await import('./services/documentComparison');
       
-      try {
-        // Analyze both documents with the specified provider
-        console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR COMPARISON`);
-        
-        let analyzeWithProvider;
-        
-        switch (provider.toLowerCase()) {
-          case 'anthropic':
-            analyzeWithProvider = directAnthropicAnalyze;
-            break;
-          case 'perplexity':
-            analyzeWithProvider = directPerplexityAnalyze;
-            break;
-          case 'openai':
-          default:
-            analyzeWithProvider = directOpenAIAnalyze;
-            break;
-        }
-        
-        // Analyze both documents
-        const resultA = await analyzeWithProvider(documentA.content);
-        const resultB = await analyzeWithProvider(documentB.content);
-        
-        // Helper functions for formatting
-        const extractQuote = (content: string, position: number): string => {
-          if (!content) return "";
-          const words = content.split(/\s+/);
-          const start = Math.max(0, Math.min(Math.floor(words.length * position / 100) - 10, words.length - 20));
-          const extract = words.slice(start, start + 20).join(" ");
-          return extract || "Sample quote not available";
-        };
-        
-        const getScoreRating = (score: number): string => {
-          if (score >= 95) return "Exceptional";
-          if (score >= 90) return "Very Strong";
-          if (score >= 85) return "Strong";
-          if (score >= 80) return "Moderate";
-          if (score >= 70) return "Basic";
-          if (score >= 60) return "Weak";
-          if (score >= 40) return "Very Weak";
-          return "Critically Deficient";
-        };
-        
-        // Format the results
-        const formatResult = (result: any, content: string) => ({
-          id: 0,
-          documentId: 0,
-          provider: result.provider || provider,
-          summary: result.analysis || "Analysis not available",
-          overallScore: result.overallScore,
-          overallAssessment: result.analysis || "Analysis not available",
-          dimensions: {
-            definitionCoherence: {
-              name: "Definition Coherence",
-              rating: getScoreRating(result.deep?.claimNecessity || 60),
-              description: "How well concepts are defined and build on each other",
-              quote: extractQuote(content, 10)
-            },
-            claimFormation: {
-              name: "Claim Formation", 
-              rating: getScoreRating(result.deep?.conceptualDepth || 60),
-              description: "How clearly claims are formulated and supported",
-              quote: extractQuote(content, 30)
-            },
-            inferentialContinuity: {
-              name: "Inferential Continuity",
-              rating: getScoreRating(result.deep?.inferentialContinuity || 60),
-              description: "How clearly claims follow from previous claims",
-              quote: extractQuote(content, 50)
-            },
-            semanticLoad: {
-              name: "Semantic Compression",
-              rating: getScoreRating(result.deep?.semanticCompression || 60),
-              description: "How much meaning is packed into minimal language",
-              quote: extractQuote(content, 70)
-            },
-            jargonDetection: {
-              name: "Jargon Usage",
-              rating: getScoreRating(result.deep?.originality || 60),
-              description: "How appropriately technical language is employed",
-              quote: extractQuote(content, 20)
-            },
-            surfaceComplexity: {
-              name: "Surface Structure",
-              rating: getScoreRating(result.deep?.depthFluency || 60), 
-              description: "How well the text is organized at a high level",
-              quote: extractQuote(content, 40)
-            },
-            deepComplexity: {
-              name: "Logical Laddering",
-              rating: getScoreRating(result.deep?.logicalLaddering || 60),
-              description: "How well the text builds recursive argument structures",
-              quote: extractQuote(content, 60)
-            }
-          },
-          analysis: result.analysis,
-          rawResponse: result,
-          createdAt: new Date().toISOString()
-        });
-        
-        const analysisA = formatResult(resultA, documentA.content);
-        const analysisB = formatResult(resultB, documentB.content);
-        
-        // Create a comparison object
-        const comparison = {
-          id: 0,
-          documentAId: 0,
-          documentBId: 0,
-          overallDifference: Math.abs(resultA.overallScore - resultB.overallScore),
-          comparisonTable: [
-            {
-              dimension: "Definition Coherence",
-              documentA: getScoreRating(resultA.deep?.claimNecessity || 60),
-              documentB: getScoreRating(resultB.deep?.claimNecessity || 60)
-            },
-            {
-              dimension: "Claim Formation", 
-              documentA: getScoreRating(resultA.deep?.conceptualDepth || 60),
-              documentB: getScoreRating(resultB.deep?.conceptualDepth || 60)
-            },
-            {
-              dimension: "Inferential Continuity",
-              documentA: getScoreRating(resultA.deep?.inferentialContinuity || 60),
-              documentB: getScoreRating(resultB.deep?.inferentialContinuity || 60)
-            },
-            {
-              dimension: "Semantic Compression",
-              documentA: getScoreRating(resultA.deep?.semanticCompression || 60),
-              documentB: getScoreRating(resultB.deep?.semanticCompression || 60)
-            },
-            {
-              dimension: "Jargon Usage",
-              documentA: getScoreRating(resultA.deep?.originality || 60),
-              documentB: getScoreRating(resultB.deep?.originality || 60)
-            },
-            {
-              dimension: "Surface Structure",
-              documentA: getScoreRating(resultA.deep?.depthFluency || 60),
-              documentB: getScoreRating(resultB.deep?.depthFluency || 60)
-            },
-            {
-              dimension: "Logical Laddering",
-              documentA: getScoreRating(resultA.deep?.logicalLaddering || 60),
-              documentB: getScoreRating(resultB.deep?.logicalLaddering || 60)
-            }
-          ],
-          documentA: {
-            score: resultA.overallScore,
-            strengths: [],
-            style: []
-          },
-          documentB: {
-            score: resultB.overallScore,
-            strengths: [],
-            style: []
-          },
-          finalJudgment: `Direct comparison using ${provider} evaluation. No custom algorithms were used.`,
-          createdAt: new Date().toISOString()
-        };
-        
-        // Return the results
-        res.json({
-          analysisA,
-          analysisB,
-          comparison,
-          provider
-        });
-      } catch (comparisonError: any) {
-        console.error(`Error with direct ${provider} comparison:`, comparisonError);
-        res.status(500).json({ 
-          message: `Error comparing documents with direct ${provider} passthrough`, 
-          error: comparisonError.message 
-        });
-      }
+      // Compare documents using the selected provider
+      console.log(`COMPARING DOCUMENTS WITH ${provider.toUpperCase()}`);
+      const result = await compareDocuments(documentA, documentB, provider);
+      return res.json(result);
     } catch (error: any) {
-      console.error("Error starting document comparison:", error);
-      res.status(500).json({ message: error.message || "Error starting document comparison" });
+      console.error("Error comparing documents:", error);
+      return res.status(500).json({ 
+        error: true, 
+        message: error.message || "Failed to compare documents" 
+      });
     }
   });
-
-  // Share analysis results via email
+  
+  // Share analysis via email
   app.post("/api/share-via-email", async (req: Request, res: Response) => {
-    // Not implemented without email service
-    res.status(501).json({ 
-      success: false, 
-      message: "Email sharing not implemented in this version" 
-    });
+    try {
+      const { 
+        recipientEmail, 
+        senderEmail, 
+        senderName,
+        subject, 
+        documentType, 
+        analysisA,
+        analysisB, 
+        comparison,
+        rewrittenAnalysis
+      } = req.body;
+      
+      if (!recipientEmail || !subject || !analysisA) {
+        return res.status(400).json({ error: "Recipient email, subject, and analysis are required" });
+      }
+      
+      // Import the email service
+      const { sendAnalysisEmail } = await import('./services/emailService');
+      
+      // Send email with the analysis
+      console.log(`SENDING EMAIL TO ${recipientEmail}`);
+      const result = await sendAnalysisEmail({
+        recipientEmail,
+        senderEmail,
+        senderName,
+        subject,
+        documentType,
+        analysisA,
+        analysisB,
+        comparison,
+        rewrittenAnalysis
+      });
+      
+      return res.json(result);
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      return res.status(500).json({ 
+        success: false, 
+        message: error.message || "Failed to send email" 
+      });
+    }
   });
   
-  // Get enhancement suggestions from AI providers for rewriting
+  // Get enhancement suggestions
   app.post("/api/get-enhancement-suggestions", async (req: Request, res: Response) => {
     try {
       const { text, provider = "openai" } = req.body;
       
       if (!text) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Text content is required" 
-        });
+        return res.status(400).json({ error: "Text is required" });
       }
       
-      console.log(`Getting enhancement suggestions from ${provider}...`);
-      const suggestions = await getEnhancementSuggestions(text, provider);
+      // Import the enhancement suggestions service
+      const { getEnhancementSuggestions } = await import('./api/enhancementSuggestions');
       
-      res.json({
-        success: true,
-        suggestions,
-        provider
-      });
+      // Get suggestions using the selected provider
+      console.log(`GETTING ENHANCEMENT SUGGESTIONS FROM ${provider.toUpperCase()}`);
+      const suggestions = await getEnhancementSuggestions(text, provider);
+      return res.json(suggestions);
     } catch (error: any) {
       console.error("Error getting enhancement suggestions:", error);
-      res.status(500).json({ 
-        success: false, 
-        message: error.message || "Error getting enhancement suggestions" 
+      return res.status(500).json({ 
+        error: true, 
+        message: error.message || "Failed to get enhancement suggestions" 
       });
     }
   });
   
-  // Search Google for relevant information
+  // Google search
   app.post("/api/search-google", async (req: Request, res: Response) => {
     try {
       const { query, numResults = 5 } = req.body;
       
       if (!query) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Search query is required" 
-        });
+        return res.status(400).json({ error: "Search query is required" });
       }
       
-      console.log(`Searching Google for: ${query}`);
-      const searchResults = await searchGoogle(query, numResults);
+      // Import the Google search service
+      const { searchGoogle } = await import('./api/googleSearch');
       
-      res.json({
-        success: true,
-        results: searchResults
-      });
+      // Search using Google Custom Search API
+      console.log(`SEARCHING GOOGLE FOR: ${query}`);
+      const results = await searchGoogle(query, numResults);
+      return res.json(results);
     } catch (error: any) {
       console.error("Error searching Google:", error);
-      res.status(500).json({ 
-        success: false, 
-        message: error.message || "Error searching Google" 
+      return res.status(500).json({ 
+        error: true, 
+        message: error.message || "Failed to search Google" 
       });
     }
   });
   
-  // Fetch content from a URL
+  // Fetch content from URL
   app.post("/api/fetch-url-content", async (req: Request, res: Response) => {
     try {
       const { url } = req.body;
       
       if (!url) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "URL is required" 
-        });
+        return res.status(400).json({ error: "URL is required" });
       }
       
-      console.log(`Fetching content from URL: ${url}`);
+      // Import the URL content fetcher
+      const { fetchUrlContent } = await import('./api/googleSearch');
+      
+      // Fetch content from the URL
+      console.log(`FETCHING CONTENT FROM: ${url}`);
       const content = await fetchUrlContent(url);
       
       if (!content) {
-        return res.status(404).json({
-          success: false,
-          message: "Could not extract content from the provided URL"
+        return res.json({ 
+          url, 
+          success: false, 
+          content: "Could not extract content from this URL" 
         });
       }
       
-      // Limit content to 5000 characters to avoid overwhelming the LLMs
-      const trimmedContent = content.length > 5000 ? content.substring(0, 5000) + "..." : content;
-      
-      res.json({
-        success: true,
-        content: trimmedContent
-      });
+      return res.json({ url, success: true, content });
     } catch (error: any) {
       console.error("Error fetching URL content:", error);
-      res.status(500).json({ 
+      return res.status(500).json({ 
+        url: req.body.url,
         success: false, 
-        message: error.message || "Error fetching URL content" 
+        message: error.message || "Failed to fetch URL content" 
       });
     }
   });
-
-  // PURE PASS-THROUGH REWRITE - Direct to LLM with no custom algorithms
+  
+  // Rewrite document
   app.post("/api/rewrite", async (req: Request, res: Response) => {
     try {
-      const { originalText, provider = "openai", options } = req.body;
+      const { originalText, options, provider = "openai" } = req.body;
       
-      if (!originalText || !options?.instruction) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Missing required rewrite fields" 
-        });
+      if (!originalText) {
+        return res.status(400).json({ error: "Original text is required" });
       }
       
+      if (!options || !options.instruction) {
+        return res.status(400).json({ error: "Rewrite instruction is required" });
+      }
+      
+      // Import the document rewrite service
+      const { rewriteDocument } = await import('./services/documentRewrite');
+      
+      // Log rewrite request
       console.log(`Starting direct passthrough rewrite with ${provider}`);
       console.log(`Text size: ${originalText.length} characters`);
       console.log(`Instruction: ${options.instruction}`);
       
-      // Import the direct rewrite method
-      const { directRewrite } = await import('./services/directLLM');
+      // Rewrite the document using the specified provider
+      console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR REWRITE`);
+      const result = await rewriteDocument(originalText, options, provider);
       
-      // Enhance instruction with web content if enhanced options are provided
-      let enhancedInstruction = options.instruction;
-      
-      // Handle web content enrichment 
-      if (options.selectedSuggestions?.length || options.selectedSearchResults?.length) {
-        console.log("Using enhanced rewrite with external content");
-        
-        // Add AI suggestions to instruction if available
-        if (options.includeSuggestions && options.selectedSuggestions?.length) {
-          enhancedInstruction += "\n\nINCORPORATE THESE SPECIFIC SUGGESTIONS:\n";
-          options.selectedSuggestions.forEach((suggestion: any, index: number) => {
-            enhancedInstruction += `${index+1}. ${suggestion.title}: ${suggestion.content}\n`;
-          });
-          enhancedInstruction += "\n";
-        }
-        
-        // Add web search results to instruction if available
-        if (options.includeSearchResults && options.selectedSearchResults?.length) {
-          enhancedInstruction += "\n\nINCORPORATE THIS INFORMATION FROM WEB SOURCES:\n";
-          
-          // Process each search result
-          for (let i = 0; i < options.selectedSearchResults.length; i++) {
-            const result = options.selectedSearchResults[i];
-            
-            // Add the search result title and snippet
-            enhancedInstruction += `${i+1}. ${result.title}: ${result.snippet}\n`;
-            
-            // Fetch and add content from the URL if available
-            try {
-              console.log(`Fetching content from ${result.link}`);
-              const content = await fetchUrlContent(result.link);
-              if (content) {
-                // Add a portion of the content to the instruction (limited to 500 chars)
-                enhancedInstruction += `   Content excerpt: ${content.substring(0, 500)}...\n\n`;
-              }
-            } catch (error) {
-              console.error(`Error fetching content from ${result.link}:`, error);
-              // Continue with next result if one fails
-            }
-          }
-        }
-      }
-      
-      // Also support simple text-based content enrichment for all rewrite modes
-      if (options.enrichmentContent) {
-        enhancedInstruction += "\n\nINCORPORATE THIS ADDITIONAL INFORMATION:\n";
-        
-        if (typeof options.enrichmentContent === 'string') {
-          // If it's a string, add it directly
-          enhancedInstruction += options.enrichmentContent;
-        } else if (Array.isArray(options.enrichmentContent)) {
-          // If it's an array of content items
-          options.enrichmentContent.forEach((item: any, index: number) => {
-            if (typeof item === 'string') {
-              enhancedInstruction += `${index+1}. ${item}\n`;
-            } else if (item.title && item.content) {
-              enhancedInstruction += `${index+1}. ${item.title}: ${item.content}\n`;
-            }
-          });
-        }
-      }
-      
-      try {
-        // DIRECT PASS-THROUGH TO LLM - No custom algorithms
-        console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR REWRITE`);
-        
-        // Pass the entire options object to include web content
-        const result = await directRewrite(originalText, enhancedInstruction, provider, options);
-        
-        // Simply return the result from the LLM with no evaluation
-        console.log(`DIRECT PASSTHROUGH REWRITE COMPLETE - Using ${provider}`);
-        
-        res.json({
-          originalText: result.originalText,
-          rewrittenText: result.rewrittenText,
-          stats: result.stats,
-          provider: result.provider || provider,
-          directPassthrough: true,
-          instruction: options.instruction
-        });
-      } catch (rewriteError: any) {
-        console.error("Rewrite error:", rewriteError);
-        res.status(500).json({
-          success: false,
-          message: rewriteError.message || "Error during rewrite process"
-        });
-      }
+      // Log completion
+      console.log(`DIRECT PASSTHROUGH REWRITE COMPLETE - Using ${provider}`);
+      return res.json(result);
     } catch (error: any) {
-      console.error("Error starting rewrite:", error);
-      res.status(500).json({ 
-        success: false, 
-        message: error.message || "Error starting rewrite process" 
+      console.error("Error rewriting document:", error);
+      return res.status(500).json({ 
+        error: true, 
+        message: error.message || "Failed to rewrite document" 
       });
     }
   });
-
-  // PURE PASS-THROUGH TRANSLATION - Direct to LLM with no custom algorithms
+  
+  // Translate document
   app.post("/api/translate", async (req: Request, res: Response) => {
     try {
-      const { content, provider = "openai", options } = req.body;
+      const { text, options, provider = "openai" } = req.body;
       
-      if (!content || !options?.sourceLanguage || !options?.targetLanguage) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Missing required translation fields" 
-        });
+      if (!text) {
+        return res.status(400).json({ error: "Text is required" });
       }
       
-      console.log(`Starting direct passthrough translation with ${provider}`);
-      console.log(`From ${options.sourceLanguage} to ${options.targetLanguage}`);
-      console.log(`Text size: ${content.length} characters`);
-      
-      // Import the direct translate method
-      const { directTranslate } = await import('./services/directLLM');
-      
-      try {
-        // DIRECT PASS-THROUGH TO LLM - No custom algorithms
-        console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR TRANSLATION`);
-        
-        // For smaller texts, just do a single request
-        const result = await directTranslate(
-          content, 
-          options.sourceLanguage, 
-          options.targetLanguage, 
-          provider
-        );
-        
-        // Return the result
-        res.json({
-          originalText: result.originalText,
-          translatedText: result.translatedText,
-          sourceLanguage: result.sourceLanguage,
-          targetLanguage: result.targetLanguage,
-          provider: result.provider || provider,
-          directPassthrough: true,
-          stats: result.stats
-        });
-      } catch (translationError: any) {
-        console.error("Translation error:", translationError);
-        res.status(500).json({
-          success: false,
-          message: translationError.message || "Error during translation process"
-        });
+      if (!options || !options.targetLanguage) {
+        return res.status(400).json({ error: "Target language is required" });
       }
+      
+      // Import the translation service
+      const { translateDocument } = await import('./services/translationService');
+      
+      // Translate the document
+      console.log(`TRANSLATING TO ${options.targetLanguage.toUpperCase()} WITH ${provider.toUpperCase()}`);
+      const result = await translateDocument(text, options, provider);
+      return res.json(result);
     } catch (error: any) {
-      console.error("Error starting translation:", error);
-      res.status(500).json({ 
-        success: false, 
-        message: error.message || "Error starting translation process" 
+      console.error("Error translating document:", error);
+      return res.status(500).json({ 
+        error: true, 
+        message: error.message || "Failed to translate document" 
       });
     }
   });
-
-  // Simple Email Sharing - Send report via email
+  
+  // Send simple email
   app.post("/api/share-simple-email", async (req: Request, res: Response) => {
     try {
       const { recipientEmail, senderEmail, senderName, subject, content } = req.body;
       
       if (!recipientEmail || !subject || !content) {
-        return res.status(400).json({
-          success: false,
-          message: "Missing required fields: recipientEmail, subject, or content"
-        });
+        return res.status(400).json({ error: "Recipient email, subject, and content are required" });
       }
       
-      // Import the email service
-      const { sendSimpleEmail } = await import('./api/simpleEmailService');
-      
       // Send the email
+      console.log(`SENDING SIMPLE EMAIL TO ${recipientEmail}`);
       const result = await sendSimpleEmail({
         recipientEmail,
         senderEmail,
@@ -724,49 +418,63 @@ export async function registerRoutes(app: Express): Promise<Express> {
       
       return res.json(result);
     } catch (error: any) {
-      console.error("Error sending email:", error);
-      return res.status(500).json({
-        success: false,
-        message: error.message || "Error sending email"
+      console.error("Error sending simple email:", error);
+      return res.status(500).json({ 
+        success: false, 
+        message: error.message || "Failed to send email" 
       });
     }
   });
   
-  // DIRECT MODEL REQUEST - Send instructions directly to AI models
+  // Direct model request
   app.post("/api/direct-model-request", async (req: Request, res: Response) => {
     try {
-      const { instructions, models = ['openai', 'claude', 'perplexity'] } = req.body;
+      const { instruction, provider = "openai" } = req.body;
       
-      if (!instructions) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Instructions parameter is required" 
-        });
+      if (!instruction) {
+        return res.status(400).json({ error: "Instruction is required" });
       }
       
-      // Import our direct model request functions
-      const { directMultiModelRequest } = await import('./api/directModelRequest');
+      // Import the direct model request service
+      const { 
+        directOpenAIRequest, 
+        directClaudeRequest, 
+        directPerplexityRequest,
+        directMultiModelRequest
+      } = await import('./api/directModelRequest');
       
-      console.log(`Processing direct model request to: ${models.join(', ')}`);
-      console.log(`Instructions: ${instructions.substring(0, 100)}...`);
+      let result;
       
-      const results = await directMultiModelRequest(instructions, models);
+      // Make the request to the specified provider
+      if (provider === "all") {
+        console.log(`DIRECT MULTI-MODEL REQUEST`);
+        result = await directMultiModelRequest(instruction);
+      } else {
+        console.log(`DIRECT ${provider.toUpperCase()} MODEL REQUEST`);
+        
+        switch (provider.toLowerCase()) {
+          case 'anthropic':
+            result = await directClaudeRequest(instruction);
+            break;
+          case 'perplexity':
+            result = await directPerplexityRequest(instruction);
+            break;
+          case 'openai':
+          default:
+            result = await directOpenAIRequest(instruction);
+            break;
+        }
+      }
       
-      res.json({
-        success: true,
-        instructions,
-        results,
-        timestamp: new Date().toISOString()
-      });
+      return res.json(result);
     } catch (error: any) {
-      console.error("Direct model request error:", error);
-      res.status(500).json({ 
-        success: false, 
-        message: error.message || "Error processing direct model request" 
+      console.error("Error making direct model request:", error);
+      return res.status(500).json({ 
+        error: true, 
+        message: error.message || "Failed to make direct model request" 
       });
     }
   });
-
-  // Return the Express app
+  
   return app;
 }
