@@ -12,47 +12,31 @@ const MAX_CHUNKS = 20; // Maximum number of chunks to process
 const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
-// EXACTLY AS INSTRUCTED WITH UPDATED PROMPT
-const ANALYSIS_PROMPT = `You are evaluating the intelligence of the author of the following text.
+// INTELLIGENCE PROFILING PROMPT - EXACTLY AS PROVIDED
+const ANALYSIS_PROMPT = `INTELLIGENCE PROFILING PROMPT
 
-Read the passage carefully, then answer these 10 questions:
+You are not grading this text.
 
-Did you learn anything new from this text?
+You are not evaluating how clear or complete it is.
 
-If the claims are true, would you have learned anything new?
+You are evaluating the author's intelligence based solely on the cognitive patterns revealed in the writing. You are treating the text as a cognitive fingerprint.
 
-How well does each statement follow from the next?
+It may be an excerpt, abstract, fragment, or full paper. That does not matter.
 
-How reliant is the text on undefined or ornamental jargon?
+Your task is to analyze the structure and quality of thought that produced the text. Ignore surface polish, citations, formatting, or whether the argument is fully developed.
 
-Is the author evasive or forthright in engaging difficult issues?
+Estimate the author's intelligence on a scale from 1 to 100.
 
-If the claims are correct, what are the consequences for the field or the world?
+Then explain what kind of mind this text reveals:
+- Analytical? Synthetic? Imitative? Derivative? Creative? Visionary?
+- Does it introduce a new idea, pattern, or conceptual structure?
+- Is it compressed or diffuse? Deep or superficial? Original or rehearsed?
 
-Is this original or recycled?
+Focus only on the cognitive force of the mind behind the text.
 
-What kind of mind does this writing reveal (e.g., analytical, synthetic, imitative)?
+Do not penalize the author for lack of context, brevity, or incompleteness.
 
-Does the author reflect on the implications or limits of their claims?
-
-Is the writing compressed (dense with meaning) or diffuse (wordy and vague)?
-
-Then give an overall intelligence rating from 1 to 100. Use the following scale:
-
-50 = ordinary college-level reasoning
-
-60 = shows basic synthesis or conceptual clarity
-
-70 = shows insight and interpretive intelligence
-
-80 = reveals original thought or theoretical structure
-
-90 = exhibits creative, high-level conceptual integration across fields
-
-100 = profoundly intelligent, visionary, or groundbreaking
-
-This is not a writing grade. This is an evaluation of the intelligence of the author based solely on what is revealed in the content and reasoning.
-Justify your score in detail.`;
+This is not a writing evaluation. It is an intelligence profile.`;
 
 /**
  * Split text into chunks for large document processing
