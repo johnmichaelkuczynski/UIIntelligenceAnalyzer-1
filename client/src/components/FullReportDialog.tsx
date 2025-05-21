@@ -307,9 +307,9 @@ ${analysis.analysis || ''}
     if (analysis.analysis) {
       ensureSpaceForContent(15);
       pdf.setFontSize(14);
-      pdf.setFont(undefined, 'bold');
+      pdf.setFont("helvetica", 'bold');
       pdf.text("DETAILED ANALYSIS", 20, yPosition);
-      pdf.setFont(undefined, 'normal');
+      pdf.setFont("helvetica", 'normal');
       yPosition += 10;
       
       const splitAnalysis = pdf.splitTextToSize(analysis.analysis, 170);
@@ -323,9 +323,9 @@ ${analysis.analysis || ''}
     if (analysis.surface) {
       ensureSpaceForContent(Object.keys(analysis.surface).length * 8 + 15);
       pdf.setFontSize(14);
-      pdf.setFont(undefined, 'bold');
+      pdf.setFont("helvetica", 'bold');
       pdf.text("SURFACE-LEVEL SCORES", 20, yPosition);
-      pdf.setFont(undefined, 'normal');
+      pdf.setFont("helvetica", 'normal');
       yPosition += 10;
       
       pdf.setFontSize(10);
@@ -334,9 +334,9 @@ ${analysis.analysis || ''}
         const displayKey = formattedKey.charAt(0).toUpperCase() + formattedKey.slice(1);
         const displayValue = typeof value === 'number' ? `${value}/100` : String(value || 'N/A');
         
-        pdf.setFont(undefined, 'bold');
+        pdf.setFont("helvetica", 'bold');
         pdf.text(`${displayKey}:`, 20, yPosition);
-        pdf.setFont(undefined, 'normal');
+        pdf.setFont("helvetica", 'normal');
         pdf.text(displayValue, 100, yPosition);
         yPosition += 8;
       });
@@ -348,9 +348,9 @@ ${analysis.analysis || ''}
     if (analysis.deep) {
       ensureSpaceForContent(Object.keys(analysis.deep).length * 8 + 15);
       pdf.setFontSize(14);
-      pdf.setFont(undefined, 'bold');
+      pdf.setFont("helvetica", 'bold');
       pdf.text("DEEP-LEVEL SCORES", 20, yPosition);
-      pdf.setFont(undefined, 'normal');
+      pdf.setFont("helvetica", 'normal');
       yPosition += 10;
       
       pdf.setFontSize(10);
@@ -359,9 +359,9 @@ ${analysis.analysis || ''}
         const displayKey = formattedKey.charAt(0).toUpperCase() + formattedKey.slice(1);
         const displayValue = typeof value === 'number' ? `${value}/100` : String(value || 'N/A');
         
-        pdf.setFont(undefined, 'bold');
+        pdf.setFont("helvetica", 'bold');
         pdf.text(`${displayKey}:`, 20, yPosition);
-        pdf.setFont(undefined, 'normal');
+        pdf.setFont("helvetica", 'normal');
         pdf.text(displayValue, 100, yPosition);
         yPosition += 8;
       });
@@ -373,9 +373,9 @@ ${analysis.analysis || ''}
     if (analysis.dimensions) {
       ensureSpaceForContent(15);
       pdf.setFontSize(14);
-      pdf.setFont(undefined, 'bold');
+      pdf.setFont("helvetica", 'bold');
       pdf.text("DETAILED DIMENSIONS WITH EVIDENCE", 20, yPosition);
-      pdf.setFont(undefined, 'normal');
+      pdf.setFont("helvetica", 'normal');
       yPosition += 10;
       
       pdf.setFontSize(10);
@@ -390,30 +390,30 @@ ${analysis.analysis || ''}
           dimensionSpace += descLines * 5;
         }
         if (dimension.quote) {
-          const quoteLines = pdf.splitTextToSize(dimension.quote, 165).length;
+          const quoteLines = pdf.splitTextToSize(dimension.quote || "", 165).length;
           dimensionSpace += quoteLines * 5;
         }
         
         ensureSpaceForContent(dimensionSpace);
         
         // Dimension name
-        pdf.setFont(undefined, 'bold');
+        pdf.setFont("helvetica", 'bold');
         pdf.text(displayKey, 20, yPosition);
         yPosition += 6;
         
         // Rating
         pdf.text("Rating:", 25, yPosition);
-        pdf.setFont(undefined, 'normal');
+        pdf.setFont("helvetica", 'normal');
         pdf.text(dimension.rating || 'N/A', 50, yPosition);
         yPosition += 8;
         
         // Description
         if (dimension.description) {
-          pdf.setFont(undefined, 'bold');
+          pdf.setFont("helvetica", 'bold');
           pdf.text("Description:", 25, yPosition);
           yPosition += 5;
           
-          pdf.setFont(undefined, 'normal');
+          pdf.setFont("helvetica", 'normal');
           const splitDesc = pdf.splitTextToSize(dimension.description, 165);
           pdf.text(splitDesc, 25, yPosition);
           yPosition += splitDesc.length * 5 + 3;
@@ -421,17 +421,17 @@ ${analysis.analysis || ''}
         
         // Evidence quote
         if (dimension.quote) {
-          pdf.setFont(undefined, 'bold');
+          pdf.setFont("helvetica", 'bold');
           pdf.text("Evidence:", 25, yPosition);
           yPosition += 5;
           
-          pdf.setFont(undefined, 'italic');
+          pdf.setFont("helvetica", 'italic');
           const splitQuote = pdf.splitTextToSize(`"${dimension.quote}"`, 165);
           pdf.text(splitQuote, 25, yPosition);
           yPosition += splitQuote.length * 5 + 8;
         }
         
-        pdf.setFont(undefined, 'normal');
+        pdf.setFont("helvetica", 'normal');
       });
     }
     
@@ -439,9 +439,9 @@ ${analysis.analysis || ''}
     if (originalText) {
       ensureSpaceForContent(15);
       pdf.setFontSize(14);
-      pdf.setFont(undefined, 'bold');
+      pdf.setFont("helvetica", 'bold');
       pdf.text("ANALYZED TEXT (EXCERPT)", 20, yPosition);
-      pdf.setFont(undefined, 'normal');
+      pdf.setFont("helvetica", 'normal');
       yPosition += 10;
       
       // Only include the first 1000 characters to avoid making the PDF too large
