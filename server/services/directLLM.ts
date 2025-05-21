@@ -7,8 +7,8 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // Constants for text processing
-const MAX_CHUNK_SIZE = 8000; // Characters per chunk (approx. 2000-2500 tokens)
-const MAX_CHUNKS = 8; // Maximum number of chunks to process
+const MAX_CHUNK_SIZE = 3000; // Characters per chunk (approx. 500 words)
+const MAX_CHUNKS = 20; // Maximum number of chunks to process
 const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 

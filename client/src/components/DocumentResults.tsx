@@ -781,6 +781,7 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
         open={showFullReportModal}
         onOpenChange={setShowFullReportModal}
         analysis={analysis}
+        originalText={originalDocument?.content || ''}
       />
       
       {/* AI Detection Modal */}
