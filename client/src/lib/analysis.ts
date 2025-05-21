@@ -14,7 +14,7 @@ import {
 // Function to analyze a single document with progress tracking
 export async function analyzeDocument(
   document: DocumentInput,
-  provider: string = "openai",
+  provider: string = "all", // Changed default to "all" for multi-provider analysis
   onProgress?: (progress: number) => void
 ): Promise<DocumentAnalysis> {
   try {

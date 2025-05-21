@@ -7,8 +7,8 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 // Constants for text processing
-const MAX_CHUNK_SIZE = 3000; // Characters per chunk (approx. 500 words)
-const MAX_CHUNKS = 20; // Maximum number of chunks to process
+const MAX_CHUNK_SIZE = 12000; // Characters per chunk - increased to handle full documents
+const MAX_CHUNKS = 3; // Maximum number of chunks to process
 const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
@@ -125,23 +125,9 @@ function combineAnalysisResults(results: any[]): any {
   if (results.length === 0) return null;
   if (results.length === 1) return results[0];
   
-  // Create a simple combined result with just the formatted reports
-  const combined: any = {
-    provider: results[0].provider,
-    formattedReport: ""
-  };
-  
-  // Combine the raw reports from each chunk
-  const formattedReports = results.map((result, index) => {
-    return `SECTION ${index + 1}:\n\n${result.formattedReport || "No analysis available for this section."}`;
-  });
-  
-  combined.formattedReport = [
-    "This document was analyzed in multiple sections due to its length. Below are the analyses for each section:",
-    ...formattedReports
-  ].join("\n\n");
-  
-  return combined;
+  // For the improved implementation, just take the first result instead of creating artificial sections
+  // This prevents the confusion with multiple sections for small documents
+  return results[0];
 }
 
 /**

@@ -32,7 +32,7 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
   
   // If we have multiple provider results, use the dedicated component
   if (hasMultipleProviders) {
-    return <MultiProviderResults results={analysis.analysisResults} />;
+    return <MultiProviderResults results={analysis.analysisResults || []} />;
   }
   
   // Otherwise, show the single provider result
