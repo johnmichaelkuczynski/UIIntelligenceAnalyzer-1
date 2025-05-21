@@ -245,9 +245,16 @@ function averageAnalysisResults(results: any[]): any {
  * Handles large documents by splitting into chunks and processing them separately
  */
 export async function directOpenAIAnalyze(text: string): Promise<any> {
+  if (!process.env.OPENAI_API_KEY) {
+    console.error("OpenAI API key is missing!");
+    throw new Error("OpenAI API key not configured. Please set the OPENAI_API_KEY environment variable.");
+  }
+  
   // For small texts, process directly
   if (text.length <= MAX_CHUNK_SIZE) {
     try {
+      console.log("Sending direct request to OpenAI...");
+      
       // Direct pass-through to OpenAI with no custom algorithms
       const response = await openai.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
@@ -261,6 +268,11 @@ export async function directOpenAIAnalyze(text: string): Promise<any> {
         max_tokens: 4000,
         temperature: 0.2
       });
+
+      if (!response || !response.choices || !response.choices[0] || !response.choices[0].message) {
+        console.error("Invalid response format from OpenAI:", response);
+        throw new Error("Received invalid response format from OpenAI");
+      }
 
       // Parse the response to separate the formatted report from the JSON data
       const responseText = response.choices[0].message.content || "{}";
