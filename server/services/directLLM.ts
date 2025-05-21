@@ -120,87 +120,23 @@ function averageAnalysisResults(results: any[]): any {
   if (results.length === 0) return null;
   if (results.length === 1) return results[0];
   
-  // Initialize result object with the structure from the first result
-  const averaged: any = {
-    surface: {
-      grammar: 0,
-      structure: 0,
-      jargonUsage: 0,
-      surfaceFluency: 0
-    },
-    deep: {
-      conceptualDepth: 0,
-      inferentialContinuity: 0,
-      claimNecessity: 0,
-      semanticCompression: 0,
-      logicalLaddering: 0,
-      depthFluency: 0,
-      originality: 0
-    },
-    overallScore: 0,
-    surfaceScore: 0,
-    deepScore: 0,
-    analysis: "",
-    provider: results[0].provider
+  // Create a simple combined result with just the formatted reports
+  const combined: any = {
+    provider: results[0].provider,
+    formattedReport: ""
   };
   
-  // Sum all numeric values
-  for (const result of results) {
-    // Surface metrics
-    for (const key in result.surface) {
-      if (typeof result.surface[key] === 'number') {
-        averaged.surface[key] += result.surface[key] / results.length;
-      }
-    }
-    
-    // Deep metrics
-    for (const key in result.deep) {
-      if (typeof result.deep[key] === 'number') {
-        averaged.deep[key] += result.deep[key] / results.length;
-      }
-    }
-    
-    // Overall scores
-    if (typeof result.overallScore === 'number') {
-      averaged.overallScore += result.overallScore / results.length;
-    }
-    if (typeof result.surfaceScore === 'number') {
-      averaged.surfaceScore += result.surfaceScore / results.length;
-    }
-    if (typeof result.deepScore === 'number') {
-      averaged.deepScore += result.deepScore / results.length;
-    }
-    
-    // Concatenate analyses with separators
-    if (result.analysis) {
-      if (averaged.analysis) {
-        averaged.analysis += "\n\n--- Next Section Analysis ---\n\n";
-      }
-      averaged.analysis += result.analysis;
-    }
-  }
+  // Combine the raw reports from each chunk
+  const formattedReports = results.map((result, index) => {
+    return `SECTION ${index + 1}:\n\n${result.formattedReport || "No analysis available for this section."}`;
+  });
   
-  // Round numeric values for cleaner display
-  for (const key in averaged.surface) {
-    if (typeof averaged.surface[key] === 'number') {
-      averaged.surface[key] = Math.round(averaged.surface[key]);
-    }
-  }
+  combined.formattedReport = [
+    "This document was analyzed in multiple sections due to its length. Below are the analyses for each section:",
+    ...formattedReports
+  ].join("\n\n");
   
-  for (const key in averaged.deep) {
-    if (typeof averaged.deep[key] === 'number') {
-      averaged.deep[key] = Math.round(averaged.deep[key]);
-    }
-  }
-  
-  averaged.overallScore = Math.round(averaged.overallScore);
-  averaged.surfaceScore = Math.round(averaged.surfaceScore);
-  averaged.deepScore = Math.round(averaged.deepScore);
-  
-  // Add a note about the chunking process
-  averaged.summary = `This analysis was performed by processing the document in ${results.length} sections and combining the results.`;
-  
-  return averaged;
+  return combined;
 }
 
 /**
@@ -332,11 +268,13 @@ export async function directOpenAIAnalyze(text: string): Promise<any> {
           { role: "system", content: ANALYSIS_PROMPT },
           { role: "user", content: chunk }
         ],
-        response_format: { type: "json_object" },
         temperature: 0.2
       });
       
-      const result = JSON.parse(response.choices[0].message.content || "{}");
+      // No JSON parsing, keep the raw text
+      const result = { 
+        formattedReport: response.choices[0].message.content || "" 
+      };
       result.provider = "OpenAI (GPT-4o)";
       results.push(result);
       console.log(`Successfully processed chunk ${i+1}`);
