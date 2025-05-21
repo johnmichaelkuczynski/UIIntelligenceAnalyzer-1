@@ -405,10 +405,10 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
         </div>
       </div>
       
-      {/* Summary Card */}
-      <div className="mb-6 bg-blue-50 p-4 rounded-md">
-        <div className="flex justify-between items-start">
-          <h3 className="font-semibold text-gray-800 mb-2">Summary</h3>
+      {/* Raw AI output - no processing */}
+      <div className="mb-6">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="font-semibold text-gray-800">AI Analysis Output</h3>
           {analysis.provider && (
             <Badge variant="outline" className="bg-white">
               {analysis.provider.includes("OpenAI") ? (
@@ -424,59 +424,10 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
             </Badge>
           )}
         </div>
-        <p className="text-gray-700 whitespace-pre-wrap break-words">
-          {analysis.summary}
-        </p>
-      </div>
-
-      {/* Overall Intelligence Assessment */}
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="font-semibold text-gray-800">Intelligence Assessment</h3>
-          {originalDocument && (
-            <DirectTextExport 
-              analysis={analysis} 
-              originalText={originalDocument.content}
-            />
-          )}
-        </div>
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex-1">
-            <div className="h-2 w-full bg-gray-200 rounded-full">
-              <div 
-                className="h-2 bg-blue-600 rounded-full" 
-                style={{ width: `${analysis.overallScore}%` }}
-              ></div>
-            </div>
-          </div>
-          <span className="text-lg font-semibold text-blue-800">
-            {analysis.overallScore}/100
-          </span>
-        </div>
-        {/* Ensure we show the full text by not truncating - added line-break preservation */}
-        <p className="text-gray-700 whitespace-pre-wrap break-words">{analysis.overallAssessment}</p>
-      </div>
-
-      {/* Full Report Button */}
-      <div className="mb-6">
-        <Button
-          variant="default"
-          onClick={() => setShowFullReportModal(true)}
-          className="flex items-center gap-2 w-full justify-center py-3 bg-blue-600 text-white hover:bg-blue-700 border border-blue-800"
-        >
-          <BrainCircuit className="h-5 w-5" />
-          <span className="font-medium">View Complete Intelligence Report</span>
-        </Button>
         
-        {/* Export Options */}
-        <div className="mt-3 pt-3 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Export Report</span>
-            <ReportExportButtons 
-              analysis={analysis} 
-              originalText={originalDocument?.content || ''}
-            />
-          </div>
+        {/* Raw unprocessed output from LLM */}
+        <div className="w-full h-[500px] overflow-auto border border-gray-200 rounded-md p-4 bg-white font-mono text-sm whitespace-pre-wrap">
+          {analysis.formattedReport || JSON.stringify(analysis, null, 2)}
         </div>
       </div>
 

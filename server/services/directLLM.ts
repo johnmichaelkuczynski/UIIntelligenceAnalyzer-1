@@ -12,7 +12,7 @@ const MAX_CHUNKS = 20; // Maximum number of chunks to process
 const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
-// PURE PASS-THROUGH MODEL - PHILOSOPHICALLY RIGOROUS INTELLIGENCE EVALUATION
+// PURE PASS-THROUGH MODEL - USING EXACT INSTRUCTIONS WITHOUT MODIFICATION
 const ANALYSIS_PROMPT = `You are a highly intelligent, philosophically rigorous reader. You have just read the following passage. Your task is to assess what the text reveals about the intelligence of its author. Do not grade the quality of the text. Instead, assess the probable intelligence of the person who wrote it, based solely on this passage.
 
 Here is what to consider:
@@ -52,61 +52,7 @@ Does the author show awareness of the limits or implications of their own claims
 Is there evidence of dialectical self-checking?
 
 Compression vs. Diffusion:
-Does the author say more with less, or less with more?
-
-## Intelligence Assessment Report
-
-**Overall Impression**: [Summary statement about the intelligence profile revealed.]
-
-### 1. Epistemic Novelty:
-[Your assessment]
-
-### 2. Inferential Integrity:
-[Your assessment]
-
-### 3. Linguistic Transparency:
-[Your assessment]
-
-### 4. Forthrightness:
-[Your assessment]
-
-### 5. Consequences:
-[Your assessment]
-
-### 6. Originality:
-[Your assessment]
-
-### 7. Conceptual Control:
-[Your assessment]
-
-### 8. Mind Implied:
-[Your assessment]
-
-### 9. Meta-Cognition:
-[Your assessment]
-
-### 10. Compression vs. Diffusion:
-[Your assessment]
-
-**Provisional Intelligence Score (1–100)**: [Your assessment]
-
-Also include a JSON representation of your evaluation:
-{
-  "overallScore": number,
-  "overallImpression": "string",
-  "evaluations": {
-    "epistemicNovelty": "string",
-    "inferentialIntegrity": "string",
-    "linguisticTransparency": "string",
-    "forthrightness": "string",
-    "consequences": "string",
-    "originality": "string",
-    "conceptualControl": "string",
-    "mindImplied": "string",
-    "metaCognition": "string",
-    "compression": "string"
-  }
-}`;
+Does the author say more with less, or less with more?`;
 
 /**
  * Split text into chunks for large document processing
