@@ -442,7 +442,8 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
             {analysis.overallScore}/100
           </span>
         </div>
-        <p className="text-gray-700 whitespace-pre-wrap">{analysis.overallAssessment}</p>
+        {/* Ensure we show the full text by not truncating - added line-break preservation */}
+        <p className="text-gray-700 whitespace-pre-wrap break-words">{analysis.overallAssessment}</p>
       </div>
 
       {/* Full Report Button */}

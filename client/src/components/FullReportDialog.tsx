@@ -503,7 +503,7 @@ ${analysis.analysis || ''}
                 <span className="text-sm text-blue-600">/100</span>
               </div>
             </div>
-            <p className="text-blue-900 whitespace-pre-wrap">{analysis.overallAssessment}</p>
+            <p className="text-blue-900 whitespace-pre-wrap break-words">{analysis.overallAssessment}</p>
           </div>
           
           {/* Export Options */}
