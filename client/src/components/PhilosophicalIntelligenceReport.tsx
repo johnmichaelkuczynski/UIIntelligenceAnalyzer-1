@@ -74,66 +74,12 @@ export default function PhilosophicalIntelligenceReport({ analysis }: Philosophi
     }
   ];
   
-  // Analyze text to compute intelligence score automatically
-  const computedScore = useMemo(() => {
-    if (!formattedReport || formattedReport.length < 100) return null;
-    
-    // Track positive and negative indicators for each category
-    const categoryScores = categories.map(category => {
-      let positiveCount = 0;
-      let negativeCount = 0;
-      
-      // Check for positive and negative indicators in the analysis
-      category.positiveIndicators.forEach(indicator => {
-        const regex = new RegExp(`\\b${indicator}\\b`, 'gi');
-        const matches = formattedReport.match(regex);
-        if (matches) positiveCount += matches.length;
-      });
-      
-      category.negativeIndicators.forEach(indicator => {
-        const regex = new RegExp(`\\b${indicator}\\b`, 'gi');
-        const matches = formattedReport.match(regex);
-        if (matches) negativeCount += matches.length;
-      });
-      
-      // Check if analysis contains specific phrases that indicate strong positive/negative opinions
-      const textSegments = formattedReport.split(/\n\n+/);
-      const categoryText = textSegments.find(segment => 
-        segment.includes(category.title) || 
-        category.queries.some(query => segment.includes(query))
-      ) || "";
-      
-      // Strong positive phrases
-      if (categoryText.match(/exceptional|remarkable|sophisticated|excellent|outstanding/gi)) {
-        positiveCount += 3;
-      }
-      
-      // Moderate positive phrases
-      if (categoryText.match(/good|well|strong|clear|effective/gi)) {
-        positiveCount += 1;
-      }
-      
-      // Strong negative phrases
-      if (categoryText.match(/lack|weak|poor|limited|fails|absence|missing/gi)) {
-        negativeCount += 3;
-      }
-      
-      // Overall sentiment calculation
-      return {
-        category: category.title,
-        score: Math.min(10, Math.max(1, 5 + (positiveCount - negativeCount) / 2))
-      };
-    });
-    
-    // Calculate average score across all categories (1-10 scale)
-    const avgScore = categoryScores.reduce((sum, item) => sum + item.score, 0) / categoryScores.length;
-    
-    // Convert to 0-100 scale
-    return Math.round((avgScore - 1) * (100 / 9));
-  }, [formattedReport]);
+  // For this version, we're NOT calculating a score automatically
+  // We'll leave that to human judgment since automated scoring
+  // has proven inconsistent with actual document quality
   
-  // Use computed score instead of extracted score
-  const score = computedScore;
+  // Without an explicit score, we'll just display the detailed analysis
+  const score = null;
   
   // Get score tier description based on score value
   const getScoreTier = (score: number | null) => {
