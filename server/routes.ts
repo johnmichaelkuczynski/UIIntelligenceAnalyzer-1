@@ -111,7 +111,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
   // Analyze document
   app.post("/api/analyze", async (req: Request, res: Response) => {
     try {
-      const { content, provider = "openai", requireProgress = false } = req.body;
+      const { content, provider = "all", requireProgress = false } = req.body;
       
       if (!content) {
         return res.status(400).json({ 
@@ -122,49 +122,80 @@ export async function registerRoutes(app: Express): Promise<Express> {
         });
       }
       
-      // Import the direct analysis methods
-      const { 
-        directOpenAIAnalyze, 
-        directAnthropicAnalyze, 
-        directPerplexityAnalyze 
-      } = await import('./services/directLLM');
-      
-      // Perform direct analysis with the specified provider
-      console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR ANALYSIS`);
-      
-      let directResult;
-      
-      try {
-        switch (provider.toLowerCase()) {
-          case 'anthropic':
-            directResult = await directAnthropicAnalyze(content);
-            break;
-          case 'perplexity':
-            directResult = await directPerplexityAnalyze(content);
-            break;
-          case 'openai':
-          default:
-            directResult = await directOpenAIAnalyze(content);
-            break;
+      // If the user requests a specific single provider
+      if (provider.toLowerCase() !== 'all') {
+        // Import the direct analysis methods
+        const { 
+          directOpenAIAnalyze, 
+          directAnthropicAnalyze, 
+          directPerplexityAnalyze 
+        } = await import('./services/directLLM');
+        
+        // Perform direct analysis with the specified provider
+        console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR ANALYSIS`);
+        
+        let directResult;
+        
+        try {
+          switch (provider.toLowerCase()) {
+            case 'anthropic':
+              directResult = await directAnthropicAnalyze(content);
+              break;
+            case 'perplexity':
+              directResult = await directPerplexityAnalyze(content);
+              break;
+            case 'openai':
+            default:
+              directResult = await directOpenAIAnalyze(content);
+              break;
+          }
+          
+          // Simple passthrough of the direct AI model response
+          const result = {
+            id: 0,
+            documentId: 0,
+            provider: directResult.provider || provider,
+            formattedReport: directResult.formattedReport || "Analysis not available"
+          };
+          
+          return res.json(result);
+        } catch (error: any) {
+          console.error(`Error in direct passthrough to ${provider}:`, error);
+          return res.status(200).json({
+            id: 0,
+            documentId: 0, 
+            provider: `${provider} (Error)`,
+            formattedReport: `Error analyzing document with direct ${provider} passthrough: ${error.message || "Unknown error"}`
+          });
         }
-        
-        // Simple passthrough of the direct AI model response
-        const result = {
-          id: 0,
-          documentId: 0,
-          provider: directResult.provider || provider,
-          formattedReport: directResult.formattedReport || "Analysis not available"
-        };
-        
-        return res.json(result);
-      } catch (error: any) {
-        console.error(`Error in direct passthrough to ${provider}:`, error);
-        return res.status(200).json({
-          id: 0,
-          documentId: 0, 
-          provider: `${provider} (Error)`,
-          formattedReport: `Error analyzing document with direct ${provider} passthrough: ${error.message || "Unknown error"}`
-        });
+      } else {
+        // For 'all' provider option, analyze with all providers and verify results
+        try {
+          // Import the analysis verifier
+          const { analyzeWithAllProviders } = await import('./services/analysisVerifier');
+          
+          console.log("ANALYZING WITH ALL PROVIDERS AND VERIFICATION");
+          const allResults = await analyzeWithAllProviders(content);
+          
+          // Format the response with results from all providers
+          const result = {
+            id: 0,
+            documentId: 0,
+            provider: "All Providers",
+            formattedReport: "Analysis complete with all providers. See detailed results below.",
+            analysisResults: allResults
+          };
+          
+          return res.json(result);
+        } catch (error: any) {
+          console.error("Error analyzing with all providers:", error);
+          return res.status(200).json({
+            id: 0,
+            documentId: 0,
+            provider: "All Providers (Error)",
+            formattedReport: `Error analyzing document with all providers: ${error.message || "Unknown error"}`
+          });
+        }
       }
     } catch (error: any) {
       console.error("Error analyzing document:", error);
