@@ -1,9 +1,9 @@
-import { SimpleCognitiveProfiler } from '../components/SimpleCognitiveProfiler';
+import { MinimalProfiler } from '../components/MinimalProfiler';
 
 export function ProfilerPage() {
   return (
     <div className="min-h-screen bg-background">
-      <SimpleCognitiveProfiler />
+      <MinimalProfiler />
     </div>
   );
 }

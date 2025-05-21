@@ -219,19 +219,7 @@ export function SimpleCognitiveProfiler() {
         </div>
       )}
       
-      <div className="mt-8 p-6 border rounded-lg shadow-sm">
-        <h2 className="text-xl font-bold mb-4">About Cognitive Profiling</h2>
-        <p className="mb-2">
-          This cognitive profiler analyzes text as a cognitive fingerprint to reveal the mind behind it. 
-          Unlike writing assessments that focus on quality, style, or completeness, this tool aims to 
-          evaluate intelligence (on a scale of 1-100) and identify cognitive patterns.
-        </p>
-        <p>
-          The system is a pure passthrough that sends your text directly to AI models with specific 
-          profiling instructions. There is no internal scoring or evaluation—the AI model performs 
-          all assessment with no modifications.
-        </p>
-      </div>
+      {/* Removed the About section as requested */}
     </div>
   );
 }

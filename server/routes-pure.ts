@@ -51,8 +51,19 @@ export async function registerRoutes(app: Express): Promise<Express> {
       // Get text based on file type
       const result = await extractTextFromFile(file);
       
+      // Make sure we're using UTF-8 encoding to handle special characters properly
+      if (typeof result.content !== 'string') {
+        return res.status(500).json({ error: "Invalid content type" });
+      }
+      
       console.log(`Extracted ${result.content.length} characters from ${file.originalname}`);
-      return res.json(result);
+      
+      // Return the proper UTF-8 encoded text
+      return res.json({
+        content: result.content,
+        filename: file.originalname,
+        mimeType: file.mimetype
+      });
     } catch (error: any) {
       console.error("Error extracting text:", error);
       return res.status(500).json({ 
