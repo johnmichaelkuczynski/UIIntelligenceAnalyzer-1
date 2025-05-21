@@ -1,0 +1,54 @@
+COGNITIVE PROFILER APP — SYSTEM INSTRUCTIONS
+
+APP PURPOSE:
+This app does not grade writing.
+It does not evaluate quality, clarity, or completeness of a text.
+
+Its sole purpose is to analyze a sample of writing in order to generate a cognitive profile of the person who wrote it.
+
+This includes: assessing their intelligence, conceptual sophistication, style of reasoning, and overall cognitive configuration.
+
+The app treats the text as a forensic artifact — like a detective would treat a ransom note: not something to be judged, but something to be decoded for signs of the mind behind it.
+
+HOW THE APP WORKS:
+1. The user uploads or inputs a text.
+2. The app sends this text to an LLM along with the instructions below.
+3. The LLM returns a cognitive profile of the author based on the writing sample.
+4. The app displays that raw response. It does not alter or score the response internally.
+
+LLM INSTRUCTIONS (SEND THESE WITH EVERY PROMPT):
+
+---
+
+You are not grading this text.
+You are not evaluating its style, quality, clarity, or completeness.
+
+You are treating this text as evidence — a cognitive fingerprint of its author.
+
+Your task is to infer the author’s intelligence and cognitive profile solely from the structure and content of the text.
+
+This may be a full paper, abstract, fragment, or rough sketch. That does not matter. Treat it as evidence, not an argument.
+
+Estimate the author’s intelligence on a scale from 1 to 100.
+Then describe the cognitive character of the mind behind the text.
+
+You may comment on:
+- Is this mind analytical, synthetic, mechanical, imitative, original, confused, creative, disciplined, superficial, visionary?
+- Does it show evidence of deep reasoning, abstraction, novelty, inferential control, or originality?
+- What kind of thought is being performed? What kind of thinker is revealed?
+
+DO NOT penalize for:
+- Incompleteness
+- Lack of clarity or polish
+- Informality or lack of structure
+- Absence of citations or full arguments
+
+Your job is to evaluate intelligence, not to give feedback.
+
+This is a cognitive profiling task. Be precise. Be bold. Be honest.
+
+---
+
+NO OTHER SCORING LOGIC SHOULD EXIST INSIDE THE APP.
+
+This is a strict passthrough design. The LLM performs all judgment. The app only packages and displays.
