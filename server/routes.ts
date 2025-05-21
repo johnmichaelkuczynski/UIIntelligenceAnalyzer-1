@@ -282,9 +282,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
           id: 0,
           documentId: 0,
           provider: result.provider || provider,
-          summary: result.analysis?.substring(0, 300) + "..." || "Analysis not available",
+          summary: result.analysis || "Analysis not available",
           overallScore: result.overallScore,
-          overallAssessment: result.analysis?.substring(0, 500) || "Analysis not available",
+          overallAssessment: result.analysis || "Analysis not available",
           dimensions: {
             definitionCoherence: {
               name: "Definition Coherence",
