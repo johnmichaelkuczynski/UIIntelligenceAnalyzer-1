@@ -319,37 +319,26 @@ export async function directOpenAIAnalyze(text: string): Promise<any> {
     } catch (error: any) {
       console.error("Error in direct passthrough to OpenAI:", error);
       
-      // Return a friendly error response instead of throwing
+      // Return a well-formatted error response that the frontend can handle
       return {
         provider: "OpenAI (GPT-4o)",
-        overallScore: 78,
-        overallAssessment: "Analysis couldn't be completed with OpenAI. Using default scoring instead.",
+        error: true,
+        errorMessage: error.message || "An error occurred with the OpenAI API",
+        overallScore: 0,
+        formattedReport: `**Analysis Error**\n\nWe encountered an issue while analyzing your text with OpenAI: ${error.message || "Unknown error"}\n\nPlease try again or select a different AI provider.`,
         surface: {
-          grammar: 85,
-          structure: 80,
-          jargonUsage: 75,
-          surfaceFluency: 80
+          grammar: 0,
+          structure: 0,
+          jargonUsage: 0,
+          surfaceFluency: 0
         },
         deep: {
-          conceptualDepth: 80,
-          inferentialContinuity: 75,
-          semanticCompression: 70,
-          logicalScaffolding: 75,
-          originality: 80
-        },
-        dimensions: {
-          criticalThinking: {
-            rating: "Above Average",
-            description: "The text demonstrates critical thinking abilities.",
-            quote: ""
-          },
-          evidenceUse: {
-            rating: "Average",
-            description: "The text uses evidence appropriately.",
-            quote: ""
-          }
-        },
-        errorDetails: error.message || "Unknown error with OpenAI API"
+          conceptualDepth: 0,
+          inferentialContinuity: 0,
+          semanticCompression: 0,
+          logicalScaffolding: 0,
+          originality: 0
+        }
       };
     }
   }
