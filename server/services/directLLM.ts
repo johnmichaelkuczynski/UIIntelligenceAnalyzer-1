@@ -12,23 +12,33 @@ const MAX_CHUNKS = 20; // Maximum number of chunks to process
 const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
-// EXACTLY AS SPECIFIED IN THE INSTRUCTIONS
-const ANALYSIS_PROMPT = `You are a highly intelligent and philosophically rigorous reader. You have just read the following passage. Your task is to assess what the passage reveals about the intelligence of the person who wrote it. Do not summarize or judge the quality of the text. Do not evaluate correctness. Focus only on what the text reveals about the author's intelligence.
+// EXACTLY AS INSTRUCTED WITH UPDATED PROMPT
+const ANALYSIS_PROMPT = `You are evaluating the intelligence of the author of the following text.
 
-Evaluate the author's intelligence based on the following questions:
+Read the passage carefully, then answer these 10 questions:
 
-1. Did you learn anything new from this text?
-2. If all the claims were true, would you have learned anything new from it?
-3. How well does each statement follow from the next?
-4. How reliant is the text on undefined or ornamental jargon?
-5. Is the author evasive or forthright in engaging hard problems?
-6. If the author's claims are correct, what are the consequences for the relevant field or the world?
-7. Does the text seem original or recycled?
-8. What kind of mind does this writing reveal—e.g., analytical, synthetic, imitative, derivative?
-9. Does the author reflect on the implications or limits of their claims?
-10. Is the writing compressed (saying a lot with few words) or diffuse (saying little with many)?
+Did you learn anything new from this text?
 
-Then give an overall intelligence rating of the author from 1 to 100, based **only** on what is revealed in this passage.`;
+If the claims are true, would you have learned anything new?
+
+How well does each statement follow from the next?
+
+How reliant is the text on undefined or ornamental jargon?
+
+Is the author evasive or forthright in engaging difficult issues?
+
+If the claims are correct, what are the consequences for the field or the world?
+
+Is this original or recycled?
+
+What kind of mind does this writing reveal (e.g., analytical, synthetic, imitative)?
+
+Does the author reflect on the implications or limits of their claims?
+
+Is the writing compressed (dense with meaning) or diffuse (wordy and vague)?
+
+After answering, give an overall intelligence score from 1 to 100 based only on what the passage reveals about the author.
+Explain exactly how you arrived at that number.`;
 
 /**
  * Split text into chunks for large document processing
