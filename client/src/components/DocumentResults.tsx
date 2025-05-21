@@ -353,15 +353,7 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
     }
   };
   
-  const dimensions = [
-    analysis.dimensions.definitionCoherence,
-    analysis.dimensions.claimFormation,
-    analysis.dimensions.inferentialContinuity,
-    analysis.dimensions.semanticLoad,
-    analysis.dimensions.jargonDetection,
-    analysis.dimensions.surfaceComplexity,
-    analysis.dimensions.deepComplexity,
-  ];
+  // No more dimensions in our simplified model - removed this array
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
