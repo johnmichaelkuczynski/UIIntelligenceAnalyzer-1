@@ -1,6 +1,6 @@
 import React from 'react';
 import { DocumentAnalysis } from '@/lib/types';
-import { Tab, Tabs, TabList, TabPanel } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface ComparativeResultsProps {
@@ -20,18 +20,18 @@ const ComparativeResults: React.FC<ComparativeResultsProps> = ({
       <Card>
         <CardContent className="p-6">
           <Tabs defaultValue="raw_comparison">
-            <TabList className="mb-6">
-              <Tab value="raw_comparison">Full Cognitive Profile</Tab>
-              <Tab value="scores">Intelligence Scores</Tab>
-            </TabList>
+            <TabsList className="mb-6">
+              <TabsTrigger value="raw_comparison">Full Cognitive Profile</TabsTrigger>
+              <TabsTrigger value="scores">Intelligence Scores</TabsTrigger>
+            </TabsList>
             
-            <TabPanel value="raw_comparison" className="pt-2">
+            <TabsContent value="raw_comparison" className="pt-2">
               <div className="prose max-w-none whitespace-pre-wrap font-serif">
                 {comparison.comparisonResult}
               </div>
-            </TabPanel>
+            </TabsContent>
             
-            <TabPanel value="scores" className="pt-2">
+            <TabsContent value="scores" className="pt-2">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-blue-50 p-6 rounded-lg">
                   <h3 className="text-xl font-medium text-blue-800 mb-3">Document A</h3>
@@ -63,7 +63,7 @@ const ComparativeResults: React.FC<ComparativeResultsProps> = ({
                   A score of 50 represents ordinary college-level reasoning, while 100 represents exceptionally brilliant thinking.
                 </p>
               </div>
-            </TabPanel>
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>

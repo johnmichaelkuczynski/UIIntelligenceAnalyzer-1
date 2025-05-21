@@ -1,72 +1,154 @@
-import { directOpenAIRequest } from '../api/directModelRequest';
+import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
+import fetch from 'node-fetch';
 
-interface RewriteOptions {
-  instruction: string;
-  preserveLength?: boolean;
-  preserveDepth?: boolean;
-  model?: string;
-}
+// Initialize the API clients
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY as string,
+});
 
-interface RewriteStats {
-  originalLength: number;
-  newLength: number;
-  lengthChange: number;
-}
+// the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
+const CLAUDE_MODEL = 'claude-3-7-sonnet-20250219';
 
-interface RewriteResult {
-  rewrittenText: string;
-  stats: RewriteStats;
-}
+// the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+const GPT_MODEL = 'gpt-4o';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY as string
+});
 
 /**
- * Rewrite a document based on instructions
+ * Rewrite a document with specific instructions using an AI provider
+ * @param document The document to rewrite
+ * @param instructions Custom instructions for rewriting
+ * @param provider The AI provider to use
+ * @returns Rewritten text and metadata
  */
-export async function rewriteDocument(text: string, options: RewriteOptions): Promise<RewriteResult> {
-  console.log("DIRECT OPENAI PASSTHROUGH FOR DOCUMENT REWRITING");
+export async function rewriteDocument(document: string, instructions: string, provider: string = 'openai') {
+  console.log(`Using ${provider} for document rewrite...`);
   
-  const instruction = options.instruction || 
-    "Improve this text while maintaining the same level of depth and complexity.";
-  
-  // Construct the rewrite prompt
-  const rewritePrompt = `
-COGNITIVE REWRITING TASK
+  // Construct the prompt focusing on cognitive improvements
+  const prompt = `
+I need you to rewrite the following text while maintaining or enhancing the cognitive patterns revealed in the original.
 
-Original text:
-"""
-${text}
-"""
+DOCUMENT:
+${document}
 
-Your task is to rewrite this text according to the following instruction:
-${instruction}
+INSTRUCTIONS:
+${instructions}
 
-${options.preserveLength ? 
-  "Important: The rewritten text should be approximately the same length as the original." : ""}
+IMPORTANT GUIDELINES:
+- Focus on enhancing the cognitive quality and clarity of thought, not just surface writing
+- Maintain the original's conceptual density and inferential structure
+- Preserve the intellectual signature/thinking style of the original author
+- Enhance organization and flow of complex ideas
+- If the original reveals sophisticated thinking, preserve that sophistication
+- If the original reveals limitations in reasoning, improve the logical structure while maintaining author voice
 
-${options.preserveDepth ? 
-  "Important: Maintain or improve the cognitive depth, conceptual precision, and intellectual complexity of the original." : ""}
-
-Produce a rewritten version that preserves the core cognitive patterns and intelligence of the original while implementing the requested changes.
+Please provide:
+1. The rewritten text
+2. A brief explanation of the cognitive improvements made
 `;
 
   try {
-    const result = await directOpenAIRequest(rewritePrompt);
-    const rewrittenText = result.content;
-    
-    // Calculate stats
-    const originalLength = text.length;
-    const newLength = rewrittenText.length;
-    const lengthChange = newLength / originalLength;
-    
-    return {
-      rewrittenText,
-      stats: {
-        originalLength,
-        newLength,
-        lengthChange
+    if (provider === 'anthropic') {
+      const result = await anthropic.messages.create({
+        model: CLAUDE_MODEL,
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }],
+      });
+      
+      // Access the content safely
+      let content = '';
+      if (result.content[0]?.type === 'text') {
+        content = result.content[0].text;
       }
-    };
-  } catch (error) {
-    console.error("Error rewriting document:", error);
-    throw error;
+      
+      // Extract the rewritten text and explanation
+      const sections = content.split(/\n{2,}/);
+      const rewrittenText = sections[0] || content;
+      const explanation = sections.length > 1 ? sections[sections.length - 1] : 'Rewrite completed successfully.';
+      
+      return {
+        provider: 'anthropic',
+        rewrittenText,
+        explanation,
+        rawResponse: result
+      };
+      
+    } else if (provider === 'perplexity') {
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-sonar-small-128k-online",
+          messages: [
+            {
+              role: "system",
+              content: "You are an expert in cognitive enhancement and writing improvement."
+            },
+            {
+              role: "user",
+              content: prompt
+            }
+          ],
+          max_tokens: 4000,
+          temperature: 0.1,
+        })
+      });
+      
+      const data = await response.json() as any;
+      const content = data?.choices?.[0]?.message?.content || '';
+      
+      // Extract the rewritten text and explanation
+      const sections = content.split(/\n{2,}/);
+      const rewrittenText = sections[0] || content;
+      const explanation = sections.length > 1 ? sections[sections.length - 1] : 'Rewrite completed successfully.';
+      
+      return {
+        provider: 'perplexity',
+        rewrittenText,
+        explanation,
+        rawResponse: data
+      };
+      
+    } else {
+      // Default to OpenAI
+      const result = await openai.chat.completions.create({
+        model: GPT_MODEL,
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert in cognitive enhancement and writing improvement."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        max_tokens: 4000,
+        temperature: 0.1,
+      });
+      
+      const content = result.choices[0]?.message?.content || '';
+      
+      // Extract the rewritten text and explanation
+      const sections = content.split(/\n{2,}/);
+      const rewrittenText = sections[0] || content;
+      const explanation = sections.length > 1 ? sections[sections.length - 1] : 'Rewrite completed successfully.';
+      
+      return {
+        provider: 'openai',
+        rewrittenText,
+        explanation,
+        rawResponse: result
+      };
+    }
+  } catch (error: any) {
+    console.error(`Error in document rewrite (${provider}):`, error);
+    throw new Error(`Document rewrite with ${provider} failed: ${error.message}`);
   }
 }

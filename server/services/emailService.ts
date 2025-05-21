@@ -1,74 +1,86 @@
 import sgMail from '@sendgrid/mail';
 
-// Initialize SendGrid with API key
+// Initialize SendGrid
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-  console.log("SendGrid API key set successfully");
+  console.log('SendGrid configuration status:');
+  console.log(`- API Key present: ${Boolean(process.env.SENDGRID_API_KEY)}`);
+  console.log(`- Verified sender: ${process.env.SENDGRID_VERIFIED_SENDER}`);
 } else {
-  console.warn("SendGrid API key not found in environment variables");
-}
-
-interface EmailContent {
-  recipient: string;
-  subject: string;
-  textContent: string;
-  htmlContent?: string;
-  senderName?: string;
-  senderEmail?: string;
+  console.warn('SENDGRID_API_KEY not provided. Email functionality will be limited.');
 }
 
 /**
- * Send an email with cognitive profile report via SendGrid
+ * Sends an analysis report via email
+ * @param recipientEmail Email address to send the report to
+ * @param subject Email subject line
+ * @param analysisReport The formatted analysis report
+ * @param senderEmail Optional custom sender email (defaults to verified sender)
+ * @param senderName Optional sender name
+ * @returns Object with success status and message
  */
-export async function sendReportEmail(emailContent: EmailContent): Promise<{ success: boolean; message: string }> {
+export async function sendAnalysisReport(
+  recipientEmail: string,
+  subject: string,
+  analysisReport: string,
+  senderEmail?: string,
+  senderName?: string
+): Promise<{ success: boolean; message: string }> {
+  
+  if (!process.env.SENDGRID_API_KEY) {
+    return { 
+      success: false, 
+      message: 'SendGrid API key not configured. Cannot send email.' 
+    };
+  }
+  
   try {
-    // Validate SendGrid API key
-    if (!process.env.SENDGRID_API_KEY) {
-      return {
-        success: false,
-        message: "SendGrid API key is missing. Email cannot be sent."
+    const sender = senderEmail || process.env.SENDGRID_VERIFIED_SENDER;
+    
+    if (!sender) {
+      return { 
+        success: false, 
+        message: 'No sender email provided or configured. Cannot send email.' 
       };
     }
-
-    // Use verified sender from environment or default
-    const senderEmail = emailContent.senderEmail || process.env.SENDGRID_VERIFIED_SENDER || 'no-reply@example.com';
-    const senderName = emailContent.senderName || 'Cognitive Intelligence Profiler';
     
-    // Format HTML content if not provided
-    const html = emailContent.htmlContent || `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #444;">Cognitive Intelligence Profile</h2>
-        <p>Here is the intelligence profile you requested:</p>
-        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; font-family: monospace; white-space: pre-wrap;">
-          ${emailContent.textContent.replace(/\n/g, '<br>')}
-        </div>
-        <p style="margin-top: 20px; color: #666; font-size: 12px;">
-          This analysis represents an intelligence profile based on cognitive patterns in the submitted text.
-        </p>
-      </div>
-    `;
-
+    const formattedSender = senderName ? `${senderName} <${sender}>` : sender;
+    
     const msg = {
-      to: emailContent.recipient,
-      from: {
-        email: senderEmail,
-        name: senderName
-      },
-      subject: emailContent.subject,
-      text: emailContent.textContent,
-      html: html
+      to: recipientEmail,
+      from: formattedSender,
+      subject,
+      text: 'Please view this email in an HTML-compatible email client.',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+            h1 { color: #2563eb; margin-bottom: 20px; }
+            h2 { color: #4b5563; margin-top: 30px; margin-bottom: 15px; }
+            .report { white-space: pre-wrap; padding: 20px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 5px; margin-top: 20px; font-family: Georgia, serif; }
+            .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #e5e7eb; font-size: 0.8em; color: #6b7280; }
+          </style>
+        </head>
+        <body>
+          <h1>Cognitive Intelligence Analysis Report</h1>
+          <p>Below is the cognitive profile analysis generated through our AI-powered analysis platform.</p>
+          <div class="report">${analysisReport.replace(/\n/g, '<br>')}</div>
+          <div class="footer">
+            <p>This report was generated automatically on ${new Date().toLocaleString()}.</p>
+            <p>Cognitive Analysis Platform - Measuring the mind behind the text</p>
+          </div>
+        </body>
+        </html>
+      `
     };
-
+    
     await sgMail.send(msg);
-    return {
-      success: true,
-      message: `Report successfully sent to ${emailContent.recipient}`
-    };
+    return { success: true, message: 'Analysis report sent successfully!' };
   } catch (error: any) {
     console.error('Error sending email:', error);
-    return {
-      success: false,
-      message: `Failed to send email: ${error.message || 'Unknown error'}`
-    };
+    const errorMessage = error.response?.body?.errors?.[0]?.message || error.message || 'Unknown error';
+    return { success: false, message: `Failed to send email: ${errorMessage}` };
   }
 }

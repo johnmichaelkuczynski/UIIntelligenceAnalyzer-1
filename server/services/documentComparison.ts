@@ -65,9 +65,14 @@ Present your complete analysis in a clear, organized format.
         messages: [{ role: 'user', content: prompt }],
       });
       
+      // Access the content safely
+      const content = result.content[0]?.type === 'text' 
+        ? result.content[0].text 
+        : 'Unable to retrieve comparison results';
+      
       return {
         provider: 'anthropic',
-        comparisonResult: result.content[0].text,
+        comparisonResult: content,
         rawResponse: result
       };
       
