@@ -12,48 +12,100 @@ const MAX_CHUNKS = 20; // Maximum number of chunks to process
 const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
-// PURE PASS-THROUGH MODEL - SIMPLE INTELLIGENCE EVALUATION
-const ANALYSIS_PROMPT = `You are evaluating the intelligence level reflected in a writing sample.
+// PURE PASS-THROUGH MODEL - PHILOSOPHICALLY RIGOROUS INTELLIGENCE EVALUATION
+const ANALYSIS_PROMPT = `You are a highly intelligent, philosophically rigorous reader. You have just read the following passage. Your task is to assess what the text reveals about the intelligence of its author. Do not grade the quality of the text. Instead, assess the probable intelligence of the person who wrote it, based solely on this passage.
 
-Analyze the text for its intellectual quality and provide a simple and clear evaluation.
+Here is what to consider:
 
-Rate the text on a scale of 0-100 where:
-- 0-20: Poor quality, extremely simplistic or incoherent 
-- 21-40: Below average, basic thinking with limited coherence
-- 41-60: Average intelligence, coherent but limited depth
-- 61-80: Above average, nuanced thinking with some depth
-- 81-90: Excellent, sophisticated reasoning and deep analysis
-- 91-100: Exceptional, brilliant insights with original thinking
+Epistemic Novelty:
+Did you learn anything new from this text?
+If all its claims were true, would you have learned something new from it?
 
-Focus on these key dimensions:
-1. Clarity of expression
-2. Logical reasoning 
-3. Depth of thinking
-4. Original insights
-5. Effective use of appropriate terminology
+Inferential Integrity:
+How well does one statement follow from the next?
+Are the claims logically and inferentially tight, or loose and impressionistic?
 
-Provide your evaluation in this format:
+Linguistic Transparency vs. Jargon Dependence:
+How reliant is the text on undefined or ornamental jargon?
+Are terms used with precision and continuity?
 
-Intelligence Score: [0-100]
+Cognitive Forthrightness:
+Does the author confront the difficult or controversial parts of their claims?
+Or is the prose evasive, hedged, or padded?
 
-Brief Assessment: 
-[2-3 sentence summary explaining the score]
+Theoretical Consequences:
+Assuming what is said is true, what would follow?
+Would there be any consequences for philosophy, science, policy, or practical thought?
 
-Key Strengths:
-- [First strength]
-- [Second strength]
-- [Third strength]
+Originality vs. Recycling:
+Does this seem like an original mind at work, or is it a paint-by-numbers regurgitation of standard material?
 
-Areas for Development:
-- [First area]
-- [Second area]
+Cognitive Load & Conceptual Control:
+Is the author dealing with complex, interlocking ideas?
+If so, do they seem to have a firm grasp over those ideas, or is the complexity merely stylistic?
 
-Also provide a JSON structure with your evaluation:
+Model of Mind Implied by the Text:
+Based on this sample, what kind of mind does this text reveal—e.g., analytical, synthetic, imitative, mechanical, confused?
+
+Meta-Cognitive Clues:
+Does the author show awareness of the limits or implications of their own claims?
+Is there evidence of dialectical self-checking?
+
+Compression vs. Diffusion:
+Does the author say more with less, or less with more?
+
+## Intelligence Assessment Report
+
+**Overall Impression**: [Summary statement about the intelligence profile revealed.]
+
+### 1. Epistemic Novelty:
+[Your assessment]
+
+### 2. Inferential Integrity:
+[Your assessment]
+
+### 3. Linguistic Transparency:
+[Your assessment]
+
+### 4. Forthrightness:
+[Your assessment]
+
+### 5. Consequences:
+[Your assessment]
+
+### 6. Originality:
+[Your assessment]
+
+### 7. Conceptual Control:
+[Your assessment]
+
+### 8. Mind Implied:
+[Your assessment]
+
+### 9. Meta-Cognition:
+[Your assessment]
+
+### 10. Compression vs. Diffusion:
+[Your assessment]
+
+**Provisional Intelligence Score (1–100)**: [Your assessment]
+
+Also include a JSON representation of your evaluation:
 {
-  "score": [0-100],
-  "assessment": "brief explanation",
-  "strengths": ["strength1", "strength2", "strength3"],
-  "areas_for_development": ["area1", "area2"]
+  "overallScore": number,
+  "overallImpression": "string",
+  "evaluations": {
+    "epistemicNovelty": "string",
+    "inferentialIntegrity": "string",
+    "linguisticTransparency": "string",
+    "forthrightness": "string",
+    "consequences": "string",
+    "originality": "string",
+    "conceptualControl": "string",
+    "mindImplied": "string",
+    "metaCognition": "string",
+    "compression": "string"
+  }
 }`;
 
 /**
