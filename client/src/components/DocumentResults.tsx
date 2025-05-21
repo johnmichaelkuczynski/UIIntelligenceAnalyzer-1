@@ -28,6 +28,19 @@ interface DocumentResultsProps {
   originalDocument?: DocumentInputType;
 }
 
+// Helper function to check if the analysis result contains an error
+function isErrorAnalysis(analysis: any): boolean {
+  // Check for HTML-like error messages that might come from API errors
+  if (typeof analysis?.formattedReport === 'string' && 
+     (analysis.formattedReport.includes('<!DOCTYPE html>') || 
+      analysis.formattedReport.includes('<html') ||
+      analysis.formattedReport.includes('Error:') ||
+      analysis.error === true)) {
+    return true;
+  }
+  return false;
+}
+
 // Common rewrite instructions that users can select from, specifically designed to improve intelligence scores
 const REWRITE_PRESETS = [
   {

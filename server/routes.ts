@@ -98,7 +98,15 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const { content, provider = "openai" } = req.body;
       
       if (!content) {
-        return res.status(400).json({ message: "Document content is required" });
+        return res.status(400).json({ 
+          error: true, 
+          message: "Document content is required",
+          formattedReport: "Error: Document content is required",
+          provider: provider,
+          overallScore: 0,
+          surface: { grammar: 0, structure: 0, jargonUsage: 0, surfaceFluency: 0 },
+          deep: { conceptualDepth: 0, inferentialContinuity: 0, semanticCompression: 0, logicalLaddering: 0, originality: 0 }
+        });
       }
       
       // Import the direct analysis methods
@@ -108,12 +116,12 @@ export async function registerRoutes(app: Express): Promise<Express> {
         directPerplexityAnalyze 
       } = await import('./services/directLLM');
       
+      // Perform direct analysis with the specified provider
+      console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR ANALYSIS`);
+      
+      let directResult;
+      
       try {
-        // Perform direct analysis with the specified provider
-        console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR ANALYSIS`);
-        
-        let directResult;
-        
         switch (provider.toLowerCase()) {
           case 'anthropic':
             directResult = await directAnthropicAnalyze(content);
