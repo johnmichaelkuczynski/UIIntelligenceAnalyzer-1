@@ -11,6 +11,7 @@ import EnhancedRewriteSection from "./EnhancedRewriteSection";
 import DirectWebContentSearch from "./DirectWebContentSearch";
 import DirectTextExport from "./DirectTextExport";
 import FullReportDialog from "./FullReportDialog";
+import PhilosophicalIntelligenceReport from "./PhilosophicalIntelligenceReport";
 import ReportExportButtons from "./ReportExportButtons";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -405,30 +406,9 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
         </div>
       </div>
       
-      {/* Raw AI output - no processing */}
+      {/* Philosophical Intelligence Report */}
       <div className="mb-6">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="font-semibold text-gray-800">AI Analysis Output</h3>
-          {analysis.provider && (
-            <Badge variant="outline" className="bg-white">
-              {analysis.provider.includes("OpenAI") ? (
-                <Sparkles className="h-3.5 w-3.5 text-green-600 mr-1.5" />
-              ) : analysis.provider.includes("Anthropic") ? (
-                <BrainCircuit className="h-3.5 w-3.5 text-purple-600 mr-1.5" />
-              ) : analysis.provider.includes("Perplexity") ? (
-                <Bot className="h-3.5 w-3.5 text-blue-600 mr-1.5" />
-              ) : (
-                <FileType className="h-3.5 w-3.5 text-gray-600 mr-1.5" />
-              )}
-              {analysis.provider}
-            </Badge>
-          )}
-        </div>
-        
-        {/* Raw unprocessed output from LLM */}
-        <div className="w-full h-[500px] overflow-auto border border-gray-200 rounded-md p-4 bg-white font-mono text-sm whitespace-pre-wrap">
-          {analysis.formattedReport || JSON.stringify(analysis, null, 2)}
-        </div>
+        <PhilosophicalIntelligenceReport analysis={analysis} />
       </div>
 
       {/* AI Detection Result (if available) */}
