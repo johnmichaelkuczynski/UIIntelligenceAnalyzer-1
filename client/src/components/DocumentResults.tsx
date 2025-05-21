@@ -441,15 +441,15 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
             {analysis.overallScore}/100
           </span>
         </div>
-        <p className="text-gray-700">{analysis.overallAssessment}</p>
+        <p className="text-gray-700 whitespace-pre-wrap">{analysis.overallAssessment}</p>
       </div>
 
       {/* Full Report Button */}
       <div className="mb-6">
         <Button
+          variant="default"
           onClick={() => setShowFullReportModal(true)}
           className="flex items-center gap-2 w-full justify-center py-3 bg-blue-600 text-white hover:bg-blue-700 border border-blue-800"
-          size="lg"
         >
           <BrainCircuit className="h-5 w-5" />
           <span className="font-medium">View Complete Intelligence Report</span>
@@ -763,6 +763,13 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Full Report Dialog */}
+      <FullReportDialog
+        open={showFullReportModal}
+        onOpenChange={setShowFullReportModal}
+        analysis={analysis}
+      />
       
       {/* AI Detection Modal */}
       <AIDetectionModal
