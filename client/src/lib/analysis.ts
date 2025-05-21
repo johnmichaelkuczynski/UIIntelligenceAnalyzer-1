@@ -11,17 +11,60 @@ import {
   RewriteRequest
 } from "./types";
 
-// Function to analyze a single document
+// Function to analyze a single document with progress tracking
 export async function analyzeDocument(
   document: DocumentInput,
-  provider: string = "openai"
+  provider: string = "openai",
+  onProgress?: (progress: number) => void
 ): Promise<DocumentAnalysis> {
   try {
-    const response = await apiRequest("POST", "/api/analyze", {
-      ...document,
-      provider
-    });
-    return await response.json();
+    console.log(`Analyzing with ${provider}...`);
+    
+    // Check if this is a large document that requires chunking (>5000 chars)
+    const isLargeDocument = document.content.length > 5000;
+    
+    if (isLargeDocument && onProgress) {
+      // For large documents, we'll use the streaming endpoint with progress updates
+      onProgress(5); // Start with 5% to show we've begun
+      
+      // Start a progress polling mechanism for large documents
+      let progressTimer = setInterval(async () => {
+        try {
+          const statusResp = await fetch('/api/analysis-status');
+          if (statusResp.ok) {
+            const { progress } = await statusResp.json();
+            if (progress && onProgress) {
+              onProgress(Math.min(95, progress)); // Cap at 95% until complete
+            }
+          }
+        } catch (e) {
+          // Silently fail - polling will continue
+        }
+      }, 1000);
+      
+      try {
+        const response = await apiRequest("POST", "/api/analyze", {
+          ...document,
+          provider,
+          requireProgress: isLargeDocument
+        });
+        
+        clearInterval(progressTimer);
+        onProgress(100); // Complete
+        return await response.json();
+      } catch (error) {
+        clearInterval(progressTimer);
+        throw error;
+      }
+    } else {
+      // For small documents, use the regular endpoint
+      const response = await apiRequest("POST", "/api/analyze", {
+        ...document,
+        provider
+      });
+      
+      return await response.json();
+    }
   } catch (error) {
     console.error("Error analyzing document:", error);
     throw error;
