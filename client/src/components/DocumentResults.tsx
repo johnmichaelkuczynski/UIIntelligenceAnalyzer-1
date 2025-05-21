@@ -411,10 +411,8 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
             </Badge>
           )}
         </div>
-        <p className="text-gray-700">
-          {analysis.summary && analysis.summary.length > 300 
-            ? analysis.summary.substring(0, 300) + "..."
-            : analysis.summary}
+        <p className="text-gray-700 whitespace-pre-wrap break-words">
+          {analysis.summary}
         </p>
       </div>
 
