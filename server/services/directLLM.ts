@@ -37,8 +37,16 @@ Does the author reflect on the implications or limits of their claims?
 
 Is the writing compressed (dense with meaning) or diffuse (wordy and vague)?
 
-After answering, give an overall intelligence score from 1 to 100 based only on what the passage reveals about the author.
-Explain exactly how you arrived at that number.`;
+Then give an overall intelligence score from 1 to 100, where:
+
+50 = average undergraduate student,
+60 = slightly above average,
+70 = shows real insight and analytic ability,
+80 = reflects independent and original intelligence,
+90 = reveals deep, synthetic, creative, and disciplined thought,
+100 = a profound and exceptional mind.
+
+Explain your score based on these benchmarks and your answers to the previous questions.`;
 
 /**
  * Split text into chunks for large document processing
