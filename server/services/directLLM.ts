@@ -51,7 +51,7 @@ Then give an overall intelligence score from 1 to 100, using this scale:
 
 100 = profoundly brilliant, philosophical, or visionary
 
-If the text includes a genuinely original insight—especially one that links psychological and behavioral levels of explanation—then the score should reflect that.
+If the text includes a genuinely original insight of any kind—whether philosophical, scientific, psychological, conceptual, or theoretical—the score should properly reflect the intellectual achievement this represents.
 
 Explain how you arrived at your score.`;
 
