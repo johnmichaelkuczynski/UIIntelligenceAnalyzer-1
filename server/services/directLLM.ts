@@ -37,23 +37,22 @@ Does the author reflect on the implications or limits of their claims?
 
 Is the writing compressed (dense with meaning) or diffuse (wordy and vague)?
 
-Then give an overall intelligence score from 1 to 100, using this scale:
+Then give an overall intelligence rating from 1 to 100. Use the following scale:
 
-50 = average writing by a college student
+50 = ordinary college-level reasoning
 
-60 = slightly above average
+60 = shows basic synthesis or conceptual clarity
 
-70 = solidly intelligent, with some insight
+70 = shows insight and interpretive intelligence
 
-80 = original and synthetic thinking, possibly publishable
+80 = reveals original thought or theoretical structure
 
-90 = deeply intelligent, integrative, and conceptually creative
+90 = exhibits creative, high-level conceptual integration across fields
 
-100 = profoundly brilliant, philosophical, or visionary
+100 = profoundly intelligent, visionary, or groundbreaking
 
-If the text includes a genuinely original insight of any kind—whether philosophical, scientific, psychological, conceptual, or theoretical—the score should properly reflect the intellectual achievement this represents.
-
-Explain how you arrived at your score.`;
+This is not a writing grade. This is an evaluation of the intelligence of the author based solely on what is revealed in the content and reasoning.
+Justify your score in detail.`;
 
 /**
  * Split text into chunks for large document processing
