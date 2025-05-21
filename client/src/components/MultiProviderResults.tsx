@@ -40,7 +40,7 @@ export function MultiProviderResults({ results, documentId }: MultiProviderResul
   
   // Find the active result based on the selected provider
   const getActiveResult = () => {
-    const activeIndex = providerIds.indexOf(activeProvider);
+    const activeIndex = providerIds.indexOf(activeProvider as any);
     return activeIndex >= 0 ? results[activeIndex] : results[0];
   };
   

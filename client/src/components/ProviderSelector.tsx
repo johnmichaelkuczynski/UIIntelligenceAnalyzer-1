@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { BrainCircuit, Bot, Sparkles, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-export type LLMProvider = "openai" | "anthropic" | "perplexity";
+export type LLMProvider = "openai" | "anthropic" | "perplexity" | "all";
 
 interface ProviderSelectorProps {
   selectedProvider: LLMProvider;
@@ -83,6 +83,18 @@ const ProviderSelector: React.FC<ProviderSelectorProps> = ({
               <Bot className="h-4 w-4 text-blue-600" />
               <span>Perplexity (Llama 3.1)</span>
               {!apiStatus.perplexity && <span className="text-xs text-red-500 ml-2">(Unavailable)</span>}
+            </div>
+          </SelectItem>
+          <SelectItem 
+            value="all" 
+            className="flex items-center"
+            disabled={!apiStatus.openai || !apiStatus.anthropic || !apiStatus.perplexity}
+          >
+            <div className="flex items-center gap-2">
+              <BrainCircuit className="h-4 w-4 text-indigo-600" />
+              <span>All Providers (Compare)</span>
+              {(!apiStatus.openai || !apiStatus.anthropic || !apiStatus.perplexity) && 
+                <span className="text-xs text-red-500 ml-2">(Some APIs unavailable)</span>}
             </div>
           </SelectItem>
         </SelectContent>
