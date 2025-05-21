@@ -261,9 +261,9 @@ export async function directOpenAIAnalyze(text: string): Promise<any> {
         messages: [
           { 
             role: "system", 
-            content: "You are an expert in cognitive analysis, specializing in evaluating text for intelligence level. Provide detailed, evidence-based assessments that identify specific cognitive strengths and weaknesses in writing. Focus on semantic density, logical structure, and conceptual clarity. Always cite specific quotes from the text to justify your scores."
+            content: ANALYSIS_PROMPT // Use the detailed intelligence analysis prompt directly
           },
-          { role: "user", content: `${ANALYSIS_PROMPT}\n\nHere is the text to analyze:\n\n${text}` }
+          { role: "user", content: `Here is the text to analyze:\n\n${text}` }
         ],
         max_tokens: 4000,
         temperature: 0.2
@@ -452,13 +452,13 @@ export async function directAnthropicAnalyze(text: string): Promise<any> {
   // For small texts, process directly
   if (text.length <= MAX_CHUNK_SIZE) {
     try {
-      // Direct pass-through to Anthropic Claude with no custom algorithms
+      // Direct pass-through to Anthropic Claude with proper intelligence analysis prompt
       const response = await anthropic.messages.create({
         model: "claude-3-7-sonnet-20250219", // the newest Anthropic model is "claude-3-7-sonnet-20250219" which was released February 24, 2025
-        system: "You are an expert in cognitive analysis, specializing in evaluating text for intelligence level. Provide detailed, evidence-based assessments with specific quotes from the text. Use the exact format requested.",
+        system: ANALYSIS_PROMPT, // Use the detailed intelligence analysis prompt directly
         max_tokens: 4000,
         messages: [
-          { role: "user", content: `${ANALYSIS_PROMPT}\n\nHere is the text to analyze:\n\n${text}` }
+          { role: "user", content: `Here is the text to analyze:\n\n${text}` }
         ]
       });
   
@@ -547,10 +547,10 @@ export async function directAnthropicAnalyze(text: string): Promise<any> {
       // Try to process the chunk
       const response = await anthropic.messages.create({
         model: "claude-3-7-sonnet-20250219",
-        system: ANALYSIS_PROMPT + "\n\nIMPORTANT: Return valid JSON directly without using markdown code blocks or backticks. Do not include ```json or ``` in your response. Just return the raw JSON object.",
+        system: ANALYSIS_PROMPT, // Use the detailed intelligence analysis prompt directly
         max_tokens: 4000,
         messages: [
-          { role: "user", content: chunk }
+          { role: "user", content: `Here is the text to analyze:\n\n${chunk}` }
         ]
       });
       
