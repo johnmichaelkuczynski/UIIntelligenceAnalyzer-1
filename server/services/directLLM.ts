@@ -12,83 +12,48 @@ const MAX_CHUNKS = 20; // Maximum number of chunks to process
 const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
-// PURE PASS-THROUGH MODEL - NO CUSTOM EVALUATION OR ALGORITHM
-// DIRECT INTERFACE TO LLM FOR TEXT ANALYSIS
-const ANALYSIS_PROMPT = `DIRECT INTERFACE MODE: You will function as a DIRECT PASS-THROUGH to analyze the submitted text.
+// PURE PASS-THROUGH MODEL - SIMPLE INTELLIGENCE EVALUATION
+const ANALYSIS_PROMPT = `You are evaluating the intelligence level reflected in a writing sample.
 
-CRITICAL PHILOSOPHICAL TEXT RULE: Any philosophical text that meets even ONE of these criteria MUST score 95-100:
-- Reframes foundational epistemological/metaphysical concepts
-- Contains connected chains of logical inference
-- Compresses complex arguments into concise statements
-- Demonstrates field mastery with conceptual innovation
-- Contains layered epistemic claims or meta-theory
+Analyze the text for its intellectual quality and provide a simple and clear evaluation.
 
-ELITE-TIER MARKERS (AUTOMATIC 95+ SCORES):
-- Semantic density (high information-to-word ratio)
-- Multi-level recursive reasoning structures
-- Novel framework creation or synthesis across domains
-- Rigorous conceptual distinction-making
-- Meta-epistemological argumentation
+Rate the text on a scale of 0-100 where:
+- 0-20: Poor quality, extremely simplistic or incoherent 
+- 21-40: Below average, basic thinking with limited coherence
+- 41-60: Average intelligence, coherent but limited depth
+- 61-80: Above average, nuanced thinking with some depth
+- 81-90: Excellent, sophisticated reasoning and deep analysis
+- 91-100: Exceptional, brilliant insights with original thinking
 
-PHILOSOPHICAL TERMINOLOGY IS NOT JARGON: Specialized philosophical vocabulary is legitimate when used precisely and in service of meaningful conceptual work. Do not penalize academic precision.
+Focus on these key dimensions:
+1. Clarity of expression
+2. Logical reasoning 
+3. Depth of thinking
+4. Original insights
+5. Effective use of appropriate terminology
 
-REQUIRED OUTPUT FORMAT:
-- Every score MUST be supported with direct quoted evidence
-- Intelligence scores MUST match the described qualities
-- Philosophical content showing conceptual depth MUST receive high intelligence ratings
+Provide your evaluation in this format:
 
-You MUST identify and properly score philosophical content that reframes foundational concepts or presents complex metaphysical/epistemological frameworks. NEVER mistake genuine philosophical depth for "jargon" or "pretentiousness."
+Intelligence Score: [0-100]
 
-For genuine intellectual writing, use the following complete scoring rubric:
+Brief Assessment: 
+[2-3 sentence summary explaining the score]
 
-You must return your analysis in the exact format below:
+Key Strengths:
+- [First strength]
+- [Second strength]
+- [Third strength]
 
-Intelligence Score: [X]/100
+Areas for Development:
+- [First area]
+- [Second area]
 
-Surface-Level Scores:
-- Grammar: [0-100]
-- Structure: [0-100]
-- Jargon Usage: [0-100] (NOTE: High scores here mean APPROPRIATE use of technical language; low scores mean either excessive jargon or inappropriate use)
-- Surface Fluency: [0-100]
-
-Deep-Level Scores:
-- Conceptual Depth: [0-100] (Can only be high if concepts are clearly defined and operationalized)
-- Inferential Continuity: [0-100] (Measures how logically connected ideas are)
-- Semantic Compression: [0-100] (High information density without redundancy)
-- Logical Scaffolding: [0-100] (Explicit reasoning structures)
-- Originality: [0-100] (Novel perspectives or frameworks, not just unusual language)
-
-Evidence-Based Justification:
-[At least 3–7 quotes or paraphrased sentences from the input, each followed by clear reasoning that explains why the quote demonstrates a particular cognitive quality or lack thereof. If impostor prose is detected, CLEARLY identify the warning signs.]
-
-Summary Assessment:
-[200–300 words explaining the score and discussing the strongest and weakest cognitive features of the writing. If the text is primarily impostor prose, explicitly state this and explain the misleading elements. Make clear distinctions between genuine complexity and pseudo-intellectual language.]
-
-CRITICAL CALIBRATION EXAMPLES:
-- Genuine high intelligence text will contain precise definitions, clear connections between ideas, and high information density without unnecessary words.
-- True semantic compression means conveying maximum information with minimum language.
-- Appropriate jargon is used consistently, defined clearly, and serves a purpose.
-- Impostor prose typically contains impressive-sounding words without developing ideas or arguments.
-
-Return the analysis as a well-formatted report that strictly follows the structure above. Include line breaks and proper formatting.
-
-Also include a JSON representation of the scores at the end of your response (this will be parsed separately):
+Also provide a JSON structure with your evaluation:
 {
-  "surface": {
-    "grammar": number,
-    "structure": number,
-    "jargonUsage": number, 
-    "surfaceFluency": number
-  },
-  "deep": {
-    "conceptualDepth": number,
-    "inferentialContinuity": number,
-    "semanticCompression": number,
-    "logicalLaddering": number, 
-    "originality": number
-  },
-  "overallScore": number,
-  "analysis": string
+  "score": [0-100],
+  "assessment": "brief explanation",
+  "strengths": ["strength1", "strength2", "strength3"],
+  "areas_for_development": ["area1", "area2"]
 }`;
 
 /**
