@@ -12,55 +12,23 @@ const MAX_CHUNKS = 20; // Maximum number of chunks to process
 const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
-// PURE PASS-THROUGH MODEL - USING EXACT INSTRUCTIONS WITHOUT MODIFICATION
-const ANALYSIS_PROMPT = `You are a highly intelligent, philosophically rigorous reader. You have just read the following passage. Your task is to assess what the text reveals about the intelligence of its author. Do not grade the quality of the text. Instead, assess the probable intelligence of the person who wrote it, based solely on this passage.
+// EXACTLY AS SPECIFIED IN THE INSTRUCTIONS
+const ANALYSIS_PROMPT = `You are a highly intelligent and philosophically rigorous reader. You have just read the following passage. Your task is to assess what the passage reveals about the intelligence of the person who wrote it. Do not summarize or judge the quality of the text. Do not evaluate correctness. Focus only on what the text reveals about the author's intelligence.
 
-Here is what to consider:
+Evaluate the author's intelligence based on the following questions:
 
-Epistemic Novelty:
-Did you learn anything new from this text?
-If all its claims were true, would you have learned something new from it?
+1. Did you learn anything new from this text?
+2. If all the claims were true, would you have learned anything new from it?
+3. How well does each statement follow from the next?
+4. How reliant is the text on undefined or ornamental jargon?
+5. Is the author evasive or forthright in engaging hard problems?
+6. If the author's claims are correct, what are the consequences for the relevant field or the world?
+7. Does the text seem original or recycled?
+8. What kind of mind does this writing reveal—e.g., analytical, synthetic, imitative, derivative?
+9. Does the author reflect on the implications or limits of their claims?
+10. Is the writing compressed (saying a lot with few words) or diffuse (saying little with many)?
 
-Inferential Integrity:
-How well does one statement follow from the next?
-Are the claims logically and inferentially tight, or loose and impressionistic?
-
-Linguistic Transparency vs. Jargon Dependence:
-How reliant is the text on undefined or ornamental jargon?
-Are terms used with precision and continuity?
-
-Cognitive Forthrightness:
-Does the author confront the difficult or controversial parts of their claims?
-Or is the prose evasive, hedged, or padded?
-
-Theoretical Consequences:
-Assuming what is said is true, what would follow?
-Would there be any consequences for philosophy, science, policy, or practical thought?
-
-Originality vs. Recycling:
-Does this seem like an original mind at work, or is it a paint-by-numbers regurgitation of standard material?
-
-Cognitive Load & Conceptual Control:
-Is the author dealing with complex, interlocking ideas?
-If so, do they seem to have a firm grasp over those ideas, or is the complexity merely stylistic?
-
-Model of Mind Implied by the Text:
-Based on this sample, what kind of mind does this text reveal—e.g., analytical, synthetic, imitative, mechanical, confused?
-
-Meta-Cognitive Clues:
-Does the author show awareness of the limits or implications of their own claims?
-Is there evidence of dialectical self-checking?
-
-Compression vs. Diffusion:
-Does the author say more with less, or less with more?
-
-Follow the format below for your response:
-
-1. For each category listed above, provide a detailed analysis that includes direct quotes from the text to justify your assessment.
-2. Include specific examples from the text that reveal the author's intellectual capabilities.
-3. Conclude with a summary of your overall assessment of the author's intelligence based solely on this specific text.
-
-IMPORTANT: Make sure to include actual quotes from the text to support your analysis. Do not make generalizations without backing them up with specific evidence from this particular text.`;
+Then give an overall intelligence rating of the author from 1 to 100, based **only** on what is revealed in this passage.`;
 
 /**
  * Split text into chunks for large document processing
