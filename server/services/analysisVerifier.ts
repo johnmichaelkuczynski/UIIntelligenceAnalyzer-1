@@ -98,7 +98,18 @@ function hasScoreDiscrepancy(text: string, score: number | null): boolean {
     "exceptional",
     "impressive",
     "strong",
-    "excellent"
+    "excellent",
+    "significant",
+    "substantive",
+    "elegant",
+    "powerful",
+    "adept",
+    "astute",
+    "cerebral",
+    "erudite",
+    "sagacious",
+    "incisive",
+    "perspicacious"
   ];
   
   const negativeWords = [
@@ -133,12 +144,17 @@ function hasScoreDiscrepancy(text: string, score: number | null): boolean {
   const positiveRatio = totalWords > 0 ? positiveCount / totalWords : 0.5;
   
   // If the score is high but the text is mostly negative
-  if (score > 75 && positiveRatio < 0.6) {
+  if (score > 75 && positiveRatio < 0.4) {
     return true;
   }
   
   // If the score is low but the text is mostly positive
-  if (score < 50 && positiveRatio > 0.7) {
+  if (score < 60 && positiveRatio > 0.65) {
+    return true;
+  }
+  
+  // If score is extremely high but positive language isn't overwhelming
+  if (score > 90 && positiveRatio < 0.7) {
     return true;
   }
   
@@ -208,19 +224,19 @@ async function verifyOpenAIAnalysis(textToAnalyze: string, initialReport: any): 
     try {
       console.log("Requesting reassessment from OpenAI due to issues in analysis...");
       
-      // Request a reassessment
+      // Request a reassessment - using more philosophical language for better analysis
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
         messages: [
           { 
             role: "system", 
-            content: "You are a highly intelligent, philosophically rigorous reader tasked with assessing what a text reveals about its author's intelligence." 
+            content: "You are a highly intelligent, philosophically rigorous reader with expertise in cognitive science, philosophy of mind, and analytic philosophy. Your task is to assess what the following text reveals about its author's intelligence, particularly their conceptual sophistication, logical coherence, and originality of thought. Provide a careful evaluation focusing solely on the cognitive abilities displayed in the writing. Include a numerical Intelligence Score between 0-100 that accurately reflects your assessment." 
           },
           { role: "user", content: textToAnalyze },
           { role: "assistant", content: reportText },
           { role: "user", content: feedback }
         ],
-        temperature: 0.2
+        temperature: 0.1
       });
       
       // Update current report with the reassessment
