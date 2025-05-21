@@ -44,8 +44,19 @@ app.use((req, res, next) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
-    res.status(status).json({ message });
-    throw err;
+    // Create a properly formatted error response that the frontend can handle
+    res.status(200).json({
+      error: true,
+      errorMessage: message,
+      formattedReport: `**Analysis Error**\n\nWe encountered an issue with the AI service: ${message}\n\nPlease try again or select a different AI provider.`,
+      provider: "AI Service (Error)",
+      overallScore: 0,
+      surface: { grammar: 0, structure: 0, jargonUsage: 0, surfaceFluency: 0 },
+      deep: { conceptualDepth: 0, inferentialContinuity: 0, semanticCompression: 0, logicalLaddering: 0, originality: 0 }
+    });
+    
+    // Log the error but don't throw it to prevent crashing the server
+    console.error("Server error:", err);
   });
 
   // importantly only setup vite in development and after
