@@ -60,6 +60,13 @@ export interface DocumentAnalysis {
   // Critical fields needed by the simplified interface
   formattedReport?: string;
   provider?: string;
+  report?: string; // For backward compatibility
+  
+  // Multiple provider results for simultaneous analysis
+  analysisResults?: Array<{
+    provider: string;
+    formattedReport: string;
+  }>;
   
   // Optional fields for error handling and AI detection
   aiDetection?: AIDetectionResult;

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Tab, Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RewriteButton } from './RewriteButton';
-import { AICheckButton } from './AICheckButton';
-import { ShareViaEmailButton } from './ShareViaEmailButton';
-import { DownloadReportButton } from './DownloadReportButton';
+import { Button } from "@/components/ui/button";
+import { FileEdit, ShieldAlert, Share2 } from "lucide-react";
+import ReportDownloadButton from "./ReportDownloadButton";
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
@@ -85,10 +84,19 @@ export function MultiProviderResults({ results, documentId }: MultiProviderResul
               <CardDescription>Analysis from multiple AI providers</CardDescription>
             </div>
             <div className="flex space-x-2">
-              <RewriteButton />
-              <AICheckButton />
-              <ShareViaEmailButton />
-              <DownloadReportButton />
+              <Button size="sm" variant="outline" className="flex items-center gap-2">
+                <FileEdit className="h-4 w-4" />
+                Rewrite
+              </Button>
+              <Button size="sm" variant="outline" className="flex items-center gap-2">
+                <ShieldAlert className="h-4 w-4" />
+                Check AI
+              </Button>
+              <Button size="sm" variant="outline" className="flex items-center gap-2">
+                <Share2 className="h-4 w-4" />
+                Share via Email
+              </Button>
+              <ReportDownloadButton analysisA={{provider: "Multiple", formattedReport: "Multiple provider analysis"}} mode="single" />
             </div>
           </div>
         </CardHeader>

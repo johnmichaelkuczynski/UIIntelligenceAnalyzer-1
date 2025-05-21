@@ -1,113 +1,105 @@
 import React from 'react';
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bot, BrainCircuit, FileType, Sparkles } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DocumentAnalysis } from '@/lib/types';
+import { MultiProviderResults } from './MultiProviderResults';
 
 interface PhilosophicalIntelligenceReportProps {
-  analysis: any;
+  analysis: DocumentAnalysis;
 }
 
-export default function PhilosophicalIntelligenceReport({ analysis }: PhilosophicalIntelligenceReportProps) {
-  // Parse and structure the raw report into categories based on the questions
-  const formattedReport = analysis.formattedReport || "";
+function extractScore(text: string): number | null {
+  // Try to find a score formatted as "Intelligence Score: XX/100"
+  const scoreMatch = text.match(/Intelligence Score:\s*(\d+)\/100/i);
+  if (scoreMatch && scoreMatch[1]) {
+    return parseInt(scoreMatch[1], 10);
+  }
   
-  // Define the categories corresponding to the questions asked to the LLM
-  const categories = [
-    {
-      title: "Epistemic Novelty",
-      queries: ["Did you learn anything new from this text?", "would you have learned something new"]
-    },
-    {
-      title: "Inferential Integrity",
-      queries: ["How well does one statement follow from the next?", "logically and inferentially tight"]
-    },
-    {
-      title: "Linguistic Transparency",
-      queries: ["How reliant is the text on undefined or ornamental jargon?", "precision and continuity"]
-    },
-    {
-      title: "Cognitive Forthrightness",
-      queries: ["Does the author confront the difficult or controversial parts", "evasive, hedged, or padded"]
-    },
-    {
-      title: "Theoretical Consequences",
-      queries: ["Assuming what is said is true, what would follow?", "consequences for philosophy"]
-    },
-    {
-      title: "Originality vs. Recycling",
-      queries: ["Does this seem like an original mind at work", "regurgitation of standard"]
-    },
-    {
-      title: "Cognitive Load & Conceptual Control",
-      queries: ["Is the author dealing with complex, interlocking ideas?", "firm grasp over those ideas"]
-    },
-    {
-      title: "Model of Mind Implied",
-      queries: ["what kind of mind does this text reveal", "analytical, synthetic"]
-    },
-    {
-      title: "Meta-Cognitive Clues",
-      queries: ["awareness of the limits or implications", "dialectical self-checking"]
-    },
-    {
-      title: "Compression vs. Diffusion",
-      queries: ["Does the author say more with less", "less with more"]
-    }
-  ];
+  // Try to find other score formats
+  const alternateScoreMatch = text.match(/score:?\s*(\d+)/i);
+  if (alternateScoreMatch && alternateScoreMatch[1]) {
+    return parseInt(alternateScoreMatch[1], 10);
+  }
   
-  // Extract section for scoring (optional)
-  const scoreMatch = formattedReport.match(/(\d+)\s*\/\s*100/i);
-  const score = scoreMatch ? parseInt(scoreMatch[1]) : null;
+  return null;
+}
+
+const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportProps> = ({ analysis }) => {
+  // Check if the analysis contains multiple provider results
+  const hasMultipleProviders = analysis.analysisResults && Array.isArray(analysis.analysisResults) && analysis.analysisResults.length > 0;
   
-  // Overall assessment/impression extraction (look for the first few sentences)
-  const overallImpressionMatch = formattedReport.split(/\.\s+/g).slice(0, 3).join(". ");
+  // If we have multiple provider results, use the dedicated component
+  if (hasMultipleProviders) {
+    return <MultiProviderResults results={analysis.analysisResults} />;
+  }
   
+  // Otherwise, show the single provider result
+  const formattedReport = analysis.formattedReport || analysis.report || "";
+  const provider = analysis.provider || "AI";
+  
+  // Extract the score from the formatted report if available
+  const scoreFromReport = extractScore(formattedReport);
+  
+  // Format the report text for display
+  const formatReport = (text: string) => {
+    if (!text) return <p>No analysis available</p>;
+    
+    // Split by line breaks to display paragraphs properly
+    return text.split('\n').map((line, index) => {
+      // Check if it's a header (starts with a #)
+      if (line.startsWith('#')) {
+        return <h3 key={index} className="text-lg font-bold mt-4 mb-2">{line.replace(/^#+\s*/, '')}</h3>;
+      }
+      
+      // Check if it contains the intelligence score
+      if (line.toLowerCase().includes('intelligence score')) {
+        return (
+          <div key={index} className="my-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-md border border-blue-300 dark:border-blue-800">
+            <h2 className="text-xl font-bold text-blue-700 dark:text-blue-300">{line}</h2>
+          </div>
+        );
+      }
+      
+      // Check if it's a section title (ends with a colon)
+      if (line.trim().endsWith(':') && !line.includes(',')) {
+        return <h4 key={index} className="font-semibold mt-3 mb-1">{line}</h4>;
+      }
+      
+      // Regular paragraph or empty line
+      return line.trim() ? <p key={index} className="my-2">{line}</p> : <br key={index} />;
+    });
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-start">
-        <h2 className="text-xl font-semibold">Intelligence Assessment</h2>
-        {analysis.provider && (
-          <Badge variant="outline" className="bg-white">
-            {analysis.provider.includes("OpenAI") ? (
-              <Sparkles className="h-3.5 w-3.5 text-green-600 mr-1.5" />
-            ) : analysis.provider.includes("Anthropic") ? (
-              <BrainCircuit className="h-3.5 w-3.5 text-purple-600 mr-1.5" />
-            ) : analysis.provider.includes("Perplexity") ? (
-              <Bot className="h-3.5 w-3.5 text-blue-600 mr-1.5" />
-            ) : (
-              <FileType className="h-3.5 w-3.5 text-gray-600 mr-1.5" />
-            )}
-            {analysis.provider}
+    <div className="w-full mt-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold">Intelligence Assessment</h2>
+        {scoreFromReport && (
+          <Badge variant="outline" className="text-lg px-3 py-1 bg-blue-50 text-blue-700 border-blue-300">
+            Score: {scoreFromReport}/100
           </Badge>
         )}
       </div>
       
-      {score !== null && (
-        <div className="flex items-center gap-2 mb-4">
-          <div className="flex-1">
-            <div className="h-2 w-full bg-gray-200 rounded-full">
-              <div 
-                className="h-2 bg-blue-600 rounded-full" 
-                style={{ width: `${score}%` }}
-              ></div>
-            </div>
+      <Card className="w-full">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <Badge variant="outline" className="px-2 py-1">
+              {provider}
+            </Badge>
           </div>
-          <span className="text-lg font-semibold text-blue-800">
-            {score}/100
-          </span>
-        </div>
-      )}
-      
-      {overallImpressionMatch && (
-        <div className="bg-blue-50 p-4 rounded-md mb-4">
-          <h3 className="font-medium mb-2">Overall Impression</h3>
-          <p className="text-gray-700">{overallImpressionMatch}</p>
-        </div>
-      )}
-      
-      {/* Just show the raw, complete output directly */}
-      <div className="w-full overflow-auto border border-gray-200 rounded-md p-4 bg-white font-mono text-sm whitespace-pre-wrap">
-        {formattedReport}
-      </div>
+          
+          <ScrollArea className="h-[400px] w-full pr-4">
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              {formatReport(formattedReport)}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+export default PhilosophicalIntelligenceReport;
