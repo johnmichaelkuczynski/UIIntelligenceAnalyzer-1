@@ -52,7 +52,9 @@ Does the author show awareness of the limits or implications of their own claims
 Is there evidence of dialectical self-checking?
 
 Compression vs. Diffusion:
-Does the author say more with less, or less with more?`;
+Does the author say more with less, or less with more?
+
+IMPORTANT: After your analysis, please provide a single numerical score between 0 and 100 that represents your assessment of the author's intellectual capabilities, with 0 being completely lacking and 100 being exceptionally intelligent. Format this as "Intelligence Score: [score]/100" at the top of your response.`;
 
 /**
  * Split text into chunks for large document processing
