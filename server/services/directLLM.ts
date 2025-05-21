@@ -177,37 +177,11 @@ export async function directOpenAIAnalyze(text: string): Promise<any> {
       const responseText = response.choices[0].message.content || "{}";
       let result;
       
-      try {
-        // Extract the JSON part from the response
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const jsonStr = jsonMatch[0];
-          result = JSON.parse(jsonStr);
-          
-          // Store the formatted report (the text before the JSON)
-          const formattedReport = responseText.substring(0, responseText.indexOf('{'));
-          result.formattedReport = formattedReport.trim();
-          
-          // Add provider information
-          result.provider = "OpenAI (GPT-4o)";
-        } else {
-          // If no JSON found, try to parse the whole response as JSON
-          result = JSON.parse(responseText);
-          result.provider = "OpenAI (GPT-4o)";
-          result.formattedReport = "Intelligence Score: " + result.overallScore + "/100\n\n" +
-            "Surface-Level Scores:\n" +
-            "- Grammar: " + result.surface.grammar + "\n" +
-            "- Structure: " + result.surface.structure + "\n" +
-            "- Jargon Usage: " + result.surface.jargonUsage + "\n" +
-            "- Surface Fluency: " + result.surface.surfaceFluency + "\n\n" +
-            "Deep-Level Scores:\n" +
-            "- Conceptual Depth: " + result.deep.conceptualDepth + "\n" +
-            "- Inferential Continuity: " + result.deep.inferentialContinuity + "\n" +
-            "- Semantic Compression: " + result.deep.semanticCompression + "\n" +
-            "- Logical Scaffolding: " + result.deep.logicalLaddering + "\n" +
-            "- Originality: " + result.deep.originality + "\n\n" +
-            "Summary Assessment:\n" + result.analysis;
-        }
+      // Skip JSON parsing and just return the raw text
+      result = {
+        formattedReport: responseText,
+        provider: "OpenAI (GPT-4o)"
+      };
       } catch (error) {
         console.error("Failed to parse OpenAI response:", error);
         console.error("Raw response:", responseText);
