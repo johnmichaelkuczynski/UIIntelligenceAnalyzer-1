@@ -184,12 +184,13 @@ export async function registerRoutes(app: Express): Promise<Express> {
         return res.status(400).json({ error: "Both documents are required for comparison" });
       }
       
-      // Import the document comparison service
-      const { compareDocuments } = await import('./services/documentComparison');
+      // Import the direct comparison method from directLLM
+      const { directCompare } = await import('./services/directLLM');
       
-      // Compare documents using the selected provider
-      console.log(`COMPARING DOCUMENTS WITH ${provider.toUpperCase()}`);
-      const result = await compareDocuments(documentA, documentB, provider);
+      // Compare documents using the selected provider - PURE PASSTHROUGH
+      console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR COMPARISON`);
+      const result = await directCompare(documentA, documentB, provider);
+      
       return res.json(result);
     } catch (error: any) {
       console.error("Error comparing documents:", error);
