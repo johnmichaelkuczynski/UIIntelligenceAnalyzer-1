@@ -2,11 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
-import * as sdk from '@azure/ai-speech-sdk';
-import { AssemblyAI } from 'assemblyai';
 
 // Define the speech service providers
-type SpeechProvider = 'azure' | 'assemblyai' | 'gladia';
+type SpeechProvider = 'assemblyai' | 'gladia' | 'azure';
 
 interface SpeechToTextProps {
   onTextCaptured: (text: string) => void;
@@ -18,7 +16,7 @@ interface SpeechToTextProps {
 
 export const SpeechToText: React.FC<SpeechToTextProps> = ({
   onTextCaptured,
-  provider = 'azure',
+  provider = 'assemblyai',
   placeholder = 'Click the microphone to start speaking...',
   buttonLabel = 'Speak',
   className = '',
@@ -28,9 +26,6 @@ export const SpeechToText: React.FC<SpeechToTextProps> = ({
   const [statusMessage, setStatusMessage] = useState(placeholder);
   const audioChunks = useRef<Blob[]>([]);
   const mediaRecorder = useRef<MediaRecorder | null>(null);
-
-  // Azure Speech client
-  const azureSpeechRecognizer = useRef<sdk.SpeechRecognizer | null>(null);
 
   // Function to toggle listening
   const toggleListening = async () => {
@@ -46,18 +41,9 @@ export const SpeechToText: React.FC<SpeechToTextProps> = ({
     try {
       setIsListening(true);
       setStatusMessage('Listening... Speak now');
-
-      switch (provider) {
-        case 'azure':
-          startAzureSpeechRecognition();
-          break;
-        case 'assemblyai':
-        case 'gladia':
-          startBrowserRecording();
-          break;
-        default:
-          startBrowserRecording();
-      }
+      
+      // For all providers, we'll use the browser's MediaRecorder API
+      startBrowserRecording();
     } catch (error) {
       console.error('Error starting speech recognition:', error);
       setIsListening(false);
@@ -76,96 +62,12 @@ export const SpeechToText: React.FC<SpeechToTextProps> = ({
     setStatusMessage('Processing your speech...');
     setIsProcessing(true);
 
-    switch (provider) {
-      case 'azure':
-        if (azureSpeechRecognizer.current) {
-          azureSpeechRecognizer.current.stopContinuousRecognitionAsync();
-        }
-        break;
-      case 'assemblyai':
-      case 'gladia':
-        if (mediaRecorder.current && mediaRecorder.current.state !== 'inactive') {
-          mediaRecorder.current.stop();
-        }
-        break;
-      default:
-        // Default behavior
-        if (mediaRecorder.current && mediaRecorder.current.state !== 'inactive') {
-          mediaRecorder.current.stop();
-        }
+    if (mediaRecorder.current && mediaRecorder.current.state !== 'inactive') {
+      mediaRecorder.current.stop();
     }
   };
 
-  // Azure Speech Recognition
-  const startAzureSpeechRecognition = () => {
-    // Check if the Azure Speech key and region are available
-    const speechKey = process.env.AZURE_SPEECH_KEY;
-    const speechRegion = process.env.AZURE_SPEECH_REGION;
-
-    if (!speechKey || !speechRegion) {
-      setIsListening(false);
-      setStatusMessage('Azure Speech credentials not configured.');
-      toast({
-        title: 'Configuration Error',
-        description: 'Azure Speech API key is not configured. Please contact the administrator.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Create the speech configuration
-    const speechConfig = sdk.SpeechConfig.fromSubscription(speechKey, speechRegion);
-    speechConfig.speechRecognitionLanguage = 'en-US';
-
-    // Create the audio configuration
-    const audioConfig = sdk.AudioConfig.fromDefaultMicrophoneInput();
-
-    // Create the speech recognizer
-    const recognizer = new sdk.SpeechRecognizer(speechConfig, audioConfig);
-
-    // Store full transcript
-    let transcript = '';
-
-    // Event handlers
-    recognizer.recognized = (s, e) => {
-      if (e.result.reason === sdk.ResultReason.RecognizedSpeech) {
-        transcript += ' ' + e.result.text;
-        setStatusMessage(`Recognized: ${e.result.text}`);
-      }
-    };
-
-    recognizer.canceled = (s, e) => {
-      if (e.reason === sdk.CancellationReason.Error) {
-        console.error(`CANCELED: Error Code=${e.errorCode}`);
-        console.error(`CANCELED: Error Details=${e.errorDetails}`);
-        setStatusMessage('Recognition canceled. Please try again.');
-      }
-      
-      setIsListening(false);
-      setIsProcessing(false);
-      recognizer.stopContinuousRecognitionAsync();
-    };
-
-    recognizer.sessionStopped = (s, e) => {
-      setIsListening(false);
-      setIsProcessing(false);
-      
-      if (transcript.trim()) {
-        onTextCaptured(transcript.trim());
-        setStatusMessage('Speech processing completed.');
-      } else {
-        setStatusMessage(placeholder);
-      }
-      
-      recognizer.stopContinuousRecognitionAsync();
-    };
-
-    // Start continuous speech recognition
-    recognizer.startContinuousRecognitionAsync();
-    azureSpeechRecognizer.current = recognizer;
-  };
-
-  // Start browser recording for AssemblyAI and Gladia
+  // Start browser recording for all providers
   const startBrowserRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -186,6 +88,8 @@ export const SpeechToText: React.FC<SpeechToTextProps> = ({
           processWithAssemblyAI(audioBlob);
         } else if (provider === 'gladia') {
           processWithGladia(audioBlob);
+        } else if (provider === 'azure') {
+          processWithAzure(audioBlob);
         } else {
           // Default to AssemblyAI as a fallback
           processWithAssemblyAI(audioBlob);
@@ -211,36 +115,33 @@ export const SpeechToText: React.FC<SpeechToTextProps> = ({
 
   // Process recorded audio with AssemblyAI
   const processWithAssemblyAI = async (audioBlob: Blob) => {
-    const assemblyAPIKey = process.env.ASSEMBLYAI_API_KEY;
-    
-    if (!assemblyAPIKey) {
-      setIsProcessing(false);
-      setStatusMessage('AssemblyAI API key not configured.');
-      toast({
-        title: 'Configuration Error',
-        description: 'AssemblyAI API key is not configured. Please contact the administrator.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
     try {
       setStatusMessage('Processing with AssemblyAI...');
-      
-      const client = new AssemblyAI({ apiKey: assemblyAPIKey });
       
       // Convert Blob to File
       const file = new File([audioBlob], 'recording.wav', { type: 'audio/wav' });
       
-      // Upload the audio file
-      const uploadResponse = await client.transcripts.transcribe({
-        audio: file,
-        language_code: 'en_us'
+      // Create form data for the API request
+      const formData = new FormData();
+      formData.append('audio', file);
+      
+      // Send to our server endpoint that will handle the API call
+      const response = await fetch('/api/speech-to-text', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'provider': 'assemblyai'
+        }
       });
       
-      // Check for successful transcription
-      if (uploadResponse.text) {
-        onTextCaptured(uploadResponse.text);
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.text) {
+        onTextCaptured(result.text);
         setStatusMessage('Speech processing completed.');
       } else {
         setStatusMessage('No speech detected. Please try again.');
@@ -260,39 +161,30 @@ export const SpeechToText: React.FC<SpeechToTextProps> = ({
 
   // Process recorded audio with Gladia
   const processWithGladia = async (audioBlob: Blob) => {
-    const gladiaAPIKey = process.env.GLADIA_API_KEY;
-    
-    if (!gladiaAPIKey) {
-      setIsProcessing(false);
-      setStatusMessage('Gladia API key not configured.');
-      toast({
-        title: 'Configuration Error',
-        description: 'Gladia API key is not configured. Please contact the administrator.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
     try {
       setStatusMessage('Processing with Gladia...');
       
+      // Create form data for the API request
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.wav');
-      formData.append('language', 'english');
-      formData.append('toggle_diarization', 'false');
       
-      const response = await fetch('https://api.gladia.io/v2/transcription/', {
+      // Send to our server endpoint that will handle the API call
+      const response = await fetch('/api/speech-to-text', {
         method: 'POST',
-        headers: {
-          'x-gladia-key': gladiaAPIKey,
-        },
         body: formData,
+        headers: {
+          'provider': 'gladia'
+        }
       });
+      
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+      }
       
       const result = await response.json();
       
-      if (result.prediction) {
-        onTextCaptured(result.prediction);
+      if (result.text) {
+        onTextCaptured(result.text);
         setStatusMessage('Speech processing completed.');
       } else {
         setStatusMessage('No speech detected. Please try again.');
@@ -310,15 +202,52 @@ export const SpeechToText: React.FC<SpeechToTextProps> = ({
     }
   };
 
+  // Process recorded audio with Azure
+  const processWithAzure = async (audioBlob: Blob) => {
+    try {
+      setStatusMessage('Processing with Azure Speech Services...');
+      
+      // Create form data for the API request
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.wav');
+      
+      // Send to our server endpoint that will handle the API call
+      const response = await fetch('/api/speech-to-text', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'provider': 'azure'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.text) {
+        onTextCaptured(result.text);
+        setStatusMessage('Speech processing completed.');
+      } else {
+        setStatusMessage('No speech detected. Please try again.');
+      }
+    } catch (error) {
+      console.error('Azure processing error:', error);
+      setStatusMessage('Error processing speech. Please try again.');
+      toast({
+        title: 'Processing Error',
+        description: 'There was an error processing your speech with Azure Speech Services.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   // Clean up event listeners and resources
   useEffect(() => {
     return () => {
-      // Clean up Azure speech recognizer
-      if (azureSpeechRecognizer.current) {
-        azureSpeechRecognizer.current.stopContinuousRecognitionAsync();
-      }
-      
-      // Clean up media recorder
       if (mediaRecorder.current && mediaRecorder.current.state !== 'inactive') {
         mediaRecorder.current.stop();
       }

@@ -2,10 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FileInput } from "@/components/ui/file-input";
-import { X, Upload, Bot, FileText } from "lucide-react";
+import { X, Upload, Bot, FileText, Mic } from "lucide-react";
 import { extractTextFromFile } from "@/lib/analysis";
 import { DocumentInput as DocumentInputType } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
+import SpeechToText from "@/components/SpeechToText";
 
 interface DocumentInputProps {
   id: "A" | "B";

@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import path from "path";
 import { extractTextFromFile } from "./api/documentParser";
 import { sendSimpleEmail } from "./api/simpleEmailService";
+import { upload as speechUpload, processSpeechToText } from "./api/simpleSpeechToText";
 
 // Configure multer for file uploads
 const upload = multer({ 
@@ -458,6 +459,29 @@ export async function registerRoutes(app: Express): Promise<Express> {
   });
   
   // Direct model request
+  // Speech-to-text conversion endpoint
+  app.post("/api/speech-to-text", speechUpload.single("audio"), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No audio file provided" });
+      }
+      
+      console.log("PROCESSING SPEECH TO TEXT");
+      const text = await processSpeechToText(req);
+      
+      return res.json({
+        success: true,
+        text: text
+      });
+    } catch (error: any) {
+      console.error("Error processing speech to text:", error);
+      return res.status(500).json({ 
+        success: false, 
+        message: error.message || "Failed to process speech to text" 
+      });
+    }
+  });
+
   app.post("/api/direct-model-request", async (req: Request, res: Response) => {
     try {
       const { instruction, provider = "openai" } = req.body;
