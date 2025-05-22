@@ -42,7 +42,7 @@ const HomePage: React.FC = () => {
   const [aiDetectionResult, setAIDetectionResult] = useState<AIDetectionResult | undefined>(undefined);
   
   // State for LLM provider
-  const [selectedProvider, setSelectedProvider] = useState<LLMProvider>("all");
+  const [selectedProvider, setSelectedProvider] = useState<LLMProvider>("openai");
   const [apiStatus, setApiStatus] = useState<{
     openai: boolean;
     anthropic: boolean;
