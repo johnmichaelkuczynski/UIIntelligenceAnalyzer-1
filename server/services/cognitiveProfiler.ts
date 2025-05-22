@@ -165,7 +165,7 @@ ${text.slice(0, 8000)}${text.length > 8000 ? '... [text truncated for length]' :
     });
 
     // Extract the response content
-    const content = response.content[0].text;
+    const content = response.content[0].type === 'text' ? response.content[0].text : '';
     
     // Parse the result, looking for the score
     let score = 0;
