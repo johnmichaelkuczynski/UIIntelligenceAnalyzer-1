@@ -82,21 +82,17 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
     }
   };
 
+  // For real-time speech updates
+  const [dictationActive, setDictationActive] = useState(false);
+  
   // Handle dictated text
   const handleDictatedText = (text: string) => {
-    // If there's existing content, append the dictated text with a space
-    if (document.content) {
-      setDocument({ 
-        ...document, 
-        content: document.content + ' ' + text 
-      });
-    } else {
-      // Otherwise just set the dictated text
-      setDocument({ 
-        ...document, 
-        content: text 
-      });
-    }
+    // Simply set the document content to the dictated text
+    // This will update in real-time as the user speaks
+    setDocument({
+      ...document,
+      content: text
+    });
   };
 
   return (

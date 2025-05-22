@@ -17,6 +17,7 @@ const SimpleSpeechInput: React.FC<SimpleSpeechInputProps> = ({
   const [isListening, setIsListening] = useState(false);
   const [statusMessage, setStatusMessage] = useState('Click to start speaking');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [initialText, setInitialText] = useState('');
   const { toast } = useToast();
 
   // Toggle speech recognition
@@ -61,12 +62,14 @@ const SimpleSpeechInput: React.FC<SimpleSpeechInputProps> = ({
 
       recognition.onresult = (event: any) => {
         let interimTranscript = '';
+        let currentFinalTranscript = finalTranscript;
         
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           
           if (event.results[i].isFinal) {
-            finalTranscript += transcript + ' ';
+            currentFinalTranscript += transcript + ' ';
+            finalTranscript = currentFinalTranscript; // Update the final transcript
           } else {
             interimTranscript += transcript;
           }
@@ -76,6 +79,9 @@ const SimpleSpeechInput: React.FC<SimpleSpeechInputProps> = ({
         if (interimTranscript) {
           setStatusMessage(`Listening: ${interimTranscript}`);
         }
+        
+        // Send both final and interim text to be displayed in real-time
+        onTextCaptured(currentFinalTranscript + interimTranscript);
       };
 
       recognition.onerror = (event: any) => {
@@ -99,12 +105,9 @@ const SimpleSpeechInput: React.FC<SimpleSpeechInputProps> = ({
         setIsListening(false);
         setIsProcessing(false);
         
-        if (finalTranscript) {
-          onTextCaptured(finalTranscript.trim());
-          setStatusMessage('Speech captured successfully');
-        } else {
-          setStatusMessage('No speech detected. Try again.');
-        }
+        // We've already been sending text in real-time,
+        // so we don't need to send it again here
+        setStatusMessage('Speech recognition stopped');
       };
 
       // Start recognition
