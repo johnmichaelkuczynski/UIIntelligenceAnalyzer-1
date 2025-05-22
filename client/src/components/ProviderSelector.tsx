@@ -85,18 +85,7 @@ const ProviderSelector: React.FC<ProviderSelectorProps> = ({
               {!apiStatus.perplexity && <span className="text-xs text-red-500 ml-2">(Unavailable)</span>}
             </div>
           </SelectItem>
-          <SelectItem 
-            value="all" 
-            className="flex items-center"
-            disabled={!apiStatus.openai || !apiStatus.anthropic || !apiStatus.perplexity}
-          >
-            <div className="flex items-center gap-2">
-              <BrainCircuit className="h-4 w-4 text-indigo-600" />
-              <span>All Providers (Compare)</span>
-              {(!apiStatus.openai || !apiStatus.anthropic || !apiStatus.perplexity) && 
-                <span className="text-xs text-red-500 ml-2">(Some APIs unavailable)</span>}
-            </div>
-          </SelectItem>
+          {/* Compare Providers option temporarily removed */}
         </SelectContent>
       </Select>
     </div>
