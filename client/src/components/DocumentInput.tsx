@@ -6,7 +6,7 @@ import { X, Upload, Bot, FileText, Mic } from "lucide-react";
 import { extractTextFromFile } from "@/lib/analysis";
 import { DocumentInput as DocumentInputType } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
-import SpeechToText from "@/components/SpeechToText";
+import SimpleSpeechInput from "@/components/SimpleSpeechInput";
 
 interface DocumentInputProps {
   id: "A" | "B";
@@ -82,6 +82,23 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
     }
   };
 
+  // Handle dictated text
+  const handleDictatedText = (text: string) => {
+    // If there's existing content, append the dictated text with a space
+    if (document.content) {
+      setDocument({ 
+        ...document, 
+        content: document.content + ' ' + text 
+      });
+    } else {
+      // Otherwise just set the dictated text
+      setDocument({ 
+        ...document, 
+        content: text 
+      });
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
       <div className="flex justify-between items-center mb-4">
@@ -141,9 +158,17 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
         </div>
       ) : (
         <>
+          <div className="mb-2">
+            <SimpleSpeechInput 
+              onTextCaptured={handleDictatedText} 
+              buttonLabel="Dictate Text" 
+              className="mb-2 pb-2 border-b border-gray-200"
+            />
+          </div>
+
           <Textarea
             id={`textInput${id}`}
-            placeholder="Type or paste your text here..."
+            placeholder="Type, paste, or dictate your text here..."
             className="w-full h-40 p-4 border border-gray-300 rounded-lg focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
             value={document.content}
             onChange={handleTextChange}
