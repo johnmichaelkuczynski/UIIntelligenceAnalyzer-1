@@ -13,49 +13,43 @@ const MAX_CHUNKS = 3; // Maximum number of chunks to process
 const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
-// PURE PASS-THROUGH MODEL - USING EXACT INSTRUCTIONS WITHOUT MODIFICATION
-const ANALYSIS_PROMPT = `You are a highly intelligent, philosophically rigorous reader. You have just read the following passage. Your task is to assess what the text reveals about the intelligence of its author. Do not grade the quality of the text. Instead, assess the probable intelligence of the person who wrote it, based solely on this passage.
+// FORENSIC COGNITIVE PROFILER - USING ADVANCED INTELLIGENCE EVALUATION
+const ANALYSIS_PROMPT = `You are a FORENSIC COGNITIVE PROFILER analyzing a text sample to determine the intelligence level of its author. 
 
-Here is what to consider:
+THIS IS NOT A GRADING SYSTEM. You are NOT evaluating:
+- Academic merit
+- Novelty or originality of ideas
+- Citation practices
+- Formatting or presentation
+- How "revolutionary" the content is
+- Adherence to academic standards
+- Whether the author has "seen the full development" of ideas
 
-Epistemic Novelty:
-Did you learn anything new from this text?
-If all its claims were true, would you have learned something new from it?
+INSTEAD, you are ONLY identifying cognitive patterns that reveal raw intelligence:
+- Complexity of abstract reasoning
+- Precision in logical structure
+- Ability to manipulate symbolic systems
+- Inferential architecture
+- Depth of conceptual understanding
+- Intellectual control over difficult material
 
-Inferential Integrity:
-How well does one statement follow from the next?
-Are the claims logically and inferentially tight, or loose and impressionistic?
+On a scale from 0–100, where 50 reflects the median intelligence of a typical college graduate, estimate the author's intelligence level, based solely on what is demonstrated in this text. Treat the text as forensic evidence, like a detective analyzing a note left by a suspect.
 
-Linguistic Transparency vs. Jargon Dependence:
-How reliant is the text on undefined or ornamental jargon?
-Are terms used with precision and continuity?
+Calibration Points:
+- 50: Average college graduate (baseline)
+- 60-70: Pop-sci essay on AI ethics
+- 70-80: Undergraduate paper with basic arguments
+- 85-95: PhD-level philosophical critique 
+- 95-100: Formal mathematical/logical work
 
-Cognitive Forthrightness:
-Does the author confront the difficult or controversial parts of their claims?
-Or is the prose evasive, hedged, or padded?
+IMPORTANT CALIBRATION RULES:
+1. Technical/abstract content should score 90+ EVEN IF not "groundbreaking" or "original"
+2. Formal mathematical and logical work should always score 95-100
+3. NEVER penalize for density, difficulty, or obscure notation
+4. Focus on cognitive capacity (abstraction, logical control, structural insight)
+5. A text can reveal high intelligence even if it's not laying out a "revolutionary" idea
 
-Theoretical Consequences:
-Assuming what is said is true, what would follow?
-Would there be any consequences for philosophy, science, policy, or practical thought?
-
-Originality vs. Recycling:
-Does this seem like an original mind at work, or is it a paint-by-numbers regurgitation of standard material?
-
-Cognitive Load & Conceptual Control:
-Is the author dealing with complex, interlocking ideas?
-If so, do they seem to have a firm grasp over those ideas, or is the complexity merely stylistic?
-
-Model of Mind Implied by the Text:
-Based on this sample, what kind of mind does this text reveal—e.g., analytical, synthetic, imitative, mechanical, confused?
-
-Meta-Cognitive Clues:
-Does the author show awareness of the limits or implications of their own claims?
-Is there evidence of dialectical self-checking?
-
-Compression vs. Diffusion:
-Does the author say more with less, or less with more?
-
-IMPORTANT: After your analysis, please provide a single numerical score between 0 and 100 that represents your assessment of the author's intellectual capabilities, with 0 being completely lacking and 100 being exceptionally intelligent. Format this as "Intelligence Score: [score]/100" at the top of your response.`;
+IMPORTANT: Start your response with "Intelligence Score: [score]/100" at the top, followed by your detailed analysis.`;
 
 /**
  * Split text into chunks for large document processing
