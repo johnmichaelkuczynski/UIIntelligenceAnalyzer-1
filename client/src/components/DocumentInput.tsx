@@ -7,6 +7,7 @@ import { extractTextFromFile } from "@/lib/analysis";
 import { DocumentInput as DocumentInputType } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import SimpleSpeechInput from "@/components/SimpleSpeechInput";
+import AzureSpeechInput from "@/components/AzureSpeechInput";
 
 interface DocumentInputProps {
   id: "A" | "B";
@@ -154,12 +155,27 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
         </div>
       ) : (
         <>
-          <div className="mb-2">
-            <SimpleSpeechInput 
-              onTextCaptured={handleDictatedText} 
-              buttonLabel="Dictate Text" 
-              className="mb-2 pb-2 border-b border-gray-200"
-            />
+          <div className="mb-2 border-b border-gray-200 pb-2">
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center">
+                <span className="text-sm font-medium text-gray-700 mr-2">Speech Recognition:</span>
+              </div>
+              
+              {/* Azure Speech Recognition */}
+              <AzureSpeechInput 
+                onTextCaptured={handleDictatedText} 
+                buttonLabel="Azure Dictation" 
+                className="mb-1"
+              />
+              
+              {/* Fallback Browser Speech Recognition */}
+              <SimpleSpeechInput 
+                onTextCaptured={handleDictatedText} 
+                buttonLabel="Browser Dictation" 
+                className="mb-1"
+              />
+              <p className="text-xs text-gray-500">Azure provides higher accuracy, while browser works without API keys.</p>
+            </div>
           </div>
 
           <Textarea

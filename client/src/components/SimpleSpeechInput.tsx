@@ -50,6 +50,9 @@ const SimpleSpeechInput: React.FC<SimpleSpeechInputProps> = ({
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
+      
+      // Log the start of speech recognition
+      console.log('Starting browser speech recognition...');
 
       // Create variable to store transcript
       let finalTranscript = '';
