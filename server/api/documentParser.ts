@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import pdfParse from 'pdf-parse';
+import { extractWithMathpix } from './mathpixOCR';
 
 /**
  * Extract text from a file based on its type
@@ -20,8 +21,15 @@ export async function extractTextFromFile(
         return extractTextFromDocx(file);
       case '.pdf':
         return extractTextFromPdf(file);
+      case '.jpg':
+      case '.jpeg':
+      case '.png':
+      case '.gif':
+      case '.bmp':
+      case '.webp':
+        return extractTextFromImage(file);
       default:
-        throw new Error(`Unsupported file type: ${fileExtension}`);
+        throw new Error(`Unsupported file type: ${fileExtension}. Supported types: .txt, .docx, .pdf, .jpg, .jpeg, .png, .gif, .bmp, .webp`);
     }
   } catch (error) {
     console.error("Error extracting text from file:", error);
