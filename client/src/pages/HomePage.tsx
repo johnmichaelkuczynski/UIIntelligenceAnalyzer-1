@@ -6,9 +6,10 @@ import ComparativeResults from "@/components/ComparativeResults";
 import AIDetectionModal from "@/components/AIDetectionModal";
 import ProviderSelector, { LLMProvider } from "@/components/ProviderSelector";
 import UnifiedRewriteSection from "@/components/UnifiedRewriteSection";
+import ImmediateRewriteDialog from "@/components/ImmediateRewriteDialog";
 
 import { Button } from "@/components/ui/button";
-import { Brain, Trash2 } from "lucide-react";
+import { Brain, Trash2, FileEdit } from "lucide-react";
 import { analyzeDocument, compareDocuments, checkForAI } from "@/lib/analysis";
 import { AnalysisMode, DocumentInput as DocumentInputType, AIDetectionResult, DocumentAnalysis, DocumentComparison } from "@/lib/types";
 
@@ -40,6 +41,9 @@ const HomePage: React.FC = () => {
   const [aiDetectionModalOpen, setAIDetectionModalOpen] = useState(false);
   const [currentAICheckDocument, setCurrentAICheckDocument] = useState<"A" | "B">("A");
   const [aiDetectionResult, setAIDetectionResult] = useState<AIDetectionResult | undefined>(undefined);
+
+  // State for immediate rewrite dialog
+  const [showRewriteDialog, setShowRewriteDialog] = useState(false);
   
   // State for LLM provider
   const [selectedProvider, setSelectedProvider] = useState<LLMProvider>("openai");
@@ -271,6 +275,15 @@ const HomePage: React.FC = () => {
             <span>
               {mode === "single" ? "Analyze Document" : "Analyze Both Documents"}
             </span>
+          </Button>
+          
+          <Button
+            onClick={() => setShowRewriteDialog(true)}
+            className="px-6 py-3 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700 flex items-center"
+            disabled={!documentA.content.trim() || isAnalysisLoading}
+          >
+            <FileEdit className="h-5 w-5 mr-2" />
+            <span>Rewrite</span>
           </Button>
           
           <Button

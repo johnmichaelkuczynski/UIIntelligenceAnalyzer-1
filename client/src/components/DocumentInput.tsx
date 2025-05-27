@@ -26,6 +26,7 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
+  const [showMathView, setShowMathView] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Calculate word and character count
@@ -155,21 +156,37 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
         </div>
       ) : (
         <>
-          <div className="mb-2 border-b border-gray-200 pb-2">
+          <div className="mb-2 border-b border-gray-200 pb-2 flex justify-between items-center">
             <SimpleSpeechInput 
               onTextCaptured={handleDictatedText} 
               buttonLabel="Dictate Text" 
               className="mb-1"
             />
+            {document.content && (document.content.includes('\\') || document.content.includes('^') || document.content.includes('_') || document.content.includes('$')) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowMathView(!showMathView)}
+                className="text-xs"
+              >
+                {showMathView ? "Normal View" : "View Math"}
+              </Button>
+            )}
           </div>
 
-          <Textarea
-            id={`textInput${id}`}
-            placeholder="Type, paste, or dictate your text here..."
-            className="w-full h-40 p-4 border border-gray-300 rounded-lg focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
-            value={document.content}
-            onChange={handleTextChange}
-          />
+          {showMathView && document.content ? (
+            <div className="w-full h-40 p-4 border border-gray-300 rounded-lg bg-gray-50 overflow-y-auto">
+              <MathRenderer content={document.content} className="text-gray-800" />
+            </div>
+          ) : (
+            <Textarea
+              id={`textInput${id}`}
+              placeholder="Type, paste, or dictate your text here..."
+              className="w-full h-40 p-4 border border-gray-300 rounded-lg focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-500"
+              value={document.content}
+              onChange={handleTextChange}
+            />
+          )}
           
 
           
