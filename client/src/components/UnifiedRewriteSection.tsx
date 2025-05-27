@@ -933,7 +933,9 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
                   <div className="space-y-4">
                     <div className="border rounded-md p-4 bg-gray-50">
                       <div className="text-sm text-gray-600 mb-2 font-medium">Mathematical Preview:</div>
-                      <MathRenderer content={rewrittenText} />
+                      <div className="max-h-96 overflow-y-auto border rounded-md bg-white p-4">
+                        <MathRenderer content={rewrittenText} />
+                      </div>
                     </div>
                     <div className="border rounded-md">
                       <Textarea
