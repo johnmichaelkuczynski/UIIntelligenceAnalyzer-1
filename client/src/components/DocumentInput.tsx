@@ -175,8 +175,10 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
           </div>
 
           {showMathView && document.content ? (
-            <div className="w-full h-40 p-4 border border-gray-300 rounded-lg bg-gray-50 overflow-y-auto">
-              <MathRenderer content={document.content} className="text-gray-800" />
+            <div className="w-full h-40 p-4 border border-gray-300 rounded-lg bg-gray-50 overflow-y-auto overflow-x-auto">
+              <div style={{ minHeight: '100%', overflow: 'visible' }}>
+                <MathRenderer content={document.content} className="text-gray-800" />
+              </div>
             </div>
           ) : (
             <Textarea
