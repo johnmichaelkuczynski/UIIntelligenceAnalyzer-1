@@ -45,14 +45,23 @@ export async function extractWithMathpix(imageBuffer: Buffer, filename: string):
     const base64Image = imageBuffer.toString('base64');
     const mimeType = getMimeTypeFromFilename(filename);
 
-    // Prepare the request to Mathpix API
+    // Prepare the request to Mathpix API with enhanced math detection
     const requestBody = {
       src: `data:${mimeType};base64,${base64Image}`,
-      formats: ["text", "latex_styled"],
+      formats: ["text", "latex_styled", "mathml"],
       data_options: {
         include_asciimath: true,
-        include_latex: true
-      }
+        include_latex: true,
+        include_tsv: false,
+        include_geometry_data: false,
+        include_line_data: false,
+        include_word_data: false,
+        include_smiles: false
+      },
+      math_inline_delimiters: ["$", "$"],
+      math_display_delimiters: ["$$", "$$"],
+      rm_spaces: true,
+      rm_fonts: false
     };
 
     console.log("Sending request to Mathpix API...");
@@ -77,7 +86,17 @@ export async function extractWithMathpix(imageBuffer: Buffer, filename: string):
 
     // Check if the response contains mathematical notation
     const containsMath = !!(data.latex_styled && data.latex_styled.length > 0 && 
-                           (data.latex_styled.includes('\\') || data.latex_styled.includes('$')));
+                           (data.latex_styled.includes('\\') || 
+                            data.latex_styled.includes('$') || 
+                            data.latex_styled.includes('^') || 
+                            data.latex_styled.includes('_') ||
+                            data.latex_styled.includes('frac') ||
+                            data.latex_styled.includes('sum') ||
+                            data.latex_styled.includes('int') ||
+                            data.latex_styled.includes('alpha') ||
+                            data.latex_styled.includes('beta') ||
+                            data.latex_styled.includes('gamma') ||
+                            data.latex_styled.includes('mathrm')));
 
     // Prepare the result
     const result: OCRResult = {
