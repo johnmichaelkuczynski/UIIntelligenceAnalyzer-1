@@ -327,7 +327,7 @@ const ImmediateRewriteDialog: React.FC<ImmediateRewriteDialogProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          to: emailRecipient,
+          recipientEmail: emailRecipient,
           subject: emailSubject || 'Rewritten Document',
           content: rewrittenText
         })

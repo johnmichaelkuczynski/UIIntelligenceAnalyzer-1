@@ -50,8 +50,15 @@ export async function rewriteDocument(
     YOUR INSTRUCTIONS:
     ${instruction}
 
+    CRITICAL REQUIREMENTS:
+    - Remove ALL markup formatting including **, __, ##, \\[, \\], \\(, \\), and any other markup symbols
+    - Present text in clean, readable format without any formatting codes
+    - The rewritten text MUST be significantly longer than the original (at least 150% of original length)
+    - Expand ideas, add more detail, include additional context and examples
+    - Elaborate on concepts without losing the core meaning
+
     ${isMathSolving ? `
-    CRITICAL: When solving mathematical problems:
+    MATH-SPECIFIC: When solving mathematical problems:
     - Remove ALL LaTeX markup including \\[, \\], \\(, \\), \\lim, \\rightarrow, \\infty, \\frac, \\sin, \\cos, etc.
     - Present solutions in clean, readable text format
     - Use regular text notation: lim x→3, x^2, sin(x), etc.
