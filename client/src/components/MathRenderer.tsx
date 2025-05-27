@@ -105,7 +105,9 @@ export function MathRenderer({ content, className = "" }: MathRendererProps) {
       className={`math-content ${className}`}
       style={{
         lineHeight: '1.6',
-        fontSize: '16px'
+        fontSize: '16px',
+        height: '100%',
+        overflow: 'hidden'
       }}
     />
   );
