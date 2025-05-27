@@ -117,3 +117,56 @@ async function extractTextFromPdf(file: Express.Multer.File): Promise<DocumentIn
     };
   }
 }
+
+/**
+ * Extract text from an image file using Mathpix OCR
+ */
+async function extractTextFromImage(file: Express.Multer.File): Promise<DocumentInput> {
+  try {
+    console.log(`Processing image file: ${file.originalname}`);
+    
+    const ocrResult = await extractWithMathpix(file.buffer, file.originalname);
+    
+    if (ocrResult.hasError) {
+      return {
+        content: `OCR Error: ${ocrResult.errorMessage}. Please try a different image or paste the text directly.`,
+        filename: file.originalname,
+        mimeType: file.mimetype,
+        metadata: {
+          ocrError: true,
+          errorMessage: ocrResult.errorMessage
+        }
+      };
+    }
+    
+    // Create a rich text description if we have LaTeX
+    let content = ocrResult.extractedText;
+    if (ocrResult.containsMath && ocrResult.latexFormatted) {
+      content += `\n\n--- Mathematical Content (LaTeX) ---\n${ocrResult.latexFormatted}`;
+    }
+    
+    return {
+      content,
+      filename: file.originalname,
+      mimeType: file.mimetype,
+      metadata: {
+        ocrConfidence: ocrResult.confidence,
+        containsMath: ocrResult.containsMath,
+        latexFormatted: ocrResult.latexFormatted,
+        autoRotated: ocrResult.metadata?.autoRotated,
+        rotationDegrees: ocrResult.metadata?.rotationDegrees
+      }
+    };
+  } catch (error) {
+    console.error("Error extracting text from image:", error);
+    return {
+      content: `Error processing image: ${(error as Error).message}. Please try a different image or paste the text directly.`,
+      filename: file.originalname,
+      mimeType: file.mimetype,
+      metadata: {
+        ocrError: true,
+        errorMessage: (error as Error).message
+      }
+    };
+  }
+}

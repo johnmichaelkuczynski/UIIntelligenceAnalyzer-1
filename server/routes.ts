@@ -36,6 +36,8 @@ export async function registerRoutes(app: Express): Promise<Express> {
     const openai_key = process.env.OPENAI_API_KEY;
     const anthropic_key = process.env.ANTHROPIC_API_KEY;
     const perplexity_key = process.env.PERPLEXITY_API_KEY;
+    const mathpix_app_id = process.env.MATHPIX_APP_ID;
+    const mathpix_app_key = process.env.MATHPIX_APP_KEY;
     
     // Check API keys
     res.json({
@@ -43,7 +45,8 @@ export async function registerRoutes(app: Express): Promise<Express> {
       api_keys: {
         openai: openai_key ? "configured" : "missing",
         anthropic: anthropic_key ? "configured" : "missing",
-        perplexity: perplexity_key ? "configured" : "missing"
+        perplexity: perplexity_key ? "configured" : "missing",
+        mathpix: (mathpix_app_id && mathpix_app_key) ? "configured" : "missing"
       }
     });
     
@@ -51,7 +54,8 @@ export async function registerRoutes(app: Express): Promise<Express> {
     console.log("API Status Check:", { 
       openai: openai_key ? "✓" : "✗", 
       anthropic: anthropic_key ? "✓" : "✗", 
-      perplexity: perplexity_key ? "✓" : "✗" 
+      perplexity: perplexity_key ? "✓" : "✗",
+      mathpix: (mathpix_app_id && mathpix_app_key) ? "✓" : "✗"
     });
   });
   

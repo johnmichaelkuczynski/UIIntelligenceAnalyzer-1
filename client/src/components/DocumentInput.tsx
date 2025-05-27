@@ -129,8 +129,8 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
       >
         <div className="text-center py-8">
           <Upload className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-          <p className="text-gray-600 mb-2">Drag and drop your document here</p>
-          <p className="text-gray-500 text-sm mb-4">Supports .docx, .pdf, and .txt files</p>
+          <p className="text-gray-600 mb-2">Drag and drop your document or screenshot here</p>
+          <p className="text-gray-500 text-sm mb-4">Supports .docx, .pdf, .txt files and images (.jpg, .png, .gif, .bmp, .webp)</p>
           <div className="flex justify-center">
             <Button
               onClick={() => fileInputRef.current?.click()}
@@ -141,7 +141,7 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
             <FileInput
               ref={fileInputRef}
               id={`fileInput${id}`}
-              accept=".docx,.pdf,.txt"
+              accept=".docx,.pdf,.txt,.jpg,.jpeg,.png,.gif,.bmp,.webp"
               onFileSelected={handleFileUpload}
             />
           </div>
