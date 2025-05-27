@@ -929,26 +929,13 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Text Content with Mathematical Rendering */}
-                  <div className="space-y-4">
-                    <div className="border rounded-md p-4 bg-gray-50">
-                      <div className="text-sm text-gray-600 mb-2 font-medium">Mathematical Preview:</div>
-                      <div 
-                        className="border rounded-md bg-white p-4" 
-                        style={{ height: '256px', overflowY: 'auto', maxHeight: '256px', minHeight: '256px' }}
-                      >
-                        <MathRenderer content={rewrittenText} />
-                      </div>
-                    </div>
-                    <div className="border rounded-md">
-                      <Textarea
-                        value={rewrittenText}
-                        className="min-h-[200px] font-mono text-sm"
-                        readOnly
-                        placeholder="Rewritten content will appear here..."
-                      />
-                    </div>
-                  </div>
+                  {/* Text Content */}
+                  <Textarea
+                    value={rewrittenText}
+                    className="min-h-[300px] font-mono text-sm"
+                    readOnly
+                    placeholder="Rewritten content will appear here..."
+                  />
                   
                   {/* Text Stats */}
                   <div className="grid grid-cols-3 gap-4 text-sm">
