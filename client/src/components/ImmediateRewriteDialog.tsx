@@ -288,7 +288,7 @@ const ImmediateRewriteDialog: React.FC<ImmediateRewriteDialogProps> = ({
 
       const blob = await Packer.toBlob(doc);
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = window.document.createElement('a');
       a.href = url;
       a.download = 'rewritten-document.docx';
       a.click();

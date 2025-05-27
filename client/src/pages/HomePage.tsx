@@ -351,6 +351,14 @@ const HomePage: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Immediate Rewrite Dialog */}
+      <ImmediateRewriteDialog
+        isOpen={showRewriteDialog}
+        onClose={() => setShowRewriteDialog(false)}
+        document={documentA}
+        selectedProvider={selectedProvider}
+      />
     </div>
   );
 };
