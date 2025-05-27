@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DirectAIRequest from './DirectAIRequest';
+import { MathRenderer } from './MathRenderer';
 import {
   FileEdit,
   Sparkles,
@@ -928,12 +929,21 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Text Content */}
-                  <Textarea
-                    value={rewrittenText}
-                    className="min-h-[300px] font-mono text-sm"
-                    readOnly
-                  />
+                  {/* Text Content with Mathematical Rendering */}
+                  <div className="space-y-4">
+                    <div className="border rounded-md p-4 bg-gray-50">
+                      <div className="text-sm text-gray-600 mb-2 font-medium">Mathematical Preview:</div>
+                      <MathRenderer content={rewrittenText} />
+                    </div>
+                    <div className="border rounded-md">
+                      <Textarea
+                        value={rewrittenText}
+                        className="min-h-[200px] font-mono text-sm"
+                        readOnly
+                        placeholder="Rewritten content will appear here..."
+                      />
+                    </div>
+                  </div>
                   
                   {/* Text Stats */}
                   <div className="grid grid-cols-3 gap-4 text-sm">
