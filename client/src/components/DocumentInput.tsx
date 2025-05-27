@@ -7,6 +7,7 @@ import { extractTextFromFile } from "@/lib/analysis";
 import { DocumentInput as DocumentInputType } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import SimpleSpeechInput from "@/components/SimpleSpeechInput";
+import { MathRenderer } from "@/components/MathRenderer";
 
 interface DocumentInputProps {
   id: "A" | "B";
@@ -169,6 +170,14 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
             value={document.content}
             onChange={handleTextChange}
           />
+          
+          {/* Math-rendered preview for documents with mathematical notation */}
+          {document.content && (document.content.includes('\\(') || document.content.includes('$$') || document.content.includes('\\') || document.content.includes('^') || document.content.includes('_')) && (
+            <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Mathematical Preview:</h4>
+              <MathRenderer content={document.content} className="text-gray-800" />
+            </div>
+          )}
           
           {/* Word and character count */}
           <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
