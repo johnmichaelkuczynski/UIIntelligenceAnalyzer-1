@@ -36,11 +36,29 @@ export async function rewriteDocument(
 ): Promise<RewriteResult> {
   const { instruction, preserveIntelligence = true, documentType = "document" } = options;
   
+  // Check if the instruction involves solving math problems
+  const isMathSolving = instruction.toLowerCase().includes('math') || 
+                       instruction.toLowerCase().includes('solve') ||
+                       instruction.toLowerCase().includes('calculate') ||
+                       instruction.toLowerCase().includes('derivative') ||
+                       instruction.toLowerCase().includes('limit') ||
+                       instruction.toLowerCase().includes('integral');
+
   const rewritePrompt = `
     I need you to rewrite the following ${documentType}. 
 
     YOUR INSTRUCTIONS:
     ${instruction}
+
+    ${isMathSolving ? `
+    CRITICAL: When solving mathematical problems:
+    - Remove ALL LaTeX markup including \\[, \\], \\(, \\), \\lim, \\rightarrow, \\infty, \\frac, \\sin, \\cos, etc.
+    - Present solutions in clean, readable text format
+    - Use regular text notation: lim x→3, x^2, sin(x), etc.
+    - Show clear step-by-step work
+    - Give final numerical or simplified answers
+    - Do NOT include any LaTeX commands or markup symbols
+    ` : ''}
 
     ${preserveIntelligence ? `
     IMPORTANT: Preserve the cognitive fingerprints and intellectual quality of the original. 
