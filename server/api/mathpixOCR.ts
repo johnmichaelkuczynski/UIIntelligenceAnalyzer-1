@@ -45,23 +45,14 @@ export async function extractWithMathpix(imageBuffer: Buffer, filename: string):
     const base64Image = imageBuffer.toString('base64');
     const mimeType = getMimeTypeFromFilename(filename);
 
-    // Prepare the request to Mathpix API with enhanced math detection
+    // Prepare the request to Mathpix API with simplified, reliable settings
     const requestBody = {
       src: `data:${mimeType};base64,${base64Image}`,
-      formats: ["text", "latex_styled", "mathml"],
+      formats: ["text", "latex_styled"],
       data_options: {
         include_asciimath: true,
-        include_latex: true,
-        include_tsv: false,
-        include_geometry_data: false,
-        include_line_data: false,
-        include_word_data: false,
-        include_smiles: false
-      },
-      math_inline_delimiters: ["$", "$"],
-      math_display_delimiters: ["$$", "$$"],
-      rm_spaces: true,
-      rm_fonts: false
+        include_latex: true
+      }
     };
 
     console.log("Sending request to Mathpix API...");
@@ -83,6 +74,7 @@ export async function extractWithMathpix(imageBuffer: Buffer, filename: string):
     }
 
     console.log("Mathpix OCR completed successfully");
+    console.log("Raw Mathpix response:", JSON.stringify(data, null, 2));
 
     // Check if the response contains mathematical notation
     const containsMath = !!(data.latex_styled && data.latex_styled.length > 0 && 
