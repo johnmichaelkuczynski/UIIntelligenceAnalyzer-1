@@ -54,8 +54,8 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
   const [chunkProgress, setChunkProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
   const [targetChunks, setTargetChunks] = useState<number>(3);
   
-  // Content state
-  const [currentRewrite, setCurrentRewrite] = useState<string>(rewrittenText);
+  // Content state - NEVER CLEAR THIS
+  const [currentRewrite, setCurrentRewrite] = useState<string>("");
 
   // Email sharing state
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState<boolean>(false);
@@ -71,13 +71,17 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
   // Reset instructions when modal opens for a new document
   useEffect(() => {
     if (isOpen) {
-      // Always reset to default instructions when modal opens
-      setCustomInstructions("ADD MORE APPLICATIONS TO FINANCE AND GEOMETRY\nINCLUDE LOTS OF MATH FORMULAS FROM STATISTICS AND CALCULUS AND GEOMETRY");
+      // FORCE RESET EVERYTHING when modal opens
+      console.log("🔄 RESETTING MODAL STATE");
+      setCustomInstructions(""); // Start with EMPTY instructions
       setRewriteMode("hybrid");
       setTargetChunks(3);
       setStreamingContent("");
+      setCurrentRewrite(""); // Clear previous content
       setChunkProgress({ current: 0, total: 0 });
       setRewriteProgress(0);
+      setIsStreaming(false);
+      setIsRewriting(false);
     }
   }, [isOpen]);
 
@@ -178,23 +182,23 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
         }
       }
 
-      // Finalize - PRESERVE THE CONTENT!
+      // CRITICAL: PRESERVE CONTENT BEFORE ANY STATE CHANGES
       const finalRewrite = accumulatedContent.trim();
-      console.log("💾 PRESERVING FINAL CONTENT:", finalRewrite.length, "characters");
+      console.log("💾 CRITICAL PRESERVATION:", finalRewrite.length, "characters");
+      console.log("💾 CONTENT PREVIEW:", finalRewrite.substring(0, 200));
       
-      // Update all content states to preserve the streamed content
-      setCurrentRewrite(finalRewrite);
-      setStreamingContent(finalRewrite); // Keep in streaming content too
-      onRewriteUpdate(finalRewrite);
-      
-      // Only clear streaming state after content is preserved
-      setIsStreaming(false);
+      // NEVER CLEAR isStreaming - keep showing the content
+      // setIsStreaming(false); // REMOVED - this was causing content to disappear
       setIsRewriting(false);
       setRewriteProgress(100);
       
+      // Update final content state
+      setCurrentRewrite(finalRewrite);
+      onRewriteUpdate(finalRewrite);
+      
       toast({
-        title: "🎉 Live streaming completed!",
-        description: `Successfully processed ${chunkProgress.current} chunks with ${selectedProvider}. Content preserved!`
+        title: "🎉 Content streaming preserved!",
+        description: `${finalRewrite.length} characters preserved. DO NOT close modal to keep content.`
       });
 
     } catch (error) {
