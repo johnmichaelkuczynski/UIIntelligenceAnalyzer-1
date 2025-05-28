@@ -6,7 +6,7 @@ import ComparativeResults from "@/components/ComparativeResults";
 import AIDetectionModal from "@/components/AIDetectionModal";
 import ProviderSelector, { LLMProvider } from "@/components/ProviderSelector";
 import UnifiedRewriteSection from "@/components/UnifiedRewriteSection";
-import ImmediateRewriteDialog from "@/components/ImmediateRewriteDialog";
+import EnhancedRewriteModal from "@/components/EnhancedRewriteModal";
 
 import { Button } from "@/components/ui/button";
 import { Brain, Trash2, FileEdit } from "lucide-react";
@@ -352,12 +352,15 @@ const HomePage: React.FC = () => {
         </div>
       )}
 
-      {/* Immediate Rewrite Dialog */}
-      <ImmediateRewriteDialog
+      {/* Enhanced Rewrite Modal */}
+      <EnhancedRewriteModal
         isOpen={showRewriteDialog}
         onClose={() => setShowRewriteDialog(false)}
-        document={documentA}
-        selectedProvider={selectedProvider}
+        originalText={documentA.content}
+        rewrittenText={documentA.content}
+        onRewriteUpdate={(newText: string) => {
+          setDocumentA({ ...documentA, content: newText });
+        }}
       />
     </div>
   );
