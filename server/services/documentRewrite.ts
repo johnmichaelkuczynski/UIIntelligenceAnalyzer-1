@@ -10,6 +10,8 @@ interface RewriteOptions {
   instruction: string;
   preserveIntelligence?: boolean;
   documentType?: string;
+  rewriteMode?: 'rewrite' | 'add' | 'hybrid';
+  additionInstructions?: string;
 }
 
 interface RewriteResult {
@@ -44,38 +46,99 @@ export async function rewriteDocument(
                        instruction.toLowerCase().includes('limit') ||
                        instruction.toLowerCase().includes('integral');
 
-  const rewritePrompt = `
-    I need you to rewrite the following ${documentType}. 
+  let rewritePrompt = '';
+  
+  if (options.rewriteMode === 'add') {
+    rewritePrompt = `
+      You are an expert content writer. Keep the original text EXACTLY as provided, and ADD NEW SECTIONS according to the instructions.
 
-    YOUR INSTRUCTIONS:
-    ${instruction}
+      ORIGINAL TEXT (KEEP UNCHANGED):
+      ${originalText}
 
-    CRITICAL REQUIREMENTS:
-    - Remove ALL markup formatting including **, __, ##, \\[, \\], \\(, \\), and any other markup symbols
-    - Present text in clean, readable format without any formatting codes
-    - The rewritten text MUST be MUCH LONGER than the original (minimum 200-300% of original length)
-    - EXPAND EXTENSIVELY: Add detailed explanations, multiple examples, elaborate context
-    - ELABORATE THOROUGHLY: Break down every concept, add supporting details, include analogies
-    - ADD SUBSTANTIAL CONTENT: Include background information, additional perspectives, deeper analysis
-    - NEVER SUMMARIZE OR CONDENSE: Always expand and elaborate on every point
+      NEW CONTENT INSTRUCTIONS:
+      ${options.additionInstructions || instruction}
 
-    ${isMathSolving ? `
-    MATH-SPECIFIC: When solving mathematical problems:
-    - Remove ALL LaTeX markup including \\[, \\], \\(, \\), \\lim, \\rightarrow, \\infty, \\frac, \\sin, \\cos, etc.
-    - Present solutions in clean, readable text format
-    - Use regular text notation: lim x→3, x^2, sin(x), etc.
-    - Show clear step-by-step work
-    - Give final numerical or simplified answers
-    - Do NOT include any LaTeX commands or markup symbols
-    ` : ''}
+      CRITICAL REQUIREMENTS:
+      - Keep the original text EXACTLY as provided - do not modify it in any way
+      - ADD completely new sections/chunks based on the addition instructions
+      - The new content should be substantial and detailed (at least 50% as long as the original)
+      - Remove ALL markup formatting including **, __, ##, \\[, \\], \\(, \\), and any other markup symbols
+      - Present all text in clean, readable format without any formatting codes
+      - Structure the output as: [ORIGINAL TEXT] followed by [NEW SECTIONS]
 
-    ${preserveIntelligence ? `
-    IMPORTANT: Preserve the cognitive fingerprints and intellectual quality of the original. 
-    Do not simplify complex ideas, reduce precision in reasoning, or dilute the semantic density.
-    Maintain the same level of abstraction, logical control, and definitional clarity.
-    ` : ''}
+      ${isMathSolving ? `
+      MATH-SPECIFIC: When writing mathematical content:
+      - Remove ALL LaTeX markup including \\[, \\], \\(, \\), \\lim, \\rightarrow, \\infty, \\frac, \\sin, \\cos, etc.
+      - Write mathematical expressions in plain text format
+      - Use words to describe mathematical operations and concepts
+      ` : ''}
 
-    ORIGINAL TEXT:
+      Please provide the complete text with original content preserved and new sections added.
+    `;
+  } else if (options.rewriteMode === 'hybrid') {
+    rewritePrompt = `
+      You are an expert document rewriter and content expander. You must both REWRITE the original text AND ADD NEW SECTIONS.
+
+      ORIGINAL TEXT TO REWRITE:
+      ${originalText}
+
+      REWRITE INSTRUCTIONS:
+      ${instruction}
+
+      NEW CONTENT INSTRUCTIONS:
+      ${options.additionInstructions}
+
+      CRITICAL REQUIREMENTS:
+      - REWRITE the original text according to the rewrite instructions
+      - ADD completely new sections based on the addition instructions
+      - The final output should be much longer than the original (minimum 200-300% expansion)
+      - Remove ALL markup formatting including **, __, ##, \\[, \\], \\(, \\), and any other markup symbols
+      - Present all text in clean, readable format without any formatting codes
+      - Structure as: [REWRITTEN CONTENT] followed by [NEW SECTIONS]
+
+      ${isMathSolving ? `
+      MATH-SPECIFIC: When working with mathematical content:
+      - Remove ALL LaTeX markup including \\[, \\], \\(, \\), \\lim, \\rightarrow, \\infty, \\frac, \\sin, \\cos, etc.
+      - Write mathematical expressions in plain text format
+      - Use words to describe mathematical operations and concepts
+      ` : ''}
+
+      Please provide the complete enhanced document with both rewritten and new content.
+    `;
+  } else {
+    // Default 'rewrite' mode
+    rewritePrompt = `
+      I need you to rewrite the following ${documentType}. 
+
+      YOUR INSTRUCTIONS:
+      ${instruction}
+
+      CRITICAL REQUIREMENTS:
+      - Remove ALL markup formatting including **, __, ##, \\[, \\], \\(, \\), and any other markup symbols
+      - Present text in clean, readable format without any formatting codes
+      - The rewritten text MUST be MUCH LONGER than the original (minimum 200-300% of original length)
+      - EXPAND EXTENSIVELY: Add detailed explanations, multiple examples, elaborate context
+      - ELABORATE THOROUGHLY: Break down every concept, add supporting details, include analogies
+      - ADD SUBSTANTIAL CONTENT: Include background information, additional perspectives, deeper analysis
+      - NEVER SUMMARIZE OR CONDENSE: Always expand and elaborate on every point
+
+      ${isMathSolving ? `
+      MATH-SPECIFIC: When solving mathematical problems:
+      - Remove ALL LaTeX markup including \\[, \\], \\(, \\), \\lim, \\rightarrow, \\infty, \\frac, \\sin, \\cos, etc.
+      - Present solutions in clean, readable text format
+      - Use regular text notation: lim x→3, x^2, sin(x), etc.
+      - Show clear step-by-step work
+      - Give final numerical or simplified answers
+      - Do NOT include any LaTeX commands or markup symbols
+      ` : ''}
+
+      ${preserveIntelligence ? `
+      IMPORTANT: Preserve the cognitive fingerprints and intellectual quality of the original. 
+      Do not simplify complex ideas, reduce precision in reasoning, or dilute the semantic density.
+      Maintain the same level of abstraction, logical control, and definitional clarity.
+      ` : ''}
+
+      ORIGINAL TEXT:
     ${originalText.substring(0, 10000)}
   `;
   
