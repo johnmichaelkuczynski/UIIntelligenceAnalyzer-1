@@ -68,6 +68,15 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
     setCurrentRewrite(rewrittenText);
   }, [rewrittenText]);
 
+  // Reset instructions when modal opens for a new document
+  useEffect(() => {
+    if (isOpen && originalText !== currentRewrite) {
+      setCustomInstructions("ADD MORE APPLICATIONS TO FINANCE AND GEOMETRY\nINCLUDE LOTS OF MATH FORMULAS FROM STATISTICS AND CALCULUS AND GEOMETRY");
+      setRewriteMode("hybrid");
+      setTargetChunks(3);
+    }
+  }, [isOpen, originalText]);
+
   // 🔥 REAL-TIME CHUNK STREAMING IMPLEMENTATION
   const handleRewrite = async () => {
     if (!originalText.trim()) {
