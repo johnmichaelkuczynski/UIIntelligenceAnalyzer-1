@@ -497,13 +497,51 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                   
                   {/* Custom Instructions */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Custom Rewrite Instructions</Label>
+                    <Label className="text-sm font-medium">
+                      {rewriteMode === "rewrite_existing" 
+                        ? "Custom Rewrite Instructions" 
+                        : rewriteMode === "add_new"
+                        ? "Instructions for NEW Content to Add"
+                        : "Hybrid Rewrite & Addition Instructions"}
+                    </Label>
                     <Textarea
-                      placeholder="Enter specific instructions for how you want the text to be rewritten..."
+                      placeholder={
+                        rewriteMode === "rewrite_existing"
+                          ? "Enter specific instructions for how you want the text to be rewritten..."
+                          : rewriteMode === "add_new"
+                          ? "Specify exactly what NEW content to add. Example: 'Add 3 new paragraphs about advanced mathematical proofs. Add a new section on topology. Add examples with equations.'"
+                          : "Specify both how to rewrite existing content AND what new content to add. Example: 'Rewrite existing text to be more technical, AND add 2 new sections on advanced topics with mathematical notation.'"
+                      }
                       value={customInstructions}
                       onChange={(e) => setCustomInstructions(e.target.value)}
-                      rows={4}
+                      rows={rewriteMode === "rewrite_existing" ? 4 : 6}
+                      className={rewriteMode !== "rewrite_existing" ? "border-green-500 bg-green-50" : ""}
                     />
+                    
+                    {/* Additional guidance for new content modes */}
+                    {rewriteMode === "add_new" && (
+                      <div className="p-3 bg-green-100 border border-green-300 rounded-lg">
+                        <p className="text-sm font-medium text-green-800 mb-2">💡 Tips for Adding New Content:</p>
+                        <ul className="text-xs text-green-700 space-y-1">
+                          <li>• Specify exactly how many new sections/paragraphs to add</li>
+                          <li>• Describe the topic and content for each new section</li>
+                          <li>• Mention if you want mathematical notation, examples, or specific formatting</li>
+                          <li>• The existing text will remain unchanged</li>
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {rewriteMode === "hybrid" && (
+                      <div className="p-3 bg-purple-100 border border-purple-300 rounded-lg">
+                        <p className="text-sm font-medium text-purple-800 mb-2">🚀 Hybrid Mode Guidelines:</p>
+                        <ul className="text-xs text-purple-700 space-y-1">
+                          <li>• First, describe how to modify existing content</li>
+                          <li>• Then, specify what new content to add and where</li>
+                          <li>• Example: "Make existing text more formal, AND add 3 new mathematical examples"</li>
+                          <li>• Both existing and new content will be processed</li>
+                        </ul>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Chunk Selection for long texts */}
