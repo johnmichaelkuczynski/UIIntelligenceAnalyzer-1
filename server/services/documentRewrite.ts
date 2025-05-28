@@ -111,11 +111,11 @@ async function rewriteWithOpenAI(
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        { role: "system", content: "You are a document rewriting specialist. Maintain the intelligence level of the original document while following instructions." },
+        { role: "system", content: "You are a document rewriting specialist. Follow the user's instructions exactly and expand content significantly." },
         { role: "user", content: prompt }
       ],
       temperature: 0.3,
-      max_tokens: 4000
+      max_tokens: 16000
     });
     
     const content = response.choices[0].message.content || '';
@@ -156,9 +156,9 @@ async function rewriteWithAnthropic(
   try {
     const response = await anthropic.messages.create({
       model: "claude-3-7-sonnet-20250219",
-      max_tokens: 4000,
+      max_tokens: 8000,
       temperature: 0.3,
-      system: "You are a document rewriting specialist. Maintain the intelligence level of the original document while following instructions.",
+      system: "You are a document rewriting specialist. Follow the user's instructions exactly and expand content significantly.",
       messages: [
         { role: "user", content: prompt }
       ]
@@ -216,12 +216,12 @@ async function rewriteWithPerplexity(
         messages: [
           { 
             role: "system", 
-            content: "You are a document rewriting specialist. Maintain the intelligence level of the original document while following instructions." 
+            content: "You are a document rewriting specialist. Follow the user's instructions exactly and expand content significantly." 
           },
           { role: "user", content: prompt }
         ],
         temperature: 0.3,
-        max_tokens: 3000
+        max_tokens: 8000
       })
     });
     
