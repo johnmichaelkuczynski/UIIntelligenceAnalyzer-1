@@ -193,8 +193,9 @@ const ImmediateRewriteDialog: React.FC<ImmediateRewriteDialogProps> = ({
       setActiveTab('results');
 
       toast({
-        title: "Rewrite complete",
-        description: "Your text has been successfully rewritten"
+        title: "🎉 REWRITE COMPLETE! 🎉",
+        description: "Your rewritten text is now visible below - scroll down to see it!",
+        duration: 8000
       });
 
     } catch (error) {
@@ -458,10 +459,16 @@ const ImmediateRewriteDialog: React.FC<ImmediateRewriteDialogProps> = ({
           <TabsContent value="results" className="space-y-6">
             {rewrittenText && (
               <>
+                {/* SUCCESS BANNER */}
+                <div className="bg-green-100 border-2 border-green-400 rounded-lg p-6 text-center">
+                  <h2 className="text-2xl font-bold text-green-800 mb-2">🎉 REWRITE COMPLETE! 🎉</h2>
+                  <p className="text-green-700 text-lg">Your text has been successfully rewritten below</p>
+                </div>
+
                 {/* Results Display */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-medium">Rewritten Text</h3>
+                    <h3 className="text-xl font-bold text-blue-600">📝 YOUR REWRITTEN TEXT</h3>
                     {rewrittenText.includes('\\') || rewrittenText.includes('^') || rewrittenText.includes('_') || rewrittenText.includes('$') ? (
                       <Button
                         variant="outline"
