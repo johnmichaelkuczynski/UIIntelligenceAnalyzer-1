@@ -182,13 +182,20 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
     try {
       let textToRewrite = currentRewrite;
       
-      // If chunks are selected and mode is rewrite_existing, only rewrite selected chunks
-      if (rewriteMode === "rewrite_existing" && selectedChunks.size > 0 && showChunkSelection) {
-        const selectedChunkContents = textChunks
-          .filter(chunk => selectedChunks.has(chunk.id))
-          .map(chunk => chunk.content)
-          .join('\n\n');
-        textToRewrite = selectedChunkContents;
+      // For rewrite_existing mode, use the original text (or selected chunks if available)
+      if (rewriteMode === "rewrite_existing") {
+        if (selectedChunks.size > 0 && showChunkSelection && textChunks.length > 0) {
+          const selectedChunkContents = textChunks
+            .filter(chunk => selectedChunks.has(chunk.id))
+            .map(chunk => chunk.content)
+            .join('\n\n');
+          textToRewrite = selectedChunkContents;
+        } else {
+          textToRewrite = originalText; // Use original text if no chunks selected
+        }
+      } else {
+        // For add_new and hybrid modes, always use the original text as the base
+        textToRewrite = originalText;
       }
       
       // Progress simulation
