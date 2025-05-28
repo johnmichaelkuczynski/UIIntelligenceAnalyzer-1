@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import DirectAIRequest from './DirectAIRequest';
 import { MathRenderer } from './MathRenderer';
 import { RewriteArchive } from './RewriteArchive';
@@ -25,7 +26,9 @@ import {
   Download,
   ShieldAlert,
   RotateCcw,
-  Bot
+  Bot,
+  Mail,
+  X
 } from 'lucide-react';
 import { 
   DocumentInput as DocumentInputType, 
@@ -81,6 +84,7 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
   const [newChunkInstructions, setNewChunkInstructions] = useState<string>("");
   const [showCompletedRewriteModal, setShowCompletedRewriteModal] = useState<boolean>(false);
   const [completedRewrite, setCompletedRewrite] = useState<string>("");
+  const [viewMode, setViewMode] = useState<'normal' | 'math'>('normal');
   const [isRewriting, setIsRewriting] = useState<boolean>(false);
   const [rewriteProgress, setRewriteProgress] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<string>("rewrite");
@@ -672,51 +676,74 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
                   </Select>
                 </div>
                 {/* Rewrite Mode Selection */}
-                <div className="space-y-3 mb-4">
-                  <Label className="text-sm font-medium text-blue-800">Rewrite Mode</Label>
-                  <div className="grid grid-cols-1 gap-3">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="mode-rewrite"
-                        name="rewriteMode"
-                        value="rewrite"
-                        checked={rewriteMode === 'rewrite'}
-                        onChange={(e) => setRewriteMode(e.target.value as 'rewrite' | 'add' | 'both')}
-                        className="w-4 h-4 text-blue-600"
-                      />
-                      <Label htmlFor="mode-rewrite" className="text-sm font-medium">
-                        Rewrite Existing Chunks Only
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="mode-add"
-                        name="rewriteMode"
-                        value="add"
-                        checked={rewriteMode === 'add'}
-                        onChange={(e) => setRewriteMode(e.target.value as 'rewrite' | 'add' | 'both')}
-                        className="w-4 h-4 text-blue-600"
-                      />
-                      <Label htmlFor="mode-add" className="text-sm font-medium">
-                        Add New Chunks (Keep Existing Text Unchanged)
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id="mode-both"
-                        name="rewriteMode"
-                        value="both"
-                        checked={rewriteMode === 'both'}
-                        onChange={(e) => setRewriteMode(e.target.value as 'rewrite' | 'add' | 'both')}
-                        className="w-4 h-4 text-blue-600"
-                      />
-                      <Label htmlFor="mode-both" className="text-sm font-medium">
-                        Both: Rewrite Existing + Add New Chunks
-                      </Label>
-                    </div>
+                <div className="space-y-4 mb-6">
+                  <Label className="text-lg font-bold text-blue-800">Choose Your Rewrite Approach</Label>
+                  <div className="grid grid-cols-1 gap-4">
+                    <Card className={`p-4 cursor-pointer transition-all border-2 ${rewriteMode === 'rewrite' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                      <div className="flex items-start space-x-3" onClick={() => setRewriteMode('rewrite')}>
+                        <input
+                          type="radio"
+                          id="mode-rewrite"
+                          name="rewriteMode"
+                          value="rewrite"
+                          checked={rewriteMode === 'rewrite'}
+                          onChange={(e) => setRewriteMode(e.target.value as 'rewrite' | 'add' | 'both')}
+                          className="w-5 h-5 text-blue-600 mt-1"
+                        />
+                        <div className="flex-1">
+                          <Label htmlFor="mode-rewrite" className="text-base font-bold cursor-pointer text-blue-700">
+                            REWRITE EXISTING CHUNKS ONLY
+                          </Label>
+                          <p className="text-sm text-gray-600 mt-2">
+                            Transform and improve your current text without adding new content. Perfect for enhancing clarity, style, or depth of existing material.
+                          </p>
+                        </div>
+                      </div>
+                    </Card>
+                    
+                    <Card className={`p-4 cursor-pointer transition-all border-2 ${rewriteMode === 'add' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                      <div className="flex items-start space-x-3" onClick={() => setRewriteMode('add')}>
+                        <input
+                          type="radio"
+                          id="mode-add"
+                          name="rewriteMode"
+                          value="add"
+                          checked={rewriteMode === 'add'}
+                          onChange={(e) => setRewriteMode(e.target.value as 'rewrite' | 'add' | 'both')}
+                          className="w-5 h-5 text-green-600 mt-1"
+                        />
+                        <div className="flex-1">
+                          <Label htmlFor="mode-add" className="text-base font-bold cursor-pointer text-green-700">
+                            ADD NEW CHUNKS ONLY
+                          </Label>
+                          <p className="text-sm text-gray-600 mt-2">
+                            Keep your existing text unchanged and add new sections. Great for expanding topics or adding supplementary material without altering what you have.
+                          </p>
+                        </div>
+                      </div>
+                    </Card>
+                    
+                    <Card className={`p-4 cursor-pointer transition-all border-2 ${rewriteMode === 'both' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                      <div className="flex items-start space-x-3" onClick={() => setRewriteMode('both')}>
+                        <input
+                          type="radio"
+                          id="mode-both"
+                          name="rewriteMode"
+                          value="both"
+                          checked={rewriteMode === 'both'}
+                          onChange={(e) => setRewriteMode(e.target.value as 'rewrite' | 'add' | 'both')}
+                          className="w-5 h-5 text-purple-600 mt-1"
+                        />
+                        <div className="flex-1">
+                          <Label htmlFor="mode-both" className="text-base font-bold cursor-pointer text-purple-700">
+                            REWRITE EXISTING + ADD NEW CHUNKS
+                          </Label>
+                          <p className="text-sm text-gray-600 mt-2">
+                            Transform your current text AND add new sections. Complete document enhancement with both improvement and expansion.
+                          </p>
+                        </div>
+                      </div>
+                    </Card>
                   </div>
                 </div>
 
@@ -733,20 +760,31 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
 
                 {/* New Chunk Instructions */}
                 {(rewriteMode === 'add' || rewriteMode === 'both') && (
-                  <div className="space-y-2 mb-4">
-                    <Label htmlFor="new-chunk-instructions" className="text-sm font-medium text-blue-800">
-                      New Content Instructions
+                  <div className="space-y-4 mb-6">
+                    <Label htmlFor="new-chunk-instructions" className="text-lg font-bold text-green-700">
+                      📝 Instructions for New Content to Add
                     </Label>
-                    <Textarea
-                      id="new-chunk-instructions"
-                      placeholder="Provide detailed instructions for what new content to add. Be specific about topics, sections, examples, or additional material you want included. Example: 'Add two new sections: 1) Knowledge of historical events with examples from ancient philosophy, 2) Epistemic challenges in temporal reasoning with mathematical formulations'"
-                      value={newChunkInstructions}
-                      onChange={(e) => setNewChunkInstructions(e.target.value)}
-                      rows={6}
-                      className="text-sm min-h-[150px]"
-                    />
-                    <p className="text-xs text-gray-500">
-                      Be as detailed as possible about what new content you want added to the document.
+                    <Card className="p-4 border-2 border-green-200 bg-green-50">
+                      <Textarea
+                        id="new-chunk-instructions"
+                        placeholder="Provide lengthy and detailed instructions for what new chunks/sections to add to your document. Be as specific as possible about:
+
+• Topics to cover (e.g., 'Add sections on knowledge of the past')
+• Examples to include (e.g., 'Include examples from epistemology and temporal reasoning')
+• Mathematical formulations if needed
+• Philosophical arguments or perspectives
+• Research areas to explore
+• Connections to existing content
+
+Example: 'Add two comprehensive new chunks: 1) A detailed section on knowledge of historical events with specific examples from ancient philosophy and how we verify past claims, including discussion of testimony and archaeological evidence. 2) A section on epistemic challenges in temporal reasoning with mathematical formulations showing how probability changes over time, including Bayesian updating for historical claims.'"
+                        value={newChunkInstructions}
+                        onChange={(e) => setNewChunkInstructions(e.target.value)}
+                        rows={12}
+                        className="text-sm min-h-[300px] border-green-300 focus:border-green-500 bg-white"
+                      />
+                    </Card>
+                    <p className="text-sm text-green-600 font-medium">
+                      💡 The more detailed your instructions, the better the AI can create relevant new content that perfectly complements your existing document.
                     </p>
                   </div>
                 )}
