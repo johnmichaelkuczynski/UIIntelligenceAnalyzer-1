@@ -39,7 +39,6 @@ import {
 } from '@/lib/types';
 import { rewriteDocument, analyzeDocument, checkForAI } from '@/lib/analysis';
 import { Document, Packer, Paragraph, TextRun } from "docx";
-import { jsPDF } from "jspdf";
 
 // Common rewrite instructions 
 const REWRITE_PRESETS = [
@@ -110,23 +109,6 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
   const [rewrittenAnalysis, setRewrittenAnalysis] = useState<DocumentAnalysis | null>(null);
   const [aiDetectionResult, setAIDetectionResult] = useState<AIDetectionResult | null>(null);
   
-  // Refs
-  const downloadLinkRef = useRef<HTMLAnchorElement | null>(null);
-  
-  // Set up hidden download link for exports
-  useEffect(() => {
-    const link = document.createElement('a');
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    downloadLinkRef.current = link;
-    
-    return () => {
-      if (link && document.body.contains(link)) {
-        document.body.removeChild(link);
-      }
-    };
-  }, []);
-  
   // Calculate word and character count for rewritten text
   useEffect(() => {
     if (rewrittenText) {
@@ -153,181 +135,7 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
     }
   };
   
-  // Handle direct AI research based on user's instructions
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      toast({
-        title: "Research instructions required",
-        description: "Please provide detailed research instructions",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsSearching(true);
-    setSearchResults([]);
-    
-    try {
-      // Always directly ask the models as specified in the instructions
-      const directModelInstructions = searchQuery.trim();
-      
-      // Create placeholders for direct model responses
-      const directResults = [];
-      
-      // Check for direct model instructions
-      const shouldAskOpenAI = directModelInstructions.toLowerCase().includes("ask openai") || 
-                              directModelInstructions.toLowerCase().includes("ask gpt");
-      const shouldAskClaude = directModelInstructions.toLowerCase().includes("ask claude") || 
-                              directModelInstructions.toLowerCase().includes("ask anthropic");
-      const shouldAskPerplexity = directModelInstructions.toLowerCase().includes("ask perplexity");
-      
-      // Always ask all models if no specific model is mentioned
-      const askAllModels = !shouldAskOpenAI && !shouldAskClaude && !shouldAskPerplexity;
-      
-      // Format the instruction without the "ask X" prefixes for cleaner prompts
-      let cleanedInstruction = directModelInstructions
-        .replace(/ask openai|ask gpt|ask claude|ask anthropic|ask perplexity/gi, '')
-        .trim();
-      
-      if (cleanedInstruction.startsWith('about') || cleanedInstruction.startsWith('to')) {
-        cleanedInstruction = cleanedInstruction.substring(5).trim();
-      }
-      
-      // Save the instruction for later use in rewrite
-      setSearchInstructions(directModelInstructions);
-      
-      // First, let's process the web search part to find relevant sources
-      // This happens regardless of the model direct instructions
-      
-      // Extract search terms from the instruction
-      const extractSearchTerms = (text: string): string[] => {
-        const keywords = text.split(/\s+/)
-          .filter(word => word.length > 3 && !['about', 'what', 'when', 'where', 'which', 'there', 'their', 'that', 'should', 'could', 'would'].includes(word.toLowerCase()));
-        
-        // Get noun phrases and capitalized terms
-        const keyPhrases = text.match(/[A-Z][a-zA-Z]*(?:\s+[A-Z][a-zA-Z]*)*/g) || [];
-        const technicalTerms = text.match(/[a-zA-Z]+(?:-[a-zA-Z]+)+/g) || []; // hyphenated terms
-        
-        // Combine them all but remove duplicates
-        const allTerms = [...keyPhrases, ...technicalTerms];
-        
-        // If we don't have enough specific terms, add some from the keywords
-        if (allTerms.length < 2 && keywords.length > 0) {
-          // Get chunks of 2-3 consecutive keywords
-          for (let i = 0; i < keywords.length - 1; i++) {
-            if (i < keywords.length - 2) {
-              allTerms.push(`${keywords[i]} ${keywords[i+1]} ${keywords[i+2]}`);
-              i += 2;
-            } else {
-              allTerms.push(`${keywords[i]} ${keywords[i+1]}`);
-              i += 1;
-            }
-          }
-        }
-        
-        // Return the terms, deduplicated and with at least one fallback
-        return allTerms.length > 0 
-          ? [...new Set(allTerms)] 
-          : [text.split(/\s+/).slice(0, 6).join(' ')];
-      };
-      
-      const searchTerms = extractSearchTerms(cleanedInstruction);
-      console.log("Extracted search terms:", searchTerms);
-      
-      // Gather web search results
-      let allWebResults: any[] = [];
-      
-      for (const term of searchTerms) {
-        // Only search for the first 2 terms to avoid too many queries
-        if (allWebResults.length >= 6) break;
-        
-        const response = await fetch("/api/search-google", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: term, numResults: 3 })
-        });
-        
-        if (!response.ok) throw new Error(`API error: ${response.status}`);
-        
-        const data = await response.json();
-        
-        if (data.success && data.results) {
-          allWebResults = [...allWebResults, ...data.results];
-        }
-      }
-      
-      // Remove duplicates from web results
-      const uniqueWebResults = allWebResults.filter((result, index, self) => 
-        index === self.findIndex(r => r.link === result.link)
-      );
-      
-      // Set the search results
-      setSearchResults(uniqueWebResults);
-      
-      // Automatically fetch content from top results
-      const topResults = uniqueWebResults.slice(0, 3);
-      for (const result of topResults) {
-        fetchUrlContent(result.link);
-        // Automatically select these results for inclusion
-        handleSelectResult(result);
-      }
-      
-      // Force enable web research since we have results
-      if (uniqueWebResults.length > 0) {
-        setIncludeWebSearch(true);
-      }
-      
-      toast({
-        title: "Research completed",
-        description: `Found ${uniqueWebResults.length} relevant web sources and prepared for AI research integration`
-      });
-    } catch (error) {
-      console.error("Research error:", error);
-      toast({
-        title: "Research failed",
-        description: error instanceof Error ? error.message : "Could not perform research",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSearching(false);
-    }
-  };
-  
-  // Handle selecting/deselecting search results
-  const handleSelectResult = (result: GoogleSearchResult) => {
-    setSelectedResults([...selectedResults, result]);
-    fetchUrlContent(result.link);
-  };
-  
-  const handleDeselectResult = (result: GoogleSearchResult) => {
-    setSelectedResults(selectedResults.filter(r => r.link !== result.link));
-  };
-  
-  // Fetch content from URL
-  const fetchUrlContent = async (url: string) => {
-    try {
-      const response = await fetch("/api/fetch-url-content", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url })
-      });
-      
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
-      
-      const data = await response.json();
-      
-      if (data.success && data.content) {
-        setUrlContents(prev => ({
-          ...prev,
-          [url]: data.content
-        }));
-      }
-    } catch (error) {
-      console.error(`Error fetching content from ${url}:`, error);
-    }
-  };
-  
-  // Rewrite function - can be called with any text (original or already rewritten for recursive rewrites)
+  // Rewrite function
   const handleRewrite = async (textToRewrite = originalDocument?.content) => {
     if (!textToRewrite) {
       toast({
@@ -338,10 +146,19 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
       return;
     }
     
-    if (!customInstructions.trim() && !selectedPreset) {
+    if (!customInstructions.trim() && !selectedPreset && rewriteMode !== 'add') {
       toast({
         title: "Instructions required",
         description: "Please provide rewrite instructions or select a preset",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if ((rewriteMode === 'add' || rewriteMode === 'both') && !newChunkInstructions.trim()) {
+      toast({
+        title: "New chunk instructions required",
+        description: "Please provide instructions for what new content to add",
         variant: "destructive"
       });
       return;
@@ -365,15 +182,6 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
         preserveLength: true,
         preserveDepth: true
       };
-      
-      // Add web search content if enabled and results selected
-      if (includeWebSearch && selectedResults.length > 0) {
-        options.webContent = {
-          results: selectedResults,
-          contents: urlContents,
-          instructions: searchInstructions
-        };
-      }
       
       // Progress simulation
       const progressInterval = setInterval(() => {
@@ -406,18 +214,17 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
         onRewriteComplete(result.rewrittenText, result.stats);
       }
       
-      // Save to database automatically
+      // Save to archive
       try {
         await fetch('/api/save-rewrite', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            originalText: textToRewrite,
-            rewrittenText: result.rewrittenText,
+            original: textToRewrite,
+            rewritten: result.rewrittenText,
             instructions: finalInstruction,
             provider: selectedProvider,
-            rewriteLevel: 1,
-            stats: result.stats
+            mode: rewriteMode
           })
         });
       } catch (error) {
@@ -437,337 +244,165 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
       setIsRewriting(false);
     }
   };
-  
-  // Analyze rewritten text
-  const handleAnalyzeRewrite = async () => {
-    if (!rewrittenText) {
-      toast({
-        title: "Missing rewritten text",
-        description: "Please rewrite the document first",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsAnalyzingRewrite(true);
-    try {
-      const analysis = await analyzeDocument({ content: rewrittenText }, selectedProvider);
-      setRewrittenAnalysis(analysis);
-      
-      toast({
-        title: "Analysis complete",
-        description: `Intelligence score: ${analysis.overallScore}/100`
-      });
-    } catch (error) {
-      console.error("Analysis error:", error);
-      toast({
-        title: "Analysis failed",
-        description: "Failed to analyze rewritten text",
-        variant: "destructive"
-      });
-    } finally {
-      setIsAnalyzingRewrite(false);
-    }
-  };
-  
-  // Check AI detection
-  const handleCheckAI = async () => {
-    if (!rewrittenText) {
-      toast({
-        title: "Missing rewritten text",
-        description: "Please rewrite the document first",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsCheckingAI(true);
-    try {
-      const result = await checkForAI({ content: rewrittenText });
-      setAIDetectionResult(result);
-      
-      toast({
-        title: "AI detection complete",
-        description: `AI probability: ${result.probability}%`
-      });
-    } catch (error) {
-      console.error("AI detection error:", error);
-      toast({
-        title: "AI detection failed",
-        description: "Failed to check for AI",
-        variant: "destructive"
-      });
-    } finally {
-      setIsCheckingAI(false);
-    }
-  };
-  
-  // Handle copy to clipboard
-  const handleCopyText = () => {
-    if (!rewrittenText) return;
-    
-    navigator.clipboard.writeText(rewrittenText);
-    toast({
-      title: "Copied to clipboard",
-      description: "Rewritten text copied to clipboard"
-    });
-  };
-  
-  // Handle document export
-  const handleExportDocument = (format: 'txt' | 'docx' | 'pdf') => {
-    if (!rewrittenText || !downloadLinkRef.current) return;
-    
-    const timestamp = new Date().toISOString().slice(0, 10);
-    const filename = `rewritten-text-${timestamp}`;
-    
-    if (format === 'txt') {
-      // Plain text download
-      const blob = new Blob([rewrittenText], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      
-      downloadLinkRef.current.href = url;
-      downloadLinkRef.current.download = `${filename}.txt`;
-      downloadLinkRef.current.click();
-      
-      setTimeout(() => URL.revokeObjectURL(url), 100);
-    } 
-    else if (format === 'docx') {
-      // DOCX download using docx library
-      const doc = new Document({
-        sections: [{
-          properties: {},
-          children: rewrittenText.split('\n\n').map(paragraph => 
-            new Paragraph({
-              children: [new TextRun({ text: paragraph })],
-            })
-          )
-        }]
-      });
-      
-      Packer.toBlob(doc).then(blob => {
-        const url = URL.createObjectURL(blob);
-        
-        downloadLinkRef.current!.href = url;
-        downloadLinkRef.current!.download = `${filename}.docx`;
-        downloadLinkRef.current!.click();
-        
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-      });
-    }
-    else if (format === 'pdf') {
-      // For PDF with math notation, recommend using browser's print-to-PDF
-      toast({
-        title: "PDF with Math Notation",
-        description: "For best results with mathematical notation, please use your browser's Print → Save as PDF function while viewing the Math View.",
-        duration: 6000
-      });
-      
-      // Also provide fallback plain text PDF
-      const pdf = new jsPDF();
-      
-      // Clean text by removing common markup patterns
-      let cleanText = rewrittenText
-        .replace(/\\\[|\\\]/g, '') // Remove LaTeX display delimiters
-        .replace(/\\\(|\\\)/g, '') // Remove LaTeX inline delimiters
-        .replace(/\\[a-zA-Z]+\{[^}]*\}/g, '') // Remove LaTeX commands
-        .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold markup
-        .replace(/\*([^*]+)\*/g, '$1') // Remove italic markup
-        .replace(/##\s*([^\n]+)/g, '$1') // Remove heading markup
-        .replace(/\n\s*\n\s*\n/g, '\n\n'); // Clean up extra line breaks
-      
-      // Split into pages and add text
-      const textLines = pdf.splitTextToSize(cleanText, 180);
-      let y = 10;
-      const lineHeight = 7;
-      
-      for (let i = 0; i < textLines.length; i++) {
-        if (y > 280) {
-          pdf.addPage();
-          y = 10;
-        }
-        pdf.text(textLines[i], 10, y);
-        y += lineHeight;
-      }
-      
-      pdf.save(`${filename}-plain.pdf`);
-    }
-    
-    toast({
-      title: "Export complete",
-      description: `Document exported as ${format.toUpperCase()}`
-    });
-  };
-  
-  // Reset the whole process
-  const resetAll = () => {
-    setRewrittenText("");
-    setRewriteStats(null);
-    setRewrittenAnalysis(null);
-    setAIDetectionResult(null);
-  };
-  
+
   return (
-    <div className="space-y-4">
+    <div className="w-full max-w-6xl mx-auto space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 mb-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="rewrite" className="flex items-center gap-2">
             <FileEdit className="h-4 w-4" />
-            Rewrite Configuration
+            Enhanced Rewrite
           </TabsTrigger>
           <TabsTrigger value="results" className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4" />
-            Rewrite Results
+            <BrainCircuit className="h-4 w-4" />
+            Results
           </TabsTrigger>
           <TabsTrigger value="archive" className="flex items-center gap-2">
             <RotateCcw className="h-4 w-4" />
             Archive
           </TabsTrigger>
         </TabsList>
-        
-        {/* Configuration Tab */}
-        <TabsContent value="rewrite" className="space-y-4">
-          <Card className="border-blue-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <FileEdit className="h-5 w-5 text-blue-600" />
-                <CardTitle className="text-lg text-blue-800">Document Rewrite</CardTitle>
-              </div>
+
+        {/* Main Rewrite Tab */}
+        <TabsContent value="rewrite" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-2xl text-blue-800">
+                <Sparkles className="h-6 w-6" />
+                Advanced Document Rewriting
+              </CardTitle>
               <CardDescription>
-                Configure how your document will be rewritten with AI
+                Choose how you want to enhance your document with AI-powered rewriting
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* AI Provider Selection */}
-              <div className="space-y-2">
-                <Label htmlFor="provider">Select AI Provider</Label>
-                <Select
-                  value={selectedProvider}
-                  onValueChange={setSelectedProvider}
-                >
-                  <SelectTrigger id="provider">
-                    <SelectValue placeholder="OpenAI (GPT-4o)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="openai">OpenAI (GPT-4o)</SelectItem>
-                    <SelectItem value="anthropic">Anthropic (Claude)</SelectItem>
-                    <SelectItem value="perplexity">Perplexity</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* Rewrite Instructions */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="custom-instructions">Rewrite Instructions</Label>
-                  <Select
-                    value={selectedPreset}
-                    onValueChange={handlePresetChange}
-                  >
-                    <SelectTrigger id="preset" className="w-[180px]">
-                      <SelectValue placeholder="Use a preset (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {REWRITE_PRESETS.map(preset => (
-                        <SelectItem key={preset.value} value={preset.value}>
-                          {preset.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {/* Rewrite Mode Selection */}
-                <div className="space-y-4 mb-6">
-                  <Label className="text-lg font-bold text-blue-800">Choose Your Rewrite Approach</Label>
-                  <div className="grid grid-cols-1 gap-4">
-                    <Card className={`p-4 cursor-pointer transition-all border-2 ${rewriteMode === 'rewrite' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}>
-                      <div className="flex items-start space-x-3" onClick={() => setRewriteMode('rewrite')}>
-                        <input
-                          type="radio"
-                          id="mode-rewrite"
-                          name="rewriteMode"
-                          value="rewrite"
-                          checked={rewriteMode === 'rewrite'}
-                          onChange={(e) => setRewriteMode(e.target.value as 'rewrite' | 'add' | 'both')}
-                          className="w-5 h-5 text-blue-600 mt-1"
-                        />
-                        <div className="flex-1">
-                          <Label htmlFor="mode-rewrite" className="text-base font-bold cursor-pointer text-blue-700">
-                            REWRITE EXISTING CHUNKS ONLY
-                          </Label>
-                          <p className="text-sm text-gray-600 mt-2">
-                            Transform and improve your current text without adding new content. Perfect for enhancing clarity, style, or depth of existing material.
-                          </p>
-                        </div>
-                      </div>
-                    </Card>
-                    
-                    <Card className={`p-4 cursor-pointer transition-all border-2 ${rewriteMode === 'add' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:bg-gray-50'}`}>
-                      <div className="flex items-start space-x-3" onClick={() => setRewriteMode('add')}>
-                        <input
-                          type="radio"
-                          id="mode-add"
-                          name="rewriteMode"
-                          value="add"
-                          checked={rewriteMode === 'add'}
-                          onChange={(e) => setRewriteMode(e.target.value as 'rewrite' | 'add' | 'both')}
-                          className="w-5 h-5 text-green-600 mt-1"
-                        />
-                        <div className="flex-1">
-                          <Label htmlFor="mode-add" className="text-base font-bold cursor-pointer text-green-700">
-                            ADD NEW CHUNKS ONLY
-                          </Label>
-                          <p className="text-sm text-gray-600 mt-2">
-                            Keep your existing text unchanged and add new sections. Great for expanding topics or adding supplementary material without altering what you have.
-                          </p>
-                        </div>
-                      </div>
-                    </Card>
-                    
-                    <Card className={`p-4 cursor-pointer transition-all border-2 ${rewriteMode === 'both' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:bg-gray-50'}`}>
-                      <div className="flex items-start space-x-3" onClick={() => setRewriteMode('both')}>
-                        <input
-                          type="radio"
-                          id="mode-both"
-                          name="rewriteMode"
-                          value="both"
-                          checked={rewriteMode === 'both'}
-                          onChange={(e) => setRewriteMode(e.target.value as 'rewrite' | 'add' | 'both')}
-                          className="w-5 h-5 text-purple-600 mt-1"
-                        />
-                        <div className="flex-1">
-                          <Label htmlFor="mode-both" className="text-base font-bold cursor-pointer text-purple-700">
-                            REWRITE EXISTING + ADD NEW CHUNKS
-                          </Label>
-                          <p className="text-sm text-gray-600 mt-2">
-                            Transform your current text AND add new sections. Complete document enhancement with both improvement and expansion.
-                          </p>
-                        </div>
-                      </div>
-                    </Card>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Provider Selection */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-blue-800">AI Provider</Label>
+                    <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select AI provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="openai">OpenAI GPT-4</SelectItem>
+                        <SelectItem value="anthropic">Anthropic Claude</SelectItem>
+                        <SelectItem value="perplexity">Perplexity</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </div>
 
-                {/* Custom Instructions for Rewriting */}
-                {(rewriteMode === 'rewrite' || rewriteMode === 'both') && (
-                  <Textarea
-                    id="custom-instructions"
-                    placeholder="Provide detailed instructions for rewriting existing content. Example: 'Replace vague terms with precise ones while maintaining original structure' or 'Enhance logical reasoning chains without changing length'"
-                    className="min-h-[100px] mb-4"
-                    value={customInstructions}
-                    onChange={(e) => setCustomInstructions(e.target.value)}
-                  />
-                )}
-
-                {/* New Chunk Instructions */}
-                {(rewriteMode === 'add' || rewriteMode === 'both') && (
+                  {/* Rewrite Mode Selection */}
                   <div className="space-y-4 mb-6">
-                    <Label htmlFor="new-chunk-instructions" className="text-lg font-bold text-green-700">
-                      📝 Instructions for New Content to Add
-                    </Label>
-                    <Card className="p-4 border-2 border-green-200 bg-green-50">
+                    <Label className="text-lg font-bold text-blue-800">Choose Your Rewrite Approach</Label>
+                    <div className="grid grid-cols-1 gap-4">
+                      <Card className={`p-4 cursor-pointer transition-all border-2 ${rewriteMode === 'rewrite' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                        <div className="flex items-start space-x-3" onClick={() => setRewriteMode('rewrite')}>
+                          <input
+                            type="radio"
+                            id="mode-rewrite"
+                            name="rewriteMode"
+                            value="rewrite"
+                            checked={rewriteMode === 'rewrite'}
+                            onChange={(e) => setRewriteMode(e.target.value as 'rewrite' | 'add' | 'both')}
+                            className="w-5 h-5 text-blue-600 mt-1"
+                          />
+                          <div className="flex-1">
+                            <Label htmlFor="mode-rewrite" className="text-base font-bold cursor-pointer text-blue-700">
+                              REWRITE EXISTING CHUNKS ONLY
+                            </Label>
+                            <p className="text-sm text-gray-600 mt-2">
+                              Transform and improve your current text without adding new content. Perfect for enhancing clarity, style, or depth of existing material.
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+                      
+                      <Card className={`p-4 cursor-pointer transition-all border-2 ${rewriteMode === 'add' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                        <div className="flex items-start space-x-3" onClick={() => setRewriteMode('add')}>
+                          <input
+                            type="radio"
+                            id="mode-add"
+                            name="rewriteMode"
+                            value="add"
+                            checked={rewriteMode === 'add'}
+                            onChange={(e) => setRewriteMode(e.target.value as 'rewrite' | 'add' | 'both')}
+                            className="w-5 h-5 text-green-600 mt-1"
+                          />
+                          <div className="flex-1">
+                            <Label htmlFor="mode-add" className="text-base font-bold cursor-pointer text-green-700">
+                              ADD NEW CHUNKS ONLY
+                            </Label>
+                            <p className="text-sm text-gray-600 mt-2">
+                              Keep your existing text unchanged and add new sections. Great for expanding topics or adding supplementary material without altering what you have.
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+                      
+                      <Card className={`p-4 cursor-pointer transition-all border-2 ${rewriteMode === 'both' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                        <div className="flex items-start space-x-3" onClick={() => setRewriteMode('both')}>
+                          <input
+                            type="radio"
+                            id="mode-both"
+                            name="rewriteMode"
+                            value="both"
+                            checked={rewriteMode === 'both'}
+                            onChange={(e) => setRewriteMode(e.target.value as 'rewrite' | 'add' | 'both')}
+                            className="w-5 h-5 text-purple-600 mt-1"
+                          />
+                          <div className="flex-1">
+                            <Label htmlFor="mode-both" className="text-base font-bold cursor-pointer text-purple-700">
+                              REWRITE EXISTING + ADD NEW CHUNKS
+                            </Label>
+                            <p className="text-sm text-gray-600 mt-2">
+                              Transform your current text AND add new sections. Complete document enhancement with both improvement and expansion.
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+                    </div>
+                  </div>
+
+                  {/* Custom Instructions for Rewriting */}
+                  {(rewriteMode === 'rewrite' || rewriteMode === 'both') && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-blue-800">Rewrite Instructions</Label>
+                      <div className="space-y-2">
+                        <Select value={selectedPreset} onValueChange={handlePresetChange}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose a preset or write custom instructions" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {REWRITE_PRESETS.map((preset) => (
+                              <SelectItem key={preset.value} value={preset.value}>
+                                {preset.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                       <Textarea
-                        id="new-chunk-instructions"
-                        placeholder="Provide lengthy and detailed instructions for what new chunks/sections to add to your document. Be as specific as possible about:
+                        placeholder="Enter custom rewrite instructions..."
+                        value={customInstructions}
+                        onChange={(e) => setCustomInstructions(e.target.value)}
+                        rows={4}
+                        className="text-sm"
+                      />
+                    </div>
+                  )}
+
+                  {/* New Chunk Instructions */}
+                  {(rewriteMode === 'add' || rewriteMode === 'both') && (
+                    <div className="space-y-4 mb-6">
+                      <Label htmlFor="new-chunk-instructions" className="text-lg font-bold text-green-700">
+                        📝 Instructions for New Content to Add
+                      </Label>
+                      <Card className="p-4 border-2 border-green-200 bg-green-50">
+                        <Textarea
+                          id="new-chunk-instructions"
+                          placeholder="Provide lengthy and detailed instructions for what new chunks/sections to add to your document. Be as specific as possible about:
 
 • Topics to cover (e.g., 'Add sections on knowledge of the past')
 • Examples to include (e.g., 'Include examples from epistemology and temporal reasoning')
@@ -777,422 +412,77 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
 • Connections to existing content
 
 Example: 'Add two comprehensive new chunks: 1) A detailed section on knowledge of historical events with specific examples from ancient philosophy and how we verify past claims, including discussion of testimony and archaeological evidence. 2) A section on epistemic challenges in temporal reasoning with mathematical formulations showing how probability changes over time, including Bayesian updating for historical claims.'"
-                        value={newChunkInstructions}
-                        onChange={(e) => setNewChunkInstructions(e.target.value)}
-                        rows={12}
-                        className="text-sm min-h-[300px] border-green-300 focus:border-green-500 bg-white"
-                      />
-                    </Card>
-                    <p className="text-sm text-green-600 font-medium">
-                      💡 The more detailed your instructions, the better the AI can create relevant new content that perfectly complements your existing document.
-                    </p>
-                  </div>
-                )}
-              </div>
-              
-              {/* AI Research Integration */}
-              <div className="space-y-2 pt-4 border-t border-gray-100">
-                <div className="flex items-center gap-3">
-                  <Label 
-                    htmlFor="include-web-search" 
-                    className="flex items-center gap-2 text-blue-800 font-medium"
-                  >
-                    <Bot className="h-4 w-4 text-blue-600" />
-                    <span>Direct AI Research</span>
-                  </Label>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="include-web-search" 
-                      checked={includeWebSearch}
-                      onCheckedChange={(checked) => setIncludeWebSearch(checked as boolean)}
-                    />
-                    <Label 
-                      htmlFor="include-web-search" 
-                      className="text-sm font-normal cursor-pointer"
-                    >
-                      Include research in rewrite
-                    </Label>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Web Search Query Input - only shown when web search is enabled */}
-              {includeWebSearch && (
-                <>
-                  <div className="space-y-2 pt-1">
-                    <Label htmlFor="search-query" className="flex items-center gap-1">
-                      <Search className="h-4 w-4 text-blue-600" />
-                      <span>Research Instructions</span>
-                    </Label>
-                    <Textarea
-                      id="search-query"
-                      placeholder="Provide detailed research instructions, e.g.: 'Find content about how metaknowledge is implicated in first-order knowledge, focusing on epistemological frameworks. Ask the LLM how these concepts relate to the document's central arguments.'"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="min-h-[100px]"
-                    />
-                    <div className="flex justify-end">
-                      <Button
-                        variant="secondary"
-                        onClick={handleSearch}
-                        disabled={isSearching || !searchQuery.trim()}
-                        className="shrink-0"
-                      >
-                        {isSearching ? (
-                          <>
-                            <RotateCw className="h-4 w-4 mr-2 animate-spin" />
-                            Researching...
-                          </>
-                        ) : (
-                          <>
-                            <Globe className="h-4 w-4 mr-2" />
-                            Begin Research
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {/* Web Search Results */}
-                  {searchResults.length > 0 && (
-                    <div className="space-y-3">
-                      <Label className="flex items-center gap-2">
-                        <Globe className="h-4 w-4 text-blue-600" />
-                        <span>Search Results</span>
-                        <Badge variant="outline" className="ml-2">
-                          {searchResults.length} results
-                        </Badge>
-                      </Label>
-                      <div className="max-h-[300px] overflow-y-auto border rounded-md p-2 space-y-2">
-                        {searchResults.map((result, idx) => (
-                          <div 
-                            key={idx} 
-                            className={`p-2 rounded-md border flex items-start gap-3 ${
-                              selectedResults.some(r => r.link === result.link) 
-                                ? 'bg-blue-50 border-blue-200' 
-                                : 'border-gray-100 hover:bg-gray-50'
-                            }`}
-                          >
-                            <Checkbox
-                              id={`result-${idx}`}
-                              checked={selectedResults.some(r => r.link === result.link)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  handleSelectResult(result);
-                                } else {
-                                  handleDeselectResult(result);
-                                }
-                              }}
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex justify-between items-start">
-                                <Label 
-                                  htmlFor={`result-${idx}`}
-                                  className="text-sm font-medium text-blue-600 cursor-pointer hover:underline"
-                                >
-                                  {result.title}
-                                </Label>
-                                <a 
-                                  href={result.link} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-gray-500 flex items-center gap-1 ml-2 shrink-0"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                </a>
-                              </div>
-                              <p className="text-xs text-gray-600 mt-1 line-clamp-2">{result.snippet}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {/* Web Search Instructions */}
-                      <div className="space-y-2">
-                        <Label htmlFor="search-instructions" className="flex items-center gap-2">
-                          <Info className="h-4 w-4 text-blue-600" />
-                          <span>Integration Instructions for the AI</span>
-                        </Label>
-                        <Textarea
-                          id="search-instructions"
-                          placeholder="Provide detailed instructions for how the AI should process and integrate the research, e.g.: 'Analyze how these sources define metacognition vs. metaknowledge. Extract key philosophical positions from each source. Compare conflicting viewpoints if present. Integrate findings by showing how they provide a more nuanced understanding of knowledge structures than was present in the original document.'"
-                          className="min-h-[120px]"
-                          value={searchInstructions}
-                          onChange={(e) => setSearchInstructions(e.target.value)}
+                          value={newChunkInstructions}
+                          onChange={(e) => setNewChunkInstructions(e.target.value)}
+                          rows={12}
+                          className="text-sm min-h-[300px] border-green-300 focus:border-green-500 bg-white"
                         />
-                      </div>
+                      </Card>
+                      <p className="text-sm text-green-600 font-medium">
+                        💡 The more detailed your instructions, the better the AI can create relevant new content that perfectly complements your existing document.
+                      </p>
                     </div>
                   )}
-                </>
-              )}
-              
-              {/* Rewrite Button */}
-              <Button 
-                onClick={() => handleRewrite()}
-                disabled={isRewriting || 
-                  (rewriteMode === 'rewrite' && !customInstructions.trim() && !selectedPreset) ||
-                  (rewriteMode === 'add' && !newChunkInstructions.trim()) ||
-                  (rewriteMode === 'both' && (!customInstructions.trim() || !newChunkInstructions.trim()))
-                }
-                className="w-full"
-              >
-                {isRewriting ? (
-                  <>
-                    <RotateCw className="h-4 w-4 mr-2 animate-spin" />
-                    Rewriting Document...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Rewrite Document with {selectedProvider === 'openai' ? 'OpenAI' : 
-                                         selectedProvider === 'anthropic' ? 'Anthropic' : 
-                                         'Perplexity'}
-                  </>
-                )}
-              </Button>
-              
-              {/* Progress bar for rewrite process */}
-              {isRewriting && (
-                <div className="space-y-1 pt-1">
-                  <div className="flex justify-between text-xs text-gray-600">
-                    <span>Rewriting document...</span>
-                    <span>{Math.round(rewriteProgress)}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${rewriteProgress}%` }}
-                    ></div>
-                  </div>
                 </div>
-              )}
+              </div>
+              
+              {/* Execute Button */}
+              <div className="border-t pt-6">
+                <Button
+                  onClick={() => handleRewrite()}
+                  disabled={
+                    isRewriting ||
+                    (rewriteMode === 'rewrite' && !customInstructions.trim() && !selectedPreset) ||
+                    (rewriteMode === 'add' && !newChunkInstructions.trim()) ||
+                    (rewriteMode === 'both' && (!customInstructions.trim() || !newChunkInstructions.trim()))
+                  }
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3"
+                >
+                  {isRewriting ? (
+                    <div className="flex items-center gap-2">
+                      <RotateCw className="h-5 w-5 animate-spin" />
+                      Processing... {Math.round(rewriteProgress)}%
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5" />
+                      {rewriteMode === 'rewrite' ? 'Rewrite Document' : 
+                       rewriteMode === 'add' ? 'Add New Content' : 
+                       'Rewrite & Add Content'}
+                    </div>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         {/* Results Tab */}
         <TabsContent value="results" className="space-y-4">
-          {!rewrittenText ? (
-            <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-              <FileEdit className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-700 mb-2">No Rewritten Text Yet</h3>
-              <p className="text-gray-500 max-w-md mx-auto mb-6">
-                Configure and run the rewrite process to see results here.
-              </p>
-              <Button 
-                onClick={() => setActiveTab("rewrite")}
-                variant="outline"
-              >
-                Go to Rewrite Configuration
-              </Button>
-            </div>
+          {rewrittenText ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-green-700">Rewrite Complete</CardTitle>
+                <CardDescription>
+                  Words: {wordCount} | Characters: {charCount}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="border rounded-lg p-4 bg-green-50 max-h-96 overflow-y-auto">
+                    <MathRenderer content={rewrittenText} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <div className="flex flex-wrap justify-between items-center gap-2">
-                    <CardTitle className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-blue-600" />
-                      Rewritten Document
-                    </CardTitle>
-                    <div className="flex flex-wrap gap-2">
-                      {/* Copy Text */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleCopyText}
-                        className="flex items-center gap-1"
-                      >
-                        <ClipboardCopy className="h-3.5 w-3.5" />
-                        Copy
-                      </Button>
-                      
-                      {/* Export Dropdown */}
-                      <div className="relative group">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center gap-1"
-                        >
-                          <Download className="h-3.5 w-3.5" />
-                          Export
-                        </Button>
-                        <div className="absolute right-0 mt-1 hidden group-hover:block bg-white shadow-lg rounded-md z-10">
-                          <div className="py-1">
-                            <button
-                              onClick={() => handleExportDocument('txt')}
-                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                            >
-                              Text (.txt)
-                            </button>
-                            <button
-                              onClick={() => handleExportDocument('docx')}
-                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                            >
-                              Word (.docx)
-                            </button>
-                            <button
-                              onClick={() => handleExportDocument('pdf')}
-                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                            >
-                              PDF (.pdf)
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* AI Detection Button */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleCheckAI}
-                        disabled={isCheckingAI}
-                        className="flex items-center gap-1"
-                      >
-                        <ShieldAlert className="h-3.5 w-3.5" />
-                        {isCheckingAI ? "Checking..." : "Check AI"}
-                      </Button>
-                      
-                      {/* Intelligence Analysis Button */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAnalyzeRewrite}
-                        disabled={isAnalyzingRewrite}
-                        className="flex items-center gap-1"
-                      >
-                        <BrainCircuit className="h-3.5 w-3.5" />
-                        {isAnalyzingRewrite ? "Analyzing..." : "Analyze Intelligence"}
-                      </Button>
-                      
-                      {/* Rewrite Again - recursive rewrites */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRewrite(rewrittenText)}
-                        disabled={isRewriting}
-                        className="flex items-center gap-1 bg-green-50 text-green-700 hover:bg-green-100"
-                      >
-                        <RotateCw className="h-3.5 w-3.5" />
-                        Rewrite Again
-                      </Button>
-                      
-                      {/* Reset Button */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={resetAll}
-                        className="flex items-center gap-1"
-                      >
-                        <RotateCcw className="h-3.5 w-3.5" />
-                        Reset
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Text Content */}
-                  <Textarea
-                    value={rewrittenText}
-                    className="min-h-[300px] font-mono text-sm"
-                    readOnly
-                    placeholder="Rewritten content will appear here..."
-                  />
-                  
-                  {/* Text Stats */}
-                  <div className="grid grid-cols-3 gap-4 text-sm">
-                    <div className="bg-gray-50 p-3 rounded-md border">
-                      <p className="text-gray-500 mb-1">Word Count</p>
-                      <p className="font-medium">{wordCount} words</p>
-                    </div>
-                    <div className="bg-gray-50 p-3 rounded-md border">
-                      <p className="text-gray-500 mb-1">Character Count</p>
-                      <p className="font-medium">{charCount} characters</p>
-                    </div>
-                    {rewriteStats?.lengthChange !== undefined && (
-                      <div className="bg-gray-50 p-3 rounded-md border">
-                        <p className="text-gray-500 mb-1">Length Change</p>
-                        <p className={`font-medium ${
-                          rewriteStats.lengthChange > 0.1 
-                            ? 'text-amber-600' 
-                            : rewriteStats.lengthChange < -0.1 
-                              ? 'text-blue-600' 
-                              : 'text-green-600'
-                        }`}>
-                          {rewriteStats.lengthChange > 0 ? '+' : ''}
-                          {Math.round(rewriteStats.lengthChange * 100)}%
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* AI Detection Result */}
-                  {aiDetectionResult && (
-                    <div className={`p-4 rounded-md ${
-                      aiDetectionResult.probability > 70 
-                        ? 'bg-amber-50 border border-amber-200' 
-                        : 'bg-green-50 border border-green-200'
-                    }`}>
-                      <div className="flex items-start">
-                        <div className="mr-3">
-                          <ShieldAlert className={`h-5 w-5 ${
-                            aiDetectionResult.probability > 70 
-                              ? 'text-amber-600' 
-                              : 'text-green-600'
-                          }`} />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-800 mb-1">AI Detection Result</h3>
-                          <p className="text-gray-700">
-                            This rewritten text has a <span className="font-semibold">{aiDetectionResult.probability}% probability</span> of being AI-generated.
-                          </p>
-                          {aiDetectionResult.probability > 70 && (
-                            <div className="mt-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleRewrite(rewrittenText)}
-                                className="text-sm"
-                              >
-                                <Bot className="h-3.5 w-3.5 mr-1" />
-                                Try rewriting again to reduce AI detection
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Intelligence Analysis Result */}
-                  {rewrittenAnalysis && (
-                    <div className="bg-blue-50 p-4 rounded-md border border-blue-200">
-                      <div className="flex justify-between items-start mb-3">
-                        <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                          <BrainCircuit className="h-4 w-4 text-blue-600" />
-                          Intelligence Analysis
-                        </h3>
-                        <Badge className="bg-blue-600">
-                          Score: {rewrittenAnalysis.overallScore}/100
-                        </Badge>
-                      </div>
-                      <p className="text-gray-700 mb-3">{rewrittenAnalysis.summary}</p>
-                      <div className="grid sm:grid-cols-3 gap-3 text-sm">
-                        {rewrittenAnalysis.dimensions && Object.entries(rewrittenAnalysis.dimensions).map(([key, dimension]) => (
-                          dimension && typeof dimension === 'object' ? (
-                            <div key={key} className="bg-white p-3 rounded-md border">
-                              <p className="font-medium">{key}: {typeof dimension.score === 'number' ? dimension.score : typeof dimension.rating === 'string' ? dimension.rating : 'N/A'}</p>
-                              <p className="text-xs text-gray-600 mt-1">{dimension.summary || dimension.description || ""}</p>
-                            </div>
-                          ) : null
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            <Card>
+              <CardContent className="py-12 text-center text-gray-500">
+                <BrainCircuit className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No rewrite results yet. Complete a rewrite to see results here.</p>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
 
@@ -1202,155 +492,263 @@ Example: 'Add two comprehensive new chunks: 1) A detailed section on knowledge o
         </TabsContent>
       </Tabs>
 
-      {/* Completion Modal */}
-      <Dialog open={showCompletedRewriteModal} onOpenChange={setShowCompletedRewriteModal}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-green-700">
-              🎉 Rewrite Complete!
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="flex-1 overflow-hidden flex flex-col space-y-4">
-            {/* View Toggle */}
-            <div className="flex items-center gap-2">
+      {/* Enhanced Completion Modal */}
+      <Dialog open={showCompletedRewriteModal} onOpenChange={() => {}}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="border-b pb-4">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-2xl font-bold text-green-700 flex items-center gap-2">
+                🎉 Your Rewrite is Complete!
+              </DialogTitle>
               <Button
+                variant="ghost"
                 size="sm"
-                variant={viewMode === 'normal' ? 'default' : 'outline'}
-                onClick={() => setViewMode('normal')}
+                onClick={() => setShowCompletedRewriteModal(false)}
+                className="h-8 w-8 p-0 text-gray-500 hover:text-gray-700"
               >
-                Normal View
-              </Button>
-              <Button
-                size="sm"
-                variant={viewMode === 'math' ? 'default' : 'outline'}
-                onClick={() => setViewMode('math')}
-              >
-                View Math
+                <X className="h-4 w-4" />
               </Button>
             </div>
+            <p className="text-sm text-gray-600 mt-2">
+              Your document has been processed successfully. Use the options below to view, download, or share your rewritten content.
+            </p>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-hidden flex flex-col space-y-4 pt-4">
+            {/* View Toggle and Stats */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant={viewMode === 'normal' ? 'default' : 'outline'}
+                  onClick={() => setViewMode('normal')}
+                >
+                  Normal View
+                </Button>
+                <Button
+                  size="sm"
+                  variant={viewMode === 'math' ? 'default' : 'outline'}
+                  onClick={() => setViewMode('math')}
+                >
+                  📐 Math View
+                </Button>
+              </div>
+              
+              <div className="flex items-center gap-4 text-sm text-gray-600">
+                <span>Words: <strong>{wordCount}</strong></span>
+                <span>Characters: <strong>{charCount}</strong></span>
+              </div>
+            </div>
 
-            {/* Rewritten Content */}
-            <div className="flex-1 overflow-y-auto border rounded-lg p-4 bg-green-50">
+            {/* Rewritten Content Display */}
+            <div className="flex-1 overflow-y-auto border-2 border-green-200 rounded-lg p-6 bg-gradient-to-br from-green-50 to-blue-50">
               {viewMode === 'math' ? (
                 <MathRenderer content={completedRewrite} />
               ) : (
-                <pre className="whitespace-pre-wrap text-sm text-gray-800">
-                  {completedRewrite}
-                </pre>
+                <div className="prose prose-sm max-w-none">
+                  <pre className="whitespace-pre-wrap text-sm text-gray-800 font-serif leading-relaxed">
+                    {completedRewrite}
+                  </pre>
+                </div>
               )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-2 border-t pt-4">
-              <Button
-                onClick={() => {
-                  toast({
-                    title: "PDF Download Tip",
-                    description: "For best math notation, use Print → Save as PDF while in Math View",
-                    duration: 5000
-                  });
-                  window.print();
-                }}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Download as PDF
-              </Button>
-
-              <Button
-                onClick={() => {
-                  const doc = new Document({
-                    sections: [{
-                      properties: {},
-                      children: completedRewrite.split('\n\n').map(paragraph => 
-                        new Paragraph({
-                          children: [new TextRun({ text: paragraph })],
-                        })
-                      )
-                    }]
-                  });
-                  
-                  Packer.toBlob(doc).then(blob => {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `rewrite-${new Date().toISOString().slice(0, 10)}.docx`;
-                    a.click();
-                    setTimeout(() => URL.revokeObjectURL(url), 100);
-                  });
-                }}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Download as Word
-              </Button>
-
-              <Button
-                onClick={() => {
-                  navigator.clipboard.writeText(completedRewrite);
-                  toast({
-                    title: "Copied!",
-                    description: "Rewritten text copied to clipboard"
-                  });
-                }}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <ClipboardCopy className="h-4 w-4" />
-                Copy Text
-              </Button>
-
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    Share via Email
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Share Rewrite via Email</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="email-recipient">Recipient Email</Label>
-                      <Input
-                        id="email-recipient"
-                        type="email"
-                        placeholder="Enter email address"
-                        onChange={(e) => {
-                          const email = e.target.value;
-                          if (email) {
-                            fetch('/api/share-simple-email', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                recipientEmail: email,
-                                subject: 'Document Rewrite',
-                                content: completedRewrite
-                              })
-                            }).then(() => {
-                              toast({
-                                title: "Email sent!",
-                                description: `Rewrite shared with ${email}`
-                              });
-                            }).catch(() => {
-                              toast({
-                                title: "Email failed",
-                                description: "Failed to send email",
-                                variant: "destructive"
-                              });
+            {/* Enhanced Action Buttons */}
+            <div className="border-t-2 border-gray-200 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* PDF Download */}
+                <Card className="p-4 hover:shadow-md transition-shadow">
+                  <div className="text-center space-y-2">
+                    <Download className="h-6 w-6 mx-auto text-red-600" />
+                    <h4 className="font-semibold text-sm">Download as PDF</h4>
+                    <p className="text-xs text-gray-600">Math notation preserved</p>
+                    <Button
+                      onClick={() => {
+                        if (viewMode !== 'math') {
+                          setViewMode('math');
+                          setTimeout(() => {
+                            toast({
+                              title: "Ready for PDF Download",
+                              description: "Math view activated. Now use Ctrl+P or Cmd+P and select 'Save as PDF'",
+                              duration: 6000
                             });
-                          }
-                        }}
-                      />
-                    </div>
+                            window.print();
+                          }, 500);
+                        } else {
+                          toast({
+                            title: "Ready for PDF Download",
+                            description: "Use Ctrl+P or Cmd+P and select 'Save as PDF' to preserve math notation",
+                            duration: 6000
+                          });
+                          window.print();
+                        }
+                      }}
+                      size="sm"
+                      className="w-full bg-red-600 hover:bg-red-700"
+                    >
+                      Save as PDF
+                    </Button>
                   </div>
-                </DialogContent>
-              </Dialog>
+                </Card>
+
+                {/* Word Download */}
+                <Card className="p-4 hover:shadow-md transition-shadow">
+                  <div className="text-center space-y-2">
+                    <Download className="h-6 w-6 mx-auto text-blue-600" />
+                    <h4 className="font-semibold text-sm">Download as Word</h4>
+                    <p className="text-xs text-gray-600">Compatible with MS Word</p>
+                    <Button
+                      onClick={() => {
+                        // Create a Word document
+                        const doc = new Document({
+                          sections: [{
+                            properties: {},
+                            children: [
+                              new Paragraph({
+                                children: [
+                                  new TextRun({
+                                    text: completedRewrite,
+                                    size: 24
+                                  })
+                                ]
+                              })
+                            ]
+                          }]
+                        });
+
+                        Packer.toBlob(doc).then(blob => {
+                          const url = URL.createObjectURL(blob);
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.download = `rewritten-document-${new Date().toISOString().split('T')[0]}.docx`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          URL.revokeObjectURL(url);
+                          
+                          toast({
+                            title: "Word Document Downloaded",
+                            description: "Your rewritten document has been saved as a Word file"
+                          });
+                        });
+                      }}
+                      size="sm"
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                    >
+                      Save as Word
+                    </Button>
+                  </div>
+                </Card>
+
+                {/* Email Share */}
+                <Card className="p-4 hover:shadow-md transition-shadow">
+                  <div className="text-center space-y-2">
+                    <Mail className="h-6 w-6 mx-auto text-green-600" />
+                    <h4 className="font-semibold text-sm">Share via Email</h4>
+                    <p className="text-xs text-gray-600">Send to collaborators</p>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button size="sm" className="w-full bg-green-600 hover:bg-green-700">
+                          <Mail className="h-4 w-4 mr-1" />
+                          Send Email
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Share Rewritten Document</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="email">Recipient Email</Label>
+                            <Input
+                              id="email"
+                              type="email"
+                              placeholder="colleague@university.edu"
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="subject">Subject</Label>
+                            <Input
+                              id="subject"
+                              placeholder="Rewritten Document"
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="message">Message</Label>
+                            <Textarea
+                              id="message"
+                              placeholder="Please find the rewritten document attached..."
+                              rows={3}
+                              className="mt-1"
+                            />
+                          </div>
+                          <Button
+                            onClick={async () => {
+                              const email = (document.getElementById('email') as HTMLInputElement)?.value;
+                              const subject = (document.getElementById('subject') as HTMLInputElement)?.value || 'Rewritten Document';
+                              const message = (document.getElementById('message') as HTMLTextAreaElement)?.value || 'Please find the rewritten document below.';
+                              
+                              if (!email) {
+                                toast({
+                                  title: "Email required",
+                                  description: "Please enter a recipient email address",
+                                  variant: "destructive"
+                                });
+                                return;
+                              }
+
+                              try {
+                                const response = await fetch('/api/share-simple-email', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    to: email,
+                                    subject: subject,
+                                    content: completedRewrite,
+                                    message: message
+                                  })
+                                });
+
+                                if (response.ok) {
+                                  toast({
+                                    title: "Email sent successfully",
+                                    description: `Rewritten document sent to ${email}`
+                                  });
+                                } else {
+                                  throw new Error('Failed to send email');
+                                }
+                              } catch (error) {
+                                toast({
+                                  title: "Email failed",
+                                  description: "Could not send email. Please try again.",
+                                  variant: "destructive"
+                                });
+                              }
+                            }}
+                            className="w-full"
+                          >
+                            Send Email
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </Card>
+              </div>
+              
+              {/* Close Button */}
+              <div className="flex justify-center mt-6">
+                <Button
+                  onClick={() => setShowCompletedRewriteModal(false)}
+                  variant="outline"
+                  size="lg"
+                  className="px-8"
+                >
+                  Close Rewrite View
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>
