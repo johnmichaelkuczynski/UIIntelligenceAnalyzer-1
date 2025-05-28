@@ -261,11 +261,11 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       
       const data = await response.json();
       
-      if (!data.rewrittenText && !data.result) {
+      if (!data.content && !data.rewrittenText && !data.result) {
         throw new Error(data.message || "No content received from rewrite");
       }
       
-      let finalRewrite = data.rewrittenText || data.result;
+      let finalRewrite = data.content || data.rewrittenText || data.result;
       
       // If we only rewrote selected chunks, merge them back
       if (rewriteMode === "rewrite_existing" && selectedChunks.size > 0 && selectedChunks.size < textChunks.length) {
