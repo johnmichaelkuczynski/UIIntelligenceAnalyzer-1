@@ -7,7 +7,14 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Download, Mail } from 'lucide-react';
+import { FileText, Download, Mail, ChevronDown, ChevronUp } from 'lucide-react';
+
+interface RewriteChunk {
+  id: string;
+  content: string;
+  isSelected: boolean;
+  position: number;
+}
 
 interface EnhancedRewriteModalProps {
   isOpen: boolean;
@@ -24,13 +31,25 @@ const AI_PROVIDERS = [
   { value: "openai", label: "OpenAI (GPT-4)" },
   { value: "anthropic", label: "Anthropic (Claude)" },
   { value: "perplexity", label: "Perplexity AI" }
-] as const;
+];
 
 const REWRITE_MODES = [
-  { value: "rewrite_existing", label: "Rewrite Existing Only", description: "Only modify existing content chunks" },
-  { value: "add_new", label: "Add New Content Only", description: "Keep existing text and add new chunks" },
-  { value: "hybrid", label: "Hybrid: Rewrite + Add New", description: "Both rewrite existing and add new content" }
-] as const;
+  {
+    value: "rewrite_existing",
+    label: "Rewrite Existing Only",
+    description: "Only modify existing content chunks"
+  },
+  {
+    value: "add_new", 
+    label: "Add New Content Only",
+    description: "Keep existing text and add new chunks"
+  },
+  {
+    value: "hybrid",
+    label: "Hybrid: Rewrite + Add New", 
+    description: "Both rewrite existing and add new content"
+  }
+];
 
 const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
   isOpen,
@@ -48,7 +67,7 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
   const [isRewriting, setIsRewriting] = useState<boolean>(false);
   const [rewriteProgress, setRewriteProgress] = useState<number>(0);
   
-  // 🔥 REAL-TIME STREAMING STATE
+  // Streaming state
   const [isStreaming, setIsStreaming] = useState<boolean>(false);
   const [streamingContent, setStreamingContent] = useState<string>("");
   const [chunkProgress, setChunkProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
@@ -56,6 +75,7 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
   
   // Content state
   const [currentRewrite, setCurrentRewrite] = useState<string>(rewrittenText);
+  const [forceUpdate, setForceUpdate] = useState<number>(0);
 
   // Email sharing state
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState<boolean>(false);
@@ -63,12 +83,13 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
   const [recipientEmail, setRecipientEmail] = useState<string>("");
   const [emailSubject, setEmailSubject] = useState<string>("Enhanced Document Rewrite");
 
+  const downloadLinkRef = useRef<HTMLAnchorElement | null>(null);
+
   // Update current rewrite when prop changes
   useEffect(() => {
     setCurrentRewrite(rewrittenText);
   }, [rewrittenText]);
 
-  // 🔥 REAL-TIME CHUNK STREAMING IMPLEMENTATION
   const handleRewrite = async () => {
     if (!originalText.trim()) {
       toast({
@@ -89,13 +110,13 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
     let rewriteInstructions = customInstructions;
     
     if (rewriteMode === "add_new") {
-      rewriteInstructions = `${customInstructions}\n\nIMPORTANT: Keep all existing content exactly as is. Only ADD ${targetChunks} new content sections that enhance the existing text.`;
+      rewriteInstructions = `${customInstructions}\n\nIMPORTANT: Keep all existing content exactly as is. Only ADD new content that enhances or expands on the existing text. Add ${targetChunks} new chunks/sections.`;
     } else if (rewriteMode === "hybrid") {
-      rewriteInstructions = `${customInstructions}\n\nYou may both rewrite existing content AND add ${targetChunks} new content sections as needed.`;
+      rewriteInstructions = `${customInstructions}\n\nYou may both rewrite existing content AND add ${targetChunks} new content sections as needed to best fulfill the instructions.`;
     }
 
     try {
-      console.log("🔥 Starting REAL-TIME streaming rewrite...");
+      console.log("🚀 Starting real-time streaming rewrite...");
       let accumulatedContent = "";
       
       const response = await fetch('/api/rewrite-stream', {
@@ -124,13 +145,13 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
         throw new Error('No response stream available');
       }
 
-      console.log("📡 Stream established - watching for live chunks...");
+      console.log("📡 Stream reader established, waiting for chunks...");
 
       while (true) {
         const { done, value } = await reader.read();
         
         if (done) {
-          console.log("✅ All chunks completed!");
+          console.log("✅ Stream completed");
           break;
         }
         
@@ -143,16 +164,15 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
               const data = JSON.parse(line.slice(6));
               
               if (data.type === 'chunk') {
-                // 🔥 LIVE CHUNK RECEIVED - DISPLAY IMMEDIATELY
                 accumulatedContent += data.content + '\n\n';
                 setStreamingContent(accumulatedContent);
                 setChunkProgress({ current: data.index, total: data.total });
                 setRewriteProgress((data.index / data.total) * 100);
                 
-                console.log(`🔥 LIVE CHUNK ${data.index}/${data.total} DISPLAYED!`);
+                console.log(`🔥 LIVE CHUNK ${data.index}/${data.total} DISPLAYED:`, data.content.substring(0, 50) + "...");
                 
               } else if (data.type === 'complete') {
-                console.log('🎉 Live streaming completed successfully!');
+                console.log('🎉 All chunks completed successfully!');
                 break;
                 
               } else if (data.type === 'error') {
@@ -172,6 +192,7 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       
       const finalRewrite = accumulatedContent.trim();
       setCurrentRewrite(finalRewrite);
+      setForceUpdate(prev => prev + 1);
       onRewriteUpdate(finalRewrite);
       
       toast({
@@ -180,7 +201,7 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       });
 
     } catch (error) {
-      console.error("❌ Streaming error:", error);
+      console.error("❌ Streaming rewrite error:", error);
       setIsRewriting(false);
       setIsStreaming(false);
       toast({
@@ -228,14 +249,19 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
           <style>
             body { font-family: 'Times New Roman', serif; line-height: 1.6; margin: 1in; }
             .math { font-family: 'Times New Roman', serif; }
-            @media print { body { margin: 0.5in; } }
+            @media print { 
+              body { margin: 0.5in; }
+            }
           </style>
         </head>
         <body>
           ${currentRewrite.split('\n').map(paragraph => `<p>${paragraph}</p>`).join('')}
           <script>
             window.onload = function() {
-              setTimeout(() => { window.print(); window.close(); }, 2000);
+              setTimeout(() => {
+                window.print();
+                window.close();
+              }, 2000);
             };
           </script>
         </body>
@@ -260,7 +286,9 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
     try {
       const response = await fetch('/api/share-simple-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           recipientEmail: recipientEmail,
           subject: emailSubject,
@@ -295,7 +323,7 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <FileText className="h-5 w-5" />
-            <span>🔥 Enhanced Rewrite Studio - LIVE STREAMING</span>
+            <span>🔥 Enhanced Rewrite Studio</span>
           </DialogTitle>
         </DialogHeader>
         
@@ -316,13 +344,13 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                           ? 'border-blue-500 bg-blue-100'
                           : 'border-gray-200 bg-white hover:border-blue-300'
                       }`}
-                      onClick={() => setRewriteMode(mode.value)}
+                      onClick={() => setRewriteMode(mode.value as RewriteMode)}
                     >
                       <div className="flex items-center space-x-3">
                         <input
                           type="radio"
                           checked={rewriteMode === mode.value}
-                          onChange={() => setRewriteMode(mode.value)}
+                          onChange={() => setRewriteMode(mode.value as RewriteMode)}
                           className="h-4 w-4 text-blue-600"
                         />
                         <div>
@@ -336,7 +364,7 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
               </CardContent>
             </Card>
             
-            {/* 🔥 CHUNK CONTROL - URGENT FEATURE */}
+            {/* Target Chunks Control for add_new and hybrid modes */}
             {(rewriteMode === "add_new" || rewriteMode === "hybrid") && (
               <Card>
                 <CardHeader>
@@ -378,25 +406,43 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
             
             {/* Custom Instructions */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Rewrite Instructions</Label>
+              <Label className="text-sm font-medium">
+                {rewriteMode === "rewrite_existing" 
+                  ? "Custom Rewrite Instructions" 
+                  : rewriteMode === "add_new"
+                  ? "Instructions for NEW Content to Add"
+                  : "Hybrid Rewrite & Addition Instructions"}
+              </Label>
               <Textarea
-                placeholder="Enter specific instructions..."
+                placeholder={
+                  rewriteMode === "rewrite_existing"
+                    ? "Enter specific instructions for how you want the text to be rewritten..."
+                    : rewriteMode === "add_new"
+                    ? "Specify exactly what NEW content to add. Example: 'Add 3 new paragraphs about advanced mathematical proofs. Add a new section on topology. Add examples with equations.'"
+                    : "Specify both how to rewrite existing content AND what new content to add. Example: 'Rewrite existing text to be more technical, AND add 2 new sections on advanced topics with mathematical notation.'"
+                }
                 value={customInstructions}
                 onChange={(e) => setCustomInstructions(e.target.value)}
-                rows={4}
+                rows={rewriteMode === "rewrite_existing" ? 4 : 6}
+                className={rewriteMode !== "rewrite_existing" ? "border-green-500 bg-green-50" : ""}
               />
             </div>
 
-            {/* 🔥 REWRITE BUTTON WITH STREAMING */}
+            {/* Rewrite Button */}
             <Button 
               onClick={handleRewrite} 
               disabled={isRewriting}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
             >
               {isRewriting ? (
-                <span>🔄 Streaming chunks live...</span>
+                <span className="flex items-center space-x-2">
+                  <span>🔄 Rewriting with {selectedProvider}...</span>
+                </span>
               ) : (
-                <span>🔥 Start Live Streaming Rewrite</span>
+                <span className="flex items-center space-x-2">
+                  <FileText className="h-4 w-4" />
+                  <span>🔥 Rewrite with {selectedProvider}</span>
+                </span>
               )}
             </Button>
 
@@ -411,23 +457,22 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
             )}
           </div>
 
-          {/* Right Panel - 🔥 LIVE STREAMING RESULTS */}
+          {/* Right Panel - Results */}
           <div className="space-y-4">
             <Card className="h-full">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center space-x-2">
                   <FileText className="h-5 w-5" />
-                  <span>🔥 Live Streaming Content</span>
+                  <span>🔥 Rewritten Content</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="border rounded-lg p-4 bg-white max-h-96 overflow-y-auto">
                   {isStreaming ? (
                     <div>
-                      {/* 🔥 LIVE PROGRESS INDICATOR */}
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                         <div className="flex items-center justify-between">
-                          <span className="text-blue-800 font-semibold">🔄 Processing chunks LIVE...</span>
+                          <span className="text-blue-800 font-semibold">🔄 Processing chunks live...</span>
                           <span className="text-blue-600 text-sm">
                             Chunk {chunkProgress.current} of {chunkProgress.total}
                           </span>
@@ -435,39 +480,43 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                         <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
                           <div 
                             className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                            style={{ 
-                              width: chunkProgress.total > 0 ? `${(chunkProgress.current / chunkProgress.total) * 100}%` : '0%' 
-                            }}
+                            style={{ width: chunkProgress.total > 0 ? `${(chunkProgress.current / chunkProgress.total) * 100}%` : '0%' }}
                           ></div>
                         </div>
                       </div>
-                      {/* 🔥 LIVE STREAMING CONTENT */}
                       <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                        {streamingContent || "Starting live streaming..."}
+                        {streamingContent || "Starting rewrite..."}
                       </div>
                     </div>
                   ) : (
                     <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                      {currentRewrite || "No content yet - click 'Start Live Streaming Rewrite' to begin"}
+                      {currentRewrite || "No content yet - click Rewrite to generate content"}
                     </div>
                   )}
                 </div>
                 
                 {/* Export & Share */}
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  <Button variant="outline" size="sm" onClick={handlePrintToPDF}>
-                    <Download className="h-4 w-4 mr-1" />
-                    PDF
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleCopyToClipboard}>
-                    <FileText className="h-4 w-4 mr-1" />
-                    Copy
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => setIsEmailDialogOpen(true)}>
-                    <Mail className="h-4 w-4 mr-1" />
-                    Email
-                  </Button>
-                </div>
+                <Card className="mt-4">
+                  <CardHeader>
+                    <CardTitle className="text-sm">Export & Share</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button variant="outline" size="sm" onClick={handlePrintToPDF}>
+                        <Download className="h-4 w-4 mr-1" />
+                        Print/PDF
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={handleCopyToClipboard}>
+                        <FileText className="h-4 w-4 mr-1" />
+                        Word
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setIsEmailDialogOpen(true)}>
+                        <Mail className="h-4 w-4 mr-1" />
+                        Send via Email
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </CardContent>
             </Card>
           </div>
