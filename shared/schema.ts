@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -83,29 +83,3 @@ export type Analysis = typeof analyses.$inferSelect;
 
 export type InsertComparison = z.infer<typeof insertComparisonSchema>;
 export type Comparison = typeof comparisons.$inferSelect;
-
-// Rewrites model for storing rewrite history and re-rewrites
-export const rewrites = pgTable("rewrites", {
-  id: serial("id").primaryKey(),
-  originalText: text("original_text").notNull(),
-  rewrittenText: text("rewritten_text").notNull(),
-  instructions: text("instructions").notNull(),
-  provider: text("provider").notNull(),
-  parentRewriteId: integer("parent_rewrite_id").references(() => rewrites.id),
-  rewriteLevel: integer("rewrite_level").default(1).notNull(),
-  stats: jsonb("stats"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const insertRewriteSchema = createInsertSchema(rewrites).pick({
-  originalText: true,
-  rewrittenText: true,
-  instructions: true,
-  provider: true,
-  parentRewriteId: true,
-  rewriteLevel: true,
-  stats: true,
-});
-
-export type InsertRewrite = z.infer<typeof insertRewriteSchema>;
-export type Rewrite = typeof rewrites.$inferSelect;
