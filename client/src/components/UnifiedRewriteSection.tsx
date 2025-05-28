@@ -658,26 +658,26 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
                 </Select>
               </div>
 
-              {/* Rewrite Mode Selection */}
-              <div className="space-y-2">
-                <Label htmlFor="rewrite-mode">Rewrite Mode</Label>
+              {/* Rewrite Mode Selection - PROMINENTLY DISPLAYED */}
+              <div className="space-y-2 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
+                <Label htmlFor="rewrite-mode" className="text-lg font-bold text-blue-800">📝 REWRITE MODE</Label>
                 <Select
                   value={rewriteMode}
                   onValueChange={(value: 'rewrite' | 'add' | 'hybrid') => setRewriteMode(value)}
                 >
-                  <SelectTrigger id="rewrite-mode">
-                    <SelectValue />
+                  <SelectTrigger id="rewrite-mode" className="border-2 border-blue-400">
+                    <SelectValue placeholder="Select rewrite mode" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="rewrite">Rewrite Existing Chunks</SelectItem>
-                    <SelectItem value="add">Add New Chunks Only</SelectItem>
-                    <SelectItem value="hybrid">Rewrite + Add New Chunks</SelectItem>
+                    <SelectItem value="rewrite">🔄 Rewrite Existing Chunks</SelectItem>
+                    <SelectItem value="add">➕ Add New Chunks Only</SelectItem>
+                    <SelectItem value="hybrid">🔄➕ Rewrite + Add New Chunks</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-gray-500">
-                  {rewriteMode === 'rewrite' && "Modify existing content while keeping the same structure"}
-                  {rewriteMode === 'add' && "Keep existing content unchanged and add new sections"}
-                  {rewriteMode === 'hybrid' && "Both modify existing content and add new sections"}
+                <p className="text-sm font-medium text-blue-700">
+                  {rewriteMode === 'rewrite' && "✏️ Modify existing content while keeping the same structure"}
+                  {rewriteMode === 'add' && "📝 Keep existing content unchanged and add new sections"}
+                  {rewriteMode === 'hybrid' && "🔄📝 Both modify existing content and add new sections"}
                 </p>
               </div>
               
