@@ -111,8 +111,8 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       if (chunks.length > 1) {
         setShowChunkSelection(true);
       }
-    } else if (isOpen) {
-      // Clear the rewrite display if no actual rewrite has been done
+    } else if (isOpen && !currentRewrite) {
+      // Only clear if we don't have existing rewritten content
       setCurrentRewrite("");
       setTextChunks([]);
     }
@@ -263,6 +263,7 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       setIsRewriting(false);
       
       // Update the content
+      console.log("Setting rewritten content:", finalRewrite.substring(0, 100) + "...");
       setCurrentRewrite(finalRewrite);
       onRewriteUpdate(finalRewrite);
       
@@ -270,6 +271,9 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       const newChunks = createTextChunks(finalRewrite);
       setTextChunks(newChunks);
       setSelectedChunks(new Set());
+      
+      // Force a re-render by updating a dummy state
+      setRewriteProgress(100);
       
       // Reset progress after a brief moment
       setTimeout(() => {
