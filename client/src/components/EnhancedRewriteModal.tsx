@@ -659,19 +659,20 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {currentRewrite ? (
-                    <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
+                  <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
+                    {currentRewrite ? (
                       <MathRenderer content={currentRewrite} />
-                    </div>
-                  ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                      <div className="text-gray-500">
+                    ) : (
+                      <div className="text-center text-gray-500 py-8">
                         <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                         <p className="text-lg font-medium mb-2">No rewrite yet</p>
                         <p className="text-sm">Configure your settings and click "Rewrite" to see results here</p>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                  <div className="mt-2 text-xs text-gray-400">
+                    Debug: Content length: {currentRewrite ? currentRewrite.length : 0} characters
+                  </div>
                 </CardContent>
               </Card>
               
