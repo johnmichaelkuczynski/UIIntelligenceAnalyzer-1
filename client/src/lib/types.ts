@@ -17,6 +17,8 @@ export interface RewriteOptions {
   instruction: string; // User's specific instruction for the rewrite
   preserveLength?: boolean; // Keep within 100-110% of original length
   preserveDepth?: boolean; // Maintain or increase conceptual depth
+  rewriteMode?: 'rewrite' | 'add' | 'hybrid'; // How to handle content modification
+  additionInstructions?: string; // Instructions for new content to add
   webContent?: {
     results: GoogleSearchResult[];
     contents: {[key: string]: string};
