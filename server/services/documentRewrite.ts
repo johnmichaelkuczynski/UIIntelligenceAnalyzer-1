@@ -76,7 +76,7 @@ export async function rewriteDocument(
     ` : ''}
 
     ORIGINAL TEXT:
-    ${originalText.substring(0, 10000)}
+    ${originalText}
   `;
   
   let result: RewriteResult;
@@ -111,10 +111,10 @@ async function rewriteWithOpenAI(
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        { role: "system", content: "You are a document rewriting specialist. Follow the user's instructions exactly and expand content significantly." },
+        { role: "system", content: "You are OpenAI's GPT-4 model specializing in analytical, systematic document enhancement. Focus on logical structure, precise terminology, and methodical expansion of ideas." },
         { role: "user", content: prompt }
       ],
-      temperature: 0.3,
+      temperature: 0.2,
       max_tokens: 16000
     });
     
@@ -157,8 +157,8 @@ async function rewriteWithAnthropic(
     const response = await anthropic.messages.create({
       model: "claude-3-7-sonnet-20250219",
       max_tokens: 8000,
-      temperature: 0.3,
-      system: "You are a document rewriting specialist. Follow the user's instructions exactly and expand content significantly.",
+      temperature: 0.4,
+      system: "You are Anthropic's Claude, focused on nuanced, contextual rewriting with creative insights. Emphasize philosophical depth, alternative perspectives, and elegant prose while following instructions precisely.",
       messages: [
         { role: "user", content: prompt }
       ]
