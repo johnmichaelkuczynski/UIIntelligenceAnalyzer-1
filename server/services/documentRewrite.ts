@@ -330,6 +330,4 @@ async function rewriteWithPerplexity(
   }
 }
 
-export default {
-  rewriteDocument
-};
+export { rewriteDocument };
