@@ -8,8 +8,9 @@ import TranslationPage from "@/pages/TranslationPage";
 import RewritePage from "@/pages/RewritePage";
 import WebSearchPage from "@/pages/WebSearchPage";
 import SimpleDirectPage from "@/pages/SimpleDirectPage";
+import { AnalyticsPage } from "@/pages/AnalyticsPage";
 import NotFound from "@/pages/not-found";
-import { BrainCircuit, Languages, FileEdit, Globe, Bot } from "lucide-react";
+import { BrainCircuit, Languages, FileEdit, Globe, Bot, Brain } from "lucide-react";
 
 function Navigation() {
   return (
@@ -21,6 +22,12 @@ function Navigation() {
             <Link href="/" className="flex items-center gap-2 hover:underline">
               <BrainCircuit className="h-5 w-5" />
               <span>Intelligence Analysis</span>
+            </Link>
+          </li>
+          <li>
+            <Link href="/analytics" className="flex items-center gap-2 hover:underline">
+              <Brain className="h-5 w-5" />
+              <span>Cognitive Analytics</span>
             </Link>
           </li>
           <li>
@@ -41,6 +48,7 @@ function Router() {
       <Navigation />
       <Switch>
         <Route path="/" component={HomePage} />
+        <Route path="/analytics" component={AnalyticsPage} />
         <Route path="/direct" component={SimpleDirectPage} />
         <Route component={NotFound} />
       </Switch>
