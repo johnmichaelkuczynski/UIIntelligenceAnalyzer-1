@@ -164,16 +164,7 @@ async function rewriteWithAnthropic(
       ]
     });
     
-    let content = response.content[0].type === 'text' ? response.content[0].text : '';
-    
-    // Clean up Claude's markup formatting
-    content = content
-      .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold markup
-      .replace(/\*([^*]+)\*/g, '$1') // Remove italic markup
-      .replace(/##\s*([^\n]+)/g, '$1') // Remove heading markup
-      .replace(/###\s*([^\n]+)/g, '$1') // Remove subheading markup
-      .replace(/####\s*([^\n]+)/g, '$1') // Remove smaller heading markup
-      .replace(/\n\s*\n\s*\n/g, '\n\n'); // Clean up extra line breaks
+    const content = response.content[0].type === 'text' ? response.content[0].text : '';
     
     // If we need to preserve intelligence, add an evaluation
     let intelligenceEvaluation = undefined;
