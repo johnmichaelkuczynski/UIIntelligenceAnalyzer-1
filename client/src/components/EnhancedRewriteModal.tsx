@@ -287,8 +287,14 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       setRewriteProgress(100);
       setIsRewriting(false);
       
-      // START STREAMING DISPLAY
-      console.log("STARTING STREAMING DISPLAY:", finalRewrite.substring(0, 100) + "...");
+      // FORCE DIRECT DOM UPDATE
+      console.log("FORCING DIRECT DOM UPDATE:", finalRewrite.substring(0, 100) + "...");
+      const contentDiv = document.getElementById('rewrite-content-display');
+      if (contentDiv) {
+        contentDiv.textContent = finalRewrite;
+        console.log("Content directly inserted into DOM");
+      }
+      
       simulateStreaming(finalRewrite);
       onRewriteUpdate(finalRewrite);
       
@@ -676,27 +682,9 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
-                    <div className="whitespace-pre-wrap text-sm leading-relaxed" key={forceUpdate}>
-                      {isRewriting ? (
-                        <div className="text-center py-8">
-                          <div className="text-blue-600 font-semibold text-lg mb-4">🤖 AI is writing your content...</div>
-                          <div className="animate-pulse text-gray-600">Content will appear here as it's generated</div>
-                          <div className="mt-4 text-sm text-gray-500">
-                            Provider: {selectedProvider} | Mode: {rewriteMode}
-                          </div>
-                        </div>
-                      ) : isStreaming ? (
-                        <div>
-                          <div className="text-green-600 font-semibold mb-2">✍️ Writing completed - displaying content...</div>
-                          {streamingContent}
-                          <span className="animate-pulse">|</span>
-                        </div>
-                      ) : currentRewrite.length > 0 ? (
-                        currentRewrite
-                      ) : (
-                        "No content yet - click Rewrite to generate content"
-                      )}
+                  <div className="border rounded-lg p-4 bg-white max-h-96 overflow-y-auto">
+                    <div id="rewrite-content-display" className="whitespace-pre-wrap text-sm leading-relaxed">
+                      CONTENT WILL APPEAR HERE
                     </div>
                   </div>
                   <div className="mt-2 text-xs text-gray-400">
