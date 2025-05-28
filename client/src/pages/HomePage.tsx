@@ -354,6 +354,7 @@ const HomePage: React.FC = () => {
 
       {/* Enhanced Rewrite Modal */}
       <EnhancedRewriteModal
+        key={documentA.content.substring(0, 50)} // Force re-render for different documents
         isOpen={showRewriteDialog}
         onClose={() => setShowRewriteDialog(false)}
         originalText={documentA.content}
