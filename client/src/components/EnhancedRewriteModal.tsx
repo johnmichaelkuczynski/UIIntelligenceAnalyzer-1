@@ -232,9 +232,6 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       
       const data = await response.json();
       
-      clearInterval(progressInterval);
-      setRewriteProgress(100);
-      
       if (!data.content) {
         throw new Error(data.message || "No content received from rewrite");
       }
@@ -260,6 +257,12 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
         finalRewrite = updatedChunks.map(chunk => chunk.content).join('\n\n');
       }
       
+      // Clean up progress and update state
+      clearInterval(progressInterval);
+      setRewriteProgress(100);
+      setIsRewriting(false);
+      
+      // Update the content
       setCurrentRewrite(finalRewrite);
       onRewriteUpdate(finalRewrite);
       
@@ -267,6 +270,11 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       const newChunks = createTextChunks(finalRewrite);
       setTextChunks(newChunks);
       setSelectedChunks(new Set());
+      
+      // Reset progress after a brief moment
+      setTimeout(() => {
+        setRewriteProgress(0);
+      }, 1000);
       
       toast({
         title: "Rewrite completed",
