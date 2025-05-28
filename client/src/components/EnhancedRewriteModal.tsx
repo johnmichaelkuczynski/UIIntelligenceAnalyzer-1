@@ -235,43 +235,43 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       clearInterval(progressInterval);
       setRewriteProgress(100);
       
-      if (data.content) {
-        let finalRewrite = data.content;
-        
-        // If we only rewrote selected chunks, merge them back
-        if (rewriteMode === "rewrite_existing" && selectedChunks.size > 0 && selectedChunks.size < textChunks.length) {
-          const updatedChunks = [...textChunks];
-          const rewrittenChunkTexts = finalRewrite.split(/\n\s*\n/);
-          let rewriteIndex = 0;
-          
-          updatedChunks.forEach((chunk, index) => {
-            if (selectedChunks.has(chunk.id) && rewriteIndex < rewrittenChunkTexts.length) {
-              updatedChunks[index] = {
-                ...chunk,
-                content: rewrittenChunkTexts[rewriteIndex].trim()
-              };
-              rewriteIndex++;
-            }
-          });
-          
-          finalRewrite = updatedChunks.map(chunk => chunk.content).join('\n\n');
-        }
-        
-        setCurrentRewrite(finalRewrite);
-        onRewriteUpdate(finalRewrite);
-        
-        // Update chunks for the new text
-        const newChunks = createTextChunks(finalRewrite);
-        setTextChunks(newChunks);
-        setSelectedChunks(new Set());
-        
-        toast({
-          title: "Rewrite completed",
-          description: `Successfully rewritten using ${selectedProvider} in ${rewriteMode.replace('_', ' ')} mode`
-        });
-      } else {
-        throw new Error(data.message || "Rewrite failed");
+      if (!data.content) {
+        throw new Error(data.message || "No content received from rewrite");
       }
+      
+      let finalRewrite = data.content;
+      
+      // If we only rewrote selected chunks, merge them back
+      if (rewriteMode === "rewrite_existing" && selectedChunks.size > 0 && selectedChunks.size < textChunks.length) {
+        const updatedChunks = [...textChunks];
+        const rewrittenChunkTexts = finalRewrite.split(/\n\s*\n/);
+        let rewriteIndex = 0;
+        
+        updatedChunks.forEach((chunk, index) => {
+          if (selectedChunks.has(chunk.id) && rewriteIndex < rewrittenChunkTexts.length) {
+            updatedChunks[index] = {
+              ...chunk,
+              content: rewrittenChunkTexts[rewriteIndex].trim()
+            };
+            rewriteIndex++;
+          }
+        });
+        
+        finalRewrite = updatedChunks.map(chunk => chunk.content).join('\n\n');
+      }
+      
+      setCurrentRewrite(finalRewrite);
+      onRewriteUpdate(finalRewrite);
+      
+      // Update chunks for the new text
+      const newChunks = createTextChunks(finalRewrite);
+      setTextChunks(newChunks);
+      setSelectedChunks(new Set());
+      
+      toast({
+        title: "Rewrite completed",
+        description: `Successfully rewritten using ${selectedProvider} in ${rewriteMode.replace('_', ' ')} mode`
+      });
     } catch (error) {
       console.error("Rewrite error:", error);
       toast({
