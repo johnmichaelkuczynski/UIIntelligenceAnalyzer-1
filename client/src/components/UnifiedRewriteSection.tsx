@@ -523,11 +523,28 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
       });
     }
     else if (format === 'pdf') {
-      // PDF download using jsPDF
+      // For PDF with math notation, recommend using browser's print-to-PDF
+      toast({
+        title: "PDF with Math Notation",
+        description: "For best results with mathematical notation, please use your browser's Print → Save as PDF function while viewing the Math View.",
+        duration: 6000
+      });
+      
+      // Also provide fallback plain text PDF
       const pdf = new jsPDF();
       
+      // Clean text by removing common markup patterns
+      let cleanText = rewrittenText
+        .replace(/\\\[|\\\]/g, '') // Remove LaTeX display delimiters
+        .replace(/\\\(|\\\)/g, '') // Remove LaTeX inline delimiters
+        .replace(/\\[a-zA-Z]+\{[^}]*\}/g, '') // Remove LaTeX commands
+        .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold markup
+        .replace(/\*([^*]+)\*/g, '$1') // Remove italic markup
+        .replace(/##\s*([^\n]+)/g, '$1') // Remove heading markup
+        .replace(/\n\s*\n\s*\n/g, '\n\n'); // Clean up extra line breaks
+      
       // Split into pages and add text
-      const textLines = pdf.splitTextToSize(rewrittenText, 180);
+      const textLines = pdf.splitTextToSize(cleanText, 180);
       let y = 10;
       const lineHeight = 7;
       
@@ -540,7 +557,7 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
         y += lineHeight;
       }
       
-      pdf.save(`${filename}.pdf`);
+      pdf.save(`${filename}-plain.pdf`);
     }
     
     toast({
