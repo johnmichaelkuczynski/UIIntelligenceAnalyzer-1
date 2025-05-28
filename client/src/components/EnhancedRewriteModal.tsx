@@ -96,6 +96,7 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
   const [streamingContent, setStreamingContent] = useState<string>("");
   const [isStreaming, setIsStreaming] = useState<boolean>(false);
   const [chunkProgress, setChunkProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
+  const [targetChunks, setTargetChunks] = useState<number>(3);
   const [downloadLinkRef] = useState(useRef<HTMLAnchorElement | null>(null));
   
   // Email sharing state
@@ -245,10 +246,12 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          originalText: textToRewrite,
-          instructions: rewriteInstructions,
+          text: textToRewrite,
+          customInstructions: rewriteInstructions,
           provider: selectedProvider,
-          mode: rewriteMode
+          mode: rewriteMode,
+          targetChunks: targetChunks,
+          preserveMath: true
         }),
       });
       
@@ -258,11 +261,11 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       
       const data = await response.json();
       
-      if (!data.content) {
+      if (!data.rewrittenText && !data.result) {
         throw new Error(data.message || "No content received from rewrite");
       }
       
-      let finalRewrite = data.content;
+      let finalRewrite = data.rewrittenText || data.result;
       
       // If we only rewrote selected chunks, merge them back
       if (rewriteMode === "rewrite_existing" && selectedChunks.size > 0 && selectedChunks.size < textChunks.length) {
@@ -520,6 +523,27 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                     </div>
                   </div>
                   
+                  {/* Target Chunks Control for add_new and hybrid modes */}
+                  {(rewriteMode === "add_new" || rewriteMode === "hybrid") && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        Number of chunks to add: {targetChunks}
+                      </Label>
+                      <input 
+                        type="range" 
+                        min="1" 
+                        max="10" 
+                        value={targetChunks} 
+                        onChange={(e) => setTargetChunks(parseInt(e.target.value))}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500">
+                        <span>1 chunk</span>
+                        <span>10 chunks</span>
+                      </div>
+                    </div>
+                  )}
+
                   {/* AI Provider Selection */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">AI Provider</Label>
