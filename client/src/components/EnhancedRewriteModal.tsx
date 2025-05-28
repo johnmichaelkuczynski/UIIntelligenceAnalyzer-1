@@ -239,41 +239,88 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
         rewriteInstructions = `${customInstructions}\n\nYou may both rewrite existing content AND add new content as needed to best fulfill the instructions.`;
       }
       
-      // Use regular API call for now - streaming will come later
-      const response = await fetch('/api/rewrite', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          originalText: textToRewrite,
-          instructions: rewriteInstructions,
-          provider: selectedProvider,
-          mode: rewriteMode,
-          targetChunks: targetChunks,
-          preserveMath: true
-        }),
-      });
+      // Use streaming for real-time chunk display
+      setIsStreaming(true);
+      setStreamingContent("");
+      let accumulatedContent = "";
       
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (!data.content && !data.rewrittenText && !data.result) {
-        throw new Error(data.message || "No content received from rewrite");
-      }
-      
-      let finalRewrite = data.content || data.rewrittenText || data.result;
-      
-      // If we only rewrote selected chunks, merge them back
-      if (rewriteMode === "rewrite_existing" && selectedChunks.size > 0 && selectedChunks.size < textChunks.length) {
-        const updatedChunks = [...textChunks];
-        const rewrittenChunkTexts = finalRewrite.split(/\n\s*\n/);
-        let rewriteIndex = 0;
+      const eventSource = new EventSource('/api/rewrite-stream?' + new URLSearchParams({
+        originalText: textToRewrite,
+        instructions: rewriteInstructions,
+        provider: selectedProvider,
+        mode: rewriteMode,
+        targetChunks: targetChunks.toString(),
+        preserveMath: 'true'
+      }));
+
+      return new Promise((resolve, reject) => {
+        eventSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            
+            if (data.type === 'chunk') {
+              // New chunk received - display immediately
+              accumulatedContent += data.content + '\n\n';
+              setStreamingContent(accumulatedContent);
+              setChunkProgress({ current: data.index, total: data.total });
+              
+              console.log(`Chunk ${data.index}/${data.total} received:`, data.content.substring(0, 100) + "...");
+              
+            } else if (data.type === 'complete') {
+              // All chunks complete
+              eventSource.close();
+              setIsStreaming(false);
+              const finalRewrite = accumulatedContent.trim();
+              resolve(finalRewrite);
+              
+            } else if (data.type === 'error') {
+              eventSource.close();
+              setIsStreaming(false);
+              reject(new Error(data.message));
+            }
+          } catch (error) {
+            console.error('Error parsing streaming data:', error);
+          }
+        };
+
+        eventSource.onerror = (error) => {
+          console.error('EventSource error:', error);
+          eventSource.close();
+          setIsStreaming(false);
+          reject(new Error('Streaming connection failed'));
+        };
+      }).then((finalRewrite: string) => {
+        // Final processing
+        clearInterval(progressInterval);
+        setRewriteProgress(100);
+        setIsRewriting(false);
         
-        updatedChunks.forEach((chunk, index) => {
+        // Update the content
+        setCurrentRewrite(finalRewrite);
+        setForceUpdate(prev => prev + 1);
+        onRewriteUpdate(finalRewrite);
+        
+        // Update chunks
+        const newChunks = createTextChunks(finalRewrite);
+        setTextChunks(newChunks);
+        setSelectedChunks(new Set());
+        
+        toast({
+          title: "Streaming rewrite completed",
+          description: `Successfully rewritten ${chunkProgress.current} chunks using ${selectedProvider}`
+        });
+        
+        return finalRewrite;
+      }).catch((error) => {
+        clearInterval(progressInterval);
+        setIsRewriting(false);
+        setIsStreaming(false);
+        toast({
+          title: "Streaming rewrite failed",
+          description: error instanceof Error ? error.message : "An unexpected error occurred",
+          variant: "destructive"
+        });
+      });
           if (selectedChunks.has(chunk.id) && rewriteIndex < rewrittenChunkTexts.length) {
             updatedChunks[index] = {
               ...chunk,
@@ -703,9 +750,31 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                 </CardHeader>
                 <CardContent>
                   <div className="border rounded-lg p-4 bg-white max-h-96 overflow-y-auto">
-                    <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                      {currentRewrite || "No content yet - click Rewrite to generate content"}
-                    </div>
+                    {isStreaming ? (
+                      <div>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-blue-800 font-semibold">🔄 Processing chunks live...</span>
+                            <span className="text-blue-600 text-sm">
+                              Chunk {chunkProgress.current} of {chunkProgress.total}
+                            </span>
+                          </div>
+                          <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
+                            <div 
+                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: chunkProgress.total > 0 ? `${(chunkProgress.current / chunkProgress.total) * 100}%` : '0%' }}
+                            ></div>
+                          </div>
+                        </div>
+                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                          {streamingContent || "Starting rewrite..."}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {currentRewrite || "No content yet - click Rewrite to generate content"}
+                      </div>
+                    )}
                   </div>
                   <div className="mt-2 text-xs text-gray-400">
                     Debug: Content length: {currentRewrite ? currentRewrite.length : 0} characters | Force update: {forceUpdate} | Content preview: {currentRewrite.substring(0, 50)}...
