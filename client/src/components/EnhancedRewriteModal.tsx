@@ -288,15 +288,10 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       setRewriteProgress(100);
       setIsRewriting(false);
       
-      // FORCE DIRECT DOM UPDATE
-      console.log("FORCING DIRECT DOM UPDATE:", finalRewrite.substring(0, 100) + "...");
-      const contentDiv = document.getElementById('rewrite-content-display');
-      if (contentDiv) {
-        contentDiv.textContent = finalRewrite;
-        console.log("Content directly inserted into DOM");
-      }
-      
-      simulateStreaming(finalRewrite);
+      // Update the content normally
+      console.log("Setting rewritten content:", finalRewrite.substring(0, 100) + "...");
+      setCurrentRewrite(finalRewrite);
+      setForceUpdate(prev => prev + 1);
       onRewriteUpdate(finalRewrite);
       
       // Update chunks
@@ -684,31 +679,9 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                 </CardHeader>
                 <CardContent>
                   <div className="border rounded-lg p-4 bg-white max-h-96 overflow-y-auto">
-                    {isStreaming ? (
-                      <div>
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                          <div className="flex items-center justify-between">
-                            <span className="text-blue-800 font-semibold">🔄 Processing chunks live...</span>
-                            <span className="text-blue-600 text-sm">
-                              Chunk {chunkProgress.current} of {chunkProgress.total}
-                            </span>
-                          </div>
-                          <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: chunkProgress.total > 0 ? `${(chunkProgress.current / chunkProgress.total) * 100}%` : '0%' }}
-                            ></div>
-                          </div>
-                        </div>
-                        <div id="rewrite-content-display" className="whitespace-pre-wrap text-sm leading-relaxed">
-                          {streamingContent || "Starting rewrite..."}
-                        </div>
-                      </div>
-                    ) : (
-                      <div id="rewrite-content-display" className="whitespace-pre-wrap text-sm leading-relaxed">
-                        {currentRewrite || "No content yet - click Rewrite to generate content"}
-                      </div>
-                    )}
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                      {currentRewrite || "No content yet - click Rewrite to generate content"}
+                    </div>
                   </div>
                   <div className="mt-2 text-xs text-gray-400">
                     Debug: Content length: {currentRewrite ? currentRewrite.length : 0} characters | Force update: {forceUpdate} | Content preview: {currentRewrite.substring(0, 50)}...
