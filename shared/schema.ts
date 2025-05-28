@@ -1,55 +1,69 @@
-import { pgTable, text, serial, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User model from the original schema
+// Updated User model - now email-based with no login
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  email: text("email").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastActiveAt: timestamp("last_active_at").defaultNow().notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+  email: true,
 });
 
 // Document model for storing analyzed documents
 export const documents = pgTable("documents", {
   id: serial("id").primaryKey(),
   content: text("content").notNull(),
+  originalContent: text("original_content"), // Store original before rewrites
   filename: text("filename"),
   mimeType: text("mime_type"),
-  userId: integer("user_id").references(() => users.id),
-  createdAt: text("created_at").notNull(),
+  userEmail: text("user_email").references(() => users.email),
+  wordCount: integer("word_count"),
+  mathNotationCount: integer("math_notation_count"), // Count of LaTeX expressions
+  complexity: text("complexity"), // low, medium, high
+  createdAt: timestamp("created_at").defaultNow().notNull(),
   aiProbability: integer("ai_probability"),
   isAi: boolean("is_ai"),
 });
 
 export const insertDocumentSchema = createInsertSchema(documents).pick({
   content: true,
+  originalContent: true,
   filename: true,
   mimeType: true,
-  userId: true,
+  userEmail: true,
+  wordCount: true,
+  mathNotationCount: true,
+  complexity: true,
 });
 
 // Analysis model for storing document analysis results
 export const analyses = pgTable("analyses", {
   id: serial("id").primaryKey(),
   documentId: integer("document_id").references(() => documents.id).notNull(),
+  userEmail: text("user_email").references(() => users.email),
   summary: text("summary").notNull(),
   overallScore: integer("overall_score").notNull(),
   overallAssessment: text("overall_assessment").notNull(),
   dimensions: jsonb("dimensions").notNull(),
-  createdAt: text("created_at").notNull(),
+  cognitivePatterns: jsonb("cognitive_patterns"), // AI-identified thinking patterns
+  writingStyle: jsonb("writing_style"), // Style analysis
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertAnalysisSchema = createInsertSchema(analyses).pick({
   documentId: true,
+  userEmail: true,
   summary: true,
   overallScore: true,
   overallAssessment: true,
   dimensions: true,
+  cognitivePatterns: true,
+  writingStyle: true,
 });
 
 // Comparison model for storing comparison results between two documents
@@ -59,8 +73,10 @@ export const comparisons = pgTable("comparisons", {
   documentBId: integer("document_b_id").references(() => documents.id).notNull(),
   analysisAId: integer("analysis_a_id").references(() => analyses.id).notNull(),
   analysisBId: integer("analysis_b_id").references(() => analyses.id).notNull(),
+  userEmail: text("user_email").references(() => users.email),
   comparisonResults: jsonb("comparison_results").notNull(),
-  createdAt: text("created_at").notNull(),
+  improvementSuggestions: jsonb("improvement_suggestions"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const insertComparisonSchema = createInsertSchema(comparisons).pick({
@@ -68,7 +84,104 @@ export const insertComparisonSchema = createInsertSchema(comparisons).pick({
   documentBId: true,
   analysisAId: true,
   analysisBId: true,
+  userEmail: true,
   comparisonResults: true,
+  improvementSuggestions: true,
+});
+
+// User activity tracking for cognitive pattern analysis
+export const userActivities = pgTable("user_activities", {
+  id: serial("id").primaryKey(),
+  userEmail: text("user_email").references(() => users.email),
+  activityType: text("activity_type").notNull(), // upload, analyze, rewrite, compare, search
+  activityData: jsonb("activity_data"), // Detailed activity information
+  documentId: integer("document_id").references(() => documents.id),
+  sessionDuration: integer("session_duration"), // in seconds
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export const insertUserActivitySchema = createInsertSchema(userActivities).pick({
+  userEmail: true,
+  activityType: true,
+  activityData: true,
+  documentId: true,
+  sessionDuration: true,
+});
+
+// Comprehensive cognitive profiles - the core analytics system
+export const cognitiveProfiles = pgTable("cognitive_profiles", {
+  id: serial("id").primaryKey(),
+  userEmail: text("user_email").references(() => users.email).unique(),
+  // Writing patterns and intellectual analysis
+  writingPatterns: jsonb("writing_patterns"), // Sentence structure, vocabulary, complexity
+  intellectualInterests: jsonb("intellectual_interests"), // Topics, subjects, domains
+  cognitiveStyle: jsonb("cognitive_style"), // Analytical vs intuitive, detail vs big picture
+  learningBehavior: jsonb("learning_behavior"), // How user improves over time
+  documentPreferences: jsonb("document_preferences"), // Types and formats preferred
+  rewritePatterns: jsonb("rewrite_patterns"), // How user modifies content
+  collaborationStyle: jsonb("collaboration_style"), // Interaction with AI systems
+  // Psychological indicators
+  conceptualComplexity: text("conceptual_complexity"), // comfort with complex ideas
+  attentionToDetail: integer("attention_to_detail"), // 1-10 scale
+  creativityIndex: integer("creativity_index"), // 1-10 scale
+  systematicThinking: integer("systematic_thinking"), // 1-10 scale
+  // Behavioral metrics
+  averageSessionLength: integer("average_session_length"), // in minutes
+  totalDocumentsProcessed: integer("total_documents_processed"),
+  preferredAIProvider: text("preferred_ai_provider"),
+  productivityPattern: jsonb("productivity_pattern"), // Time of day, frequency patterns
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCognitiveProfileSchema = createInsertSchema(cognitiveProfiles).pick({
+  userEmail: true,
+  writingPatterns: true,
+  intellectualInterests: true,
+  cognitiveStyle: true,
+  learningBehavior: true,
+  documentPreferences: true,
+  rewritePatterns: true,
+  collaborationStyle: true,
+  conceptualComplexity: true,
+  attentionToDetail: true,
+  creativityIndex: true,
+  systematicThinking: true,
+  averageSessionLength: true,
+  totalDocumentsProcessed: true,
+  preferredAIProvider: true,
+  productivityPattern: true,
+});
+
+// Rewrite history for tracking evolution of thinking and writing
+export const rewriteHistory = pgTable("rewrite_history", {
+  id: serial("id").primaryKey(),
+  documentId: integer("document_id").references(() => documents.id),
+  userEmail: text("user_email").references(() => users.email),
+  originalText: text("original_text").notNull(),
+  rewrittenText: text("rewritten_text").notNull(),
+  rewriteMode: text("rewrite_mode").notNull(), // rewrite_existing, add_new, hybrid
+  instructions: text("instructions"),
+  provider: text("provider").notNull(),
+  qualityImprovement: integer("quality_improvement"), // 1-10 scale
+  lengthChange: integer("length_change"), // percentage change
+  complexityChange: text("complexity_change"), // increased, decreased, same
+  conceptualDepth: integer("conceptual_depth"), // 1-10 scale
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertRewriteHistorySchema = createInsertSchema(rewriteHistory).pick({
+  documentId: true,
+  userEmail: true,
+  originalText: true,
+  rewrittenText: true,
+  rewriteMode: true,
+  instructions: true,
+  provider: true,
+  qualityImprovement: true,
+  lengthChange: true,
+  complexityChange: true,
+  conceptualDepth: true,
 });
 
 // Types
@@ -83,3 +196,12 @@ export type Analysis = typeof analyses.$inferSelect;
 
 export type InsertComparison = z.infer<typeof insertComparisonSchema>;
 export type Comparison = typeof comparisons.$inferSelect;
+
+export type InsertUserActivity = z.infer<typeof insertUserActivitySchema>;
+export type UserActivity = typeof userActivities.$inferSelect;
+
+export type InsertCognitiveProfile = z.infer<typeof insertCognitiveProfileSchema>;
+export type CognitiveProfile = typeof cognitiveProfiles.$inferSelect;
+
+export type InsertRewriteHistory = z.infer<typeof insertRewriteHistorySchema>;
+export type RewriteHistory = typeof rewriteHistory.$inferSelect;

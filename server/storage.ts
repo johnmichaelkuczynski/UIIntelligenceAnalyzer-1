@@ -1,39 +1,85 @@
-import { users, type User, type InsertUser } from "@shared/schema";
-
-// modify the interface with any CRUD methods
-// you might need
+import { users, documents, analyses, userActivities, cognitiveProfiles, rewriteHistory, type User, type InsertUser, type InsertDocument, type Document, type InsertUserActivity, type InsertCognitiveProfile, type InsertRewriteHistory } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUser(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  
+  // Document operations
+  createDocument(doc: InsertDocument): Promise<Document>;
+  getDocumentsByUser(userEmail: string): Promise<Document[]>;
+  
+  // Activity tracking
+  logActivity(activity: InsertUserActivity): Promise<void>;
+  
+  // Cognitive profile operations
+  getCognitiveProfile(userEmail: string): Promise<any>;
+  updateCognitiveProfile(userEmail: string, profile: Partial<InsertCognitiveProfile>): Promise<void>;
+  
+  // Rewrite history
+  logRewrite(rewrite: InsertRewriteHistory): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  currentId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.currentId = 1;
+export class DatabaseStorage implements IStorage {
+  async getUser(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
   }
 
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return this.getUser(email);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
+  }
+
+  async createDocument(doc: InsertDocument): Promise<Document> {
+    const [document] = await db
+      .insert(documents)
+      .values(doc)
+      .returning();
+    return document;
+  }
+
+  async getDocumentsByUser(userEmail: string): Promise<Document[]> {
+    return await db
+      .select()
+      .from(documents)
+      .where(eq(documents.userEmail, userEmail));
+  }
+
+  async logActivity(activity: InsertUserActivity): Promise<void> {
+    await db.insert(userActivities).values(activity);
+  }
+
+  async getCognitiveProfile(userEmail: string): Promise<any> {
+    const [profile] = await db
+      .select()
+      .from(cognitiveProfiles)
+      .where(eq(cognitiveProfiles.userEmail, userEmail));
+    return profile;
+  }
+
+  async updateCognitiveProfile(userEmail: string, profile: Partial<InsertCognitiveProfile>): Promise<void> {
+    await db
+      .insert(cognitiveProfiles)
+      .values({ ...profile, userEmail })
+      .onConflictDoUpdate({
+        target: cognitiveProfiles.userEmail,
+        set: { ...profile, lastUpdated: new Date() }
+      });
+  }
+
+  async logRewrite(rewrite: InsertRewriteHistory): Promise<void> {
+    await db.insert(rewriteHistory).values(rewrite);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
