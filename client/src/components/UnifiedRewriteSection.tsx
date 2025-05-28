@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DirectAIRequest from './DirectAIRequest';
 import { MathRenderer } from './MathRenderer';
-import EnhancedRewriteModal from './EnhancedRewriteModal_fixed';
+import EnhancedRewriteModal from './EnhancedRewriteModal';
 import {
   FileEdit,
   Sparkles,
