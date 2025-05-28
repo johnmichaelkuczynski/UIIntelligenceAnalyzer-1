@@ -201,6 +201,8 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
     setIsRewriting(true);
     setRewriteProgress(0);
     setStreamingContent("");
+    setIsStreaming(true);
+    setCurrentRewrite(""); // Clear any existing content
     
     try {
       let textToRewrite = currentRewrite;
@@ -676,9 +678,17 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                 <CardContent>
                   <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
                     <div className="whitespace-pre-wrap text-sm leading-relaxed" key={forceUpdate}>
-                      {isStreaming ? (
+                      {isRewriting ? (
+                        <div className="text-center py-8">
+                          <div className="text-blue-600 font-semibold text-lg mb-4">🤖 AI is writing your content...</div>
+                          <div className="animate-pulse text-gray-600">Content will appear here as it's generated</div>
+                          <div className="mt-4 text-sm text-gray-500">
+                            Provider: {selectedProvider} | Mode: {rewriteMode}
+                          </div>
+                        </div>
+                      ) : isStreaming ? (
                         <div>
-                          <div className="text-blue-600 font-semibold mb-2">Writing in real-time...</div>
+                          <div className="text-green-600 font-semibold mb-2">✍️ Writing completed - displaying content...</div>
                           {streamingContent}
                           <span className="animate-pulse">|</span>
                         </div>
