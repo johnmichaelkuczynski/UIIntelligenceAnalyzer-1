@@ -257,23 +257,15 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       setRewriteProgress(100);
       setIsRewriting(false);
       
-      // Update the content
-      console.log("Setting rewritten content:", finalRewrite.substring(0, 100) + "...");
+      // FORCE IMMEDIATE DISPLAY UPDATE
+      console.log("FORCING CONTENT UPDATE:", finalRewrite.substring(0, 100) + "...");
       setCurrentRewrite(finalRewrite);
       onRewriteUpdate(finalRewrite);
       
-      // Update chunks for the new text
+      // Update chunks
       const newChunks = createTextChunks(finalRewrite);
       setTextChunks(newChunks);
       setSelectedChunks(new Set());
-      
-      // Force a re-render by updating a dummy state
-      setRewriteProgress(100);
-      
-      // Reset progress after a brief moment
-      setTimeout(() => {
-        setRewriteProgress(0);
-      }, 1000);
       
       toast({
         title: "Rewrite completed",
@@ -655,17 +647,9 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                 </CardHeader>
                 <CardContent>
                   <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
-                    {currentRewrite && currentRewrite.trim() ? (
-                      <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                        {currentRewrite}
-                      </div>
-                    ) : (
-                      <div className="text-center text-gray-500 py-8">
-                        <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                        <p className="text-lg font-medium mb-2">No rewrite yet</p>
-                        <p className="text-sm">Configure your settings and click "Rewrite" to see results here</p>
-                      </div>
-                    )}
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed" key={currentRewrite.length}>
+                      {currentRewrite || "No content yet - click Rewrite to generate content"}
+                    </div>
                   </div>
                   <div className="mt-2 text-xs text-gray-400">
                     Debug: Content length: {currentRewrite ? currentRewrite.length : 0} characters
