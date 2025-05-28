@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DirectAIRequest from './DirectAIRequest';
 import { MathRenderer } from './MathRenderer';
+import EnhancedRewriteModal from './EnhancedRewriteModal';
 import {
   FileEdit,
   Sparkles,
@@ -24,7 +25,8 @@ import {
   Download,
   ShieldAlert,
   RotateCcw,
-  Bot
+  Bot,
+  Edit3
 } from 'lucide-react';
 import { 
   DocumentInput as DocumentInputType, 
@@ -100,6 +102,9 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
   const [isCheckingAI, setIsCheckingAI] = useState<boolean>(false);
   const [rewrittenAnalysis, setRewrittenAnalysis] = useState<DocumentAnalysis | null>(null);
   const [aiDetectionResult, setAIDetectionResult] = useState<AIDetectionResult | null>(null);
+  
+  // Enhanced rewrite modal state
+  const [isEnhancedModalOpen, setIsEnhancedModalOpen] = useState<boolean>(false);
   
   // Refs
   const downloadLinkRef = useRef<HTMLAnchorElement | null>(null);
@@ -920,6 +925,17 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
                         {isAnalyzingRewrite ? "Analyzing..." : "Analyze Intelligence"}
                       </Button>
                       
+                      {/* Enhanced Rewrite Modal - NEW FEATURE */}
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => setIsEnhancedModalOpen(true)}
+                        className="flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        <Edit3 className="h-3.5 w-3.5" />
+                        Enhanced Rewrite
+                      </Button>
+                      
                       {/* Rewrite Again - recursive rewrites */}
                       <Button
                         variant="outline"
@@ -929,7 +945,7 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
                         className="flex items-center gap-1 bg-green-50 text-green-700 hover:bg-green-100"
                       >
                         <RotateCw className="h-3.5 w-3.5" />
-                        Rewrite Again
+                        Quick Rewrite
                       </Button>
                       
                       {/* Reset Button */}
@@ -1050,6 +1066,22 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
           )}
         </TabsContent>
       </Tabs>
+      
+      {/* Enhanced Rewrite Modal */}
+      {rewrittenText && (
+        <EnhancedRewriteModal
+          isOpen={isEnhancedModalOpen}
+          onClose={() => setIsEnhancedModalOpen(false)}
+          originalText={originalDocument?.content || ""}
+          rewrittenText={rewrittenText}
+          onRewriteUpdate={(newText: string) => {
+            setRewrittenText(newText);
+            if (onRewriteComplete) {
+              onRewriteComplete(newText, rewriteStats);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };
