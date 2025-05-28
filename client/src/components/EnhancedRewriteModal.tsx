@@ -655,8 +655,10 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                 </CardHeader>
                 <CardContent>
                   <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
-                    {currentRewrite ? (
-                      <MathRenderer content={currentRewrite} />
+                    {currentRewrite && currentRewrite.trim() ? (
+                      <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {currentRewrite}
+                      </div>
                     ) : (
                       <div className="text-center text-gray-500 py-8">
                         <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
