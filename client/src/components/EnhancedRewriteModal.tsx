@@ -165,18 +165,23 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
         }
       }
 
-      // Finalize
+      // Finalize - PRESERVE THE CONTENT!
+      const finalRewrite = accumulatedContent.trim();
+      console.log("💾 PRESERVING FINAL CONTENT:", finalRewrite.length, "characters");
+      
+      // Update all content states to preserve the streamed content
+      setCurrentRewrite(finalRewrite);
+      setStreamingContent(finalRewrite); // Keep in streaming content too
+      onRewriteUpdate(finalRewrite);
+      
+      // Only clear streaming state after content is preserved
       setIsStreaming(false);
       setIsRewriting(false);
       setRewriteProgress(100);
       
-      const finalRewrite = accumulatedContent.trim();
-      setCurrentRewrite(finalRewrite);
-      onRewriteUpdate(finalRewrite);
-      
       toast({
         title: "🎉 Live streaming completed!",
-        description: `Successfully processed ${chunkProgress.current} chunks with ${selectedProvider}`
+        description: `Successfully processed ${chunkProgress.current} chunks with ${selectedProvider}. Content preserved!`
       });
 
     } catch (error) {
