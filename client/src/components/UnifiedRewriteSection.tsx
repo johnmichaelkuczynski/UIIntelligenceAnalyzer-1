@@ -77,6 +77,10 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
   const [selectedProvider, setSelectedProvider] = useState<string>("openai");
   const [selectedPreset, setSelectedPreset] = useState<string>("");
   const [customInstructions, setCustomInstructions] = useState<string>("");
+  const [rewriteMode, setRewriteMode] = useState<'rewrite' | 'add' | 'both'>('rewrite');
+  const [newChunkInstructions, setNewChunkInstructions] = useState<string>("");
+  const [showCompletedRewriteModal, setShowCompletedRewriteModal] = useState<boolean>(false);
+  const [completedRewrite, setCompletedRewrite] = useState<string>("");
   const [isRewriting, setIsRewriting] = useState<boolean>(false);
   const [rewriteProgress, setRewriteProgress] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<string>("rewrite");
@@ -343,8 +347,17 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
     setRewriteProgress(0);
     
     try {
+      // Build comprehensive instruction based on mode
+      let finalInstruction = customInstructions.trim();
+      
+      if (rewriteMode === 'add') {
+        finalInstruction = `KEEP EXISTING TEXT EXACTLY AS IS. ADD NEW CONTENT AS FOLLOWS: ${newChunkInstructions.trim()}`;
+      } else if (rewriteMode === 'both') {
+        finalInstruction = `REWRITE EXISTING TEXT: ${customInstructions.trim()}. ALSO ADD NEW CONTENT: ${newChunkInstructions.trim()}`;
+      }
+      
       const options: RewriteOptions = {
-        instruction: customInstructions.trim(),
+        instruction: finalInstruction,
         preserveLength: true,
         preserveDepth: true
       };
@@ -378,6 +391,7 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
       // Store the result
       setRewrittenText(result.rewrittenText);
       setRewriteStats(result.stats);
+      setCompletedRewrite(result.rewrittenText);
       
       // Reset analysis states
       setRewrittenAnalysis(null);
@@ -396,26 +410,18 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
           body: JSON.stringify({
             originalText: textToRewrite,
             rewrittenText: result.rewrittenText,
-            instructions: customInstructions.trim(),
+            instructions: finalInstruction,
             provider: selectedProvider,
             rewriteLevel: 1,
             stats: result.stats
           })
         });
-        
-        toast({
-          title: "Rewrite completed and archived!",
-          description: "Document has been rewritten successfully and saved to your archive"
-        });
       } catch (error) {
-        toast({
-          title: "Rewrite complete",
-          description: "Document has been rewritten successfully"
-        });
+        console.error('Archive save failed:', error);
       }
       
-      // Auto-switch to results tab
-      setActiveTab("results");
+      // Show completion modal immediately
+      setShowCompletedRewriteModal(true);
     } catch (error) {
       console.error("Rewrite error:", error);
       toast({
@@ -665,13 +671,85 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
                     </SelectContent>
                   </Select>
                 </div>
-                <Textarea
-                  id="custom-instructions"
-                  placeholder="Provide detailed instructions for rewriting. Example: 'Replace vague terms with precise ones while maintaining original structure' or 'Enhance logical reasoning chains without changing length'"
-                  className="min-h-[100px]"
-                  value={customInstructions}
-                  onChange={(e) => setCustomInstructions(e.target.value)}
-                />
+                {/* Rewrite Mode Selection */}
+                <div className="space-y-3 mb-4">
+                  <Label className="text-sm font-medium text-blue-800">Rewrite Mode</Label>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="mode-rewrite"
+                        name="rewriteMode"
+                        value="rewrite"
+                        checked={rewriteMode === 'rewrite'}
+                        onChange={(e) => setRewriteMode(e.target.value as 'rewrite' | 'add' | 'both')}
+                        className="w-4 h-4 text-blue-600"
+                      />
+                      <Label htmlFor="mode-rewrite" className="text-sm font-medium">
+                        Rewrite Existing Chunks Only
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="mode-add"
+                        name="rewriteMode"
+                        value="add"
+                        checked={rewriteMode === 'add'}
+                        onChange={(e) => setRewriteMode(e.target.value as 'rewrite' | 'add' | 'both')}
+                        className="w-4 h-4 text-blue-600"
+                      />
+                      <Label htmlFor="mode-add" className="text-sm font-medium">
+                        Add New Chunks (Keep Existing Text Unchanged)
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="mode-both"
+                        name="rewriteMode"
+                        value="both"
+                        checked={rewriteMode === 'both'}
+                        onChange={(e) => setRewriteMode(e.target.value as 'rewrite' | 'add' | 'both')}
+                        className="w-4 h-4 text-blue-600"
+                      />
+                      <Label htmlFor="mode-both" className="text-sm font-medium">
+                        Both: Rewrite Existing + Add New Chunks
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Custom Instructions for Rewriting */}
+                {(rewriteMode === 'rewrite' || rewriteMode === 'both') && (
+                  <Textarea
+                    id="custom-instructions"
+                    placeholder="Provide detailed instructions for rewriting existing content. Example: 'Replace vague terms with precise ones while maintaining original structure' or 'Enhance logical reasoning chains without changing length'"
+                    className="min-h-[100px] mb-4"
+                    value={customInstructions}
+                    onChange={(e) => setCustomInstructions(e.target.value)}
+                  />
+                )}
+
+                {/* New Chunk Instructions */}
+                {(rewriteMode === 'add' || rewriteMode === 'both') && (
+                  <div className="space-y-2 mb-4">
+                    <Label htmlFor="new-chunk-instructions" className="text-sm font-medium text-blue-800">
+                      New Content Instructions
+                    </Label>
+                    <Textarea
+                      id="new-chunk-instructions"
+                      placeholder="Provide detailed instructions for what new content to add. Be specific about topics, sections, examples, or additional material you want included. Example: 'Add two new sections: 1) Knowledge of historical events with examples from ancient philosophy, 2) Epistemic challenges in temporal reasoning with mathematical formulations'"
+                      value={newChunkInstructions}
+                      onChange={(e) => setNewChunkInstructions(e.target.value)}
+                      rows={6}
+                      className="text-sm min-h-[150px]"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Be as detailed as possible about what new content you want added to the document.
+                    </p>
+                  </div>
+                )}
               </div>
               
               {/* AI Research Integration */}
@@ -814,7 +892,11 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
               {/* Rewrite Button */}
               <Button 
                 onClick={() => handleRewrite()}
-                disabled={isRewriting || (!customInstructions.trim() && !selectedPreset)}
+                disabled={isRewriting || 
+                  (rewriteMode === 'rewrite' && !customInstructions.trim() && !selectedPreset) ||
+                  (rewriteMode === 'add' && !newChunkInstructions.trim()) ||
+                  (rewriteMode === 'both' && (!customInstructions.trim() || !newChunkInstructions.trim()))
+                }
                 className="w-full"
               >
                 {isRewriting ? (
@@ -1081,6 +1163,160 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
           <RewriteArchive />
         </TabsContent>
       </Tabs>
+
+      {/* Completion Modal */}
+      <Dialog open={showCompletedRewriteModal} onOpenChange={setShowCompletedRewriteModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-green-700">
+              🎉 Rewrite Complete!
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-hidden flex flex-col space-y-4">
+            {/* View Toggle */}
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant={viewMode === 'normal' ? 'default' : 'outline'}
+                onClick={() => setViewMode('normal')}
+              >
+                Normal View
+              </Button>
+              <Button
+                size="sm"
+                variant={viewMode === 'math' ? 'default' : 'outline'}
+                onClick={() => setViewMode('math')}
+              >
+                View Math
+              </Button>
+            </div>
+
+            {/* Rewritten Content */}
+            <div className="flex-1 overflow-y-auto border rounded-lg p-4 bg-green-50">
+              {viewMode === 'math' ? (
+                <MathRenderer content={completedRewrite} />
+              ) : (
+                <pre className="whitespace-pre-wrap text-sm text-gray-800">
+                  {completedRewrite}
+                </pre>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-2 border-t pt-4">
+              <Button
+                onClick={() => {
+                  toast({
+                    title: "PDF Download Tip",
+                    description: "For best math notation, use Print → Save as PDF while in Math View",
+                    duration: 5000
+                  });
+                  window.print();
+                }}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download as PDF
+              </Button>
+
+              <Button
+                onClick={() => {
+                  const doc = new Document({
+                    sections: [{
+                      properties: {},
+                      children: completedRewrite.split('\n\n').map(paragraph => 
+                        new Paragraph({
+                          children: [new TextRun({ text: paragraph })],
+                        })
+                      )
+                    }]
+                  });
+                  
+                  Packer.toBlob(doc).then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `rewrite-${new Date().toISOString().slice(0, 10)}.docx`;
+                    a.click();
+                    setTimeout(() => URL.revokeObjectURL(url), 100);
+                  });
+                }}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download as Word
+              </Button>
+
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(completedRewrite);
+                  toast({
+                    title: "Copied!",
+                    description: "Rewritten text copied to clipboard"
+                  });
+                }}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <ClipboardCopy className="h-4 w-4" />
+                Copy Text
+              </Button>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
+                    Share via Email
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Share Rewrite via Email</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="email-recipient">Recipient Email</Label>
+                      <Input
+                        id="email-recipient"
+                        type="email"
+                        placeholder="Enter email address"
+                        onChange={(e) => {
+                          const email = e.target.value;
+                          if (email) {
+                            fetch('/api/share-simple-email', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                recipientEmail: email,
+                                subject: 'Document Rewrite',
+                                content: completedRewrite
+                              })
+                            }).then(() => {
+                              toast({
+                                title: "Email sent!",
+                                description: `Rewrite shared with ${email}`
+                              });
+                            }).catch(() => {
+                              toast({
+                                title: "Email failed",
+                                description: "Failed to send email",
+                                variant: "destructive"
+                              });
+                            });
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
