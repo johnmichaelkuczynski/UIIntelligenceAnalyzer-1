@@ -95,6 +95,7 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
   const [forceUpdate, setForceUpdate] = useState<number>(0);
   const [streamingContent, setStreamingContent] = useState<string>("");
   const [isStreaming, setIsStreaming] = useState<boolean>(false);
+  const [chunkProgress, setChunkProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
   const [downloadLinkRef] = useState(useRef<HTMLAnchorElement | null>(null));
   
   // Email sharing state
@@ -237,8 +238,16 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
         rewriteInstructions = `${customInstructions}\n\nYou may both rewrite existing content AND add new content as needed to best fulfill the instructions.`;
       }
       
-      // Make the rewrite API call
-      const response = await fetch('/api/rewrite', {
+      // Use streaming API for real-time chunk display
+      setIsStreaming(true);
+      setStreamingContent("");
+      setChunkProgress({ current: 0, total: 0 });
+      
+      const eventSource = new EventSource('/api/rewrite-stream');
+      let finalRewrite = '';
+      
+      // Send the request data via POST to start streaming
+      await fetch('/api/rewrite-stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -251,17 +260,44 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
         }),
       });
       
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (!data.content) {
-        throw new Error(data.message || "No content received from rewrite");
-      }
-      
-      let finalRewrite = data.content;
+      return new Promise((resolve, reject) => {
+        eventSource.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            
+            if (data.type === 'chunk') {
+              // Append new chunk to streaming content
+              setStreamingContent(prev => prev + '\n\n' + data.content);
+              setChunkProgress({ current: data.index, total: data.total });
+              finalRewrite += '\n\n' + data.content;
+              
+              // Update display immediately
+              const contentDiv = document.getElementById('rewrite-content-display');
+              if (contentDiv) {
+                contentDiv.textContent = finalRewrite;
+              }
+              
+              console.log(`Chunk ${data.index}/${data.total} received`);
+            } else if (data.type === 'complete') {
+              eventSource.close();
+              setIsStreaming(false);
+              resolve(finalRewrite);
+            } else if (data.type === 'error') {
+              eventSource.close();
+              setIsStreaming(false);
+              reject(new Error(data.message));
+            }
+          } catch (error) {
+            console.error('Error parsing stream data:', error);
+          }
+        };
+        
+        eventSource.onerror = (error) => {
+          eventSource.close();
+          setIsStreaming(false);
+          reject(new Error('Stream connection failed'));
+        };
+      });
       
       // If we only rewrote selected chunks, merge them back
       if (rewriteMode === "rewrite_existing" && selectedChunks.size > 0 && selectedChunks.size < textChunks.length) {
@@ -683,9 +719,31 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                 </CardHeader>
                 <CardContent>
                   <div className="border rounded-lg p-4 bg-white max-h-96 overflow-y-auto">
-                    <div id="rewrite-content-display" className="whitespace-pre-wrap text-sm leading-relaxed">
-                      CONTENT WILL APPEAR HERE
-                    </div>
+                    {isStreaming ? (
+                      <div>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-blue-800 font-semibold">🔄 Processing chunks live...</span>
+                            <span className="text-blue-600 text-sm">
+                              Chunk {chunkProgress.current} of {chunkProgress.total}
+                            </span>
+                          </div>
+                          <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
+                            <div 
+                              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                              style={{ width: chunkProgress.total > 0 ? `${(chunkProgress.current / chunkProgress.total) * 100}%` : '0%' }}
+                            ></div>
+                          </div>
+                        </div>
+                        <div id="rewrite-content-display" className="whitespace-pre-wrap text-sm leading-relaxed">
+                          {streamingContent || "Starting rewrite..."}
+                        </div>
+                      </div>
+                    ) : (
+                      <div id="rewrite-content-display" className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {currentRewrite || "No content yet - click Rewrite to generate content"}
+                      </div>
+                    )}
                   </div>
                   <div className="mt-2 text-xs text-gray-400">
                     Debug: Content length: {currentRewrite ? currentRewrite.length : 0} characters | Force update: {forceUpdate} | Content preview: {currentRewrite.substring(0, 50)}...

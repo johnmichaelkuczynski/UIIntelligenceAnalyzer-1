@@ -367,6 +367,54 @@ export async function registerRoutes(app: Express): Promise<Express> {
     }
   });
   
+  // Streaming rewrite endpoint
+  app.post("/api/rewrite-stream", async (req: Request, res: Response) => {
+    try {
+      const { originalText, instructions, provider = "openai", mode = "hybrid" } = req.body;
+      
+      if (!originalText) {
+        return res.status(400).json({ error: "Original text is required" });
+      }
+      
+      if (!instructions) {
+        return res.status(400).json({ error: "Instructions are required" });
+      }
+      
+      // Set up Server-Sent Events
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control'
+      });
+      
+      // Import the streaming rewrite service
+      const { streamRewriteDocument } = await import('./services/documentRewrite');
+      
+      const enhancedOptions = {
+        instruction: instructions,
+        targetLevel: "advanced",
+        mode: mode
+      };
+      
+      console.log(`Starting STREAMING rewrite with ${provider}`);
+      
+      // Stream the rewrite with chunk callbacks
+      await streamRewriteDocument(originalText, enhancedOptions, provider, (chunk: string, index: number, total: number) => {
+        res.write(`data: ${JSON.stringify({ type: 'chunk', content: chunk, index, total })}\n\n`);
+      });
+      
+      res.write(`data: ${JSON.stringify({ type: 'complete' })}\n\n`);
+      res.end();
+      
+    } catch (error: any) {
+      console.error("Error streaming rewrite:", error);
+      res.write(`data: ${JSON.stringify({ type: 'error', message: error.message })}\n\n`);
+      res.end();
+    }
+  });
+
   // Rewrite document
   app.post("/api/rewrite", async (req: Request, res: Response) => {
     try {

@@ -22,6 +22,60 @@ interface RewriteResult {
   provider: string;
 }
 
+// Function to split text into chunks
+function splitIntoChunks(text: string, maxChunkSize: number = 2000): string[] {
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  const chunks: string[] = [];
+  let currentChunk = '';
+  
+  for (const sentence of sentences) {
+    if ((currentChunk + sentence).length > maxChunkSize && currentChunk.length > 0) {
+      chunks.push(currentChunk.trim() + '.');
+      currentChunk = sentence;
+    } else {
+      currentChunk += sentence + '.';
+    }
+  }
+  
+  if (currentChunk.trim().length > 0) {
+    chunks.push(currentChunk.trim());
+  }
+  
+  return chunks;
+}
+
+// Streaming rewrite function
+export async function streamRewriteDocument(
+  documentText: string, 
+  options: RewriteOptions, 
+  provider: string = 'openai',
+  onChunk: (chunk: string, index: number, total: number) => void
+): Promise<{ content: string }> {
+  const chunks = splitIntoChunks(documentText, 2000);
+  let fullRewrite = '';
+  
+  console.log(`Processing ${chunks.length} chunks with ${provider}`);
+  
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    console.log(`Processing chunk ${i + 1}/${chunks.length}`);
+    
+    // Rewrite this chunk
+    const chunkResult = await rewriteDocument(chunk, options, provider);
+    const rewrittenChunk = chunkResult.content;
+    
+    fullRewrite += rewrittenChunk + '\n\n';
+    
+    // Send this chunk to the frontend immediately
+    onChunk(rewrittenChunk, i + 1, chunks.length);
+    
+    // Small delay to prevent API rate limiting
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  
+  return { content: fullRewrite.trim() };
+}
+
 /**
  * Rewrite a document according to provided instructions
  * @param originalText Original document text
