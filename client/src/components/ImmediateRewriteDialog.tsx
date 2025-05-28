@@ -53,8 +53,6 @@ const ImmediateRewriteDialog: React.FC<ImmediateRewriteDialogProps> = ({
   
   // Rewrite state
   const [rewriteInstructions, setRewriteInstructions] = useState('');
-  const [rewriteMode, setRewriteMode] = useState<'rewrite' | 'add' | 'hybrid'>('rewrite');
-  const [additionInstructions, setAdditionInstructions] = useState('');
   const [isRewriting, setIsRewriting] = useState(false);
   const [rewrittenText, setRewrittenText] = useState('');
   const [showMathView, setShowMathView] = useState(false);
@@ -426,67 +424,17 @@ const ImmediateRewriteDialog: React.FC<ImmediateRewriteDialogProps> = ({
               </div>
             )}
 
-            {/* Rewrite Mode Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="rewrite-mode">Rewrite Mode</Label>
-              <Select
-                value={rewriteMode}
-                onValueChange={(value: 'rewrite' | 'add' | 'hybrid') => setRewriteMode(value)}
-              >
-                <SelectTrigger id="rewrite-mode">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="rewrite">Rewrite Existing Chunks</SelectItem>
-                  <SelectItem value="add">Add New Chunks Only</SelectItem>
-                  <SelectItem value="hybrid">Rewrite + Add New Chunks</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-gray-500">
-                {rewriteMode === 'rewrite' && "Modify existing content while keeping the same structure"}
-                {rewriteMode === 'add' && "Keep existing content unchanged and add new sections"}
-                {rewriteMode === 'hybrid' && "Both modify existing content and add new sections"}
-              </p>
-            </div>
-
             {/* Rewrite Instructions */}
             <div className="space-y-2">
-              <Label htmlFor="rewrite-instructions">
-                {rewriteMode === 'add' ? 'Content Modification Instructions (Optional)' : 'Rewrite Instructions'}
-              </Label>
+              <Label htmlFor="rewrite-instructions">Rewrite Instructions</Label>
               <Textarea
                 id="rewrite-instructions"
-                placeholder={rewriteMode === 'add' 
-                  ? "Optional: How to modify existing content while adding new sections" 
-                  : "Describe exactly how you want the text rewritten. Example: 'Simplify the language for a general audience' or 'Make it more formal and academic'"
-                }
-                className="min-h-[80px]"
+                placeholder="Describe exactly how you want the text rewritten. Example: 'Simplify the language for a general audience' or 'Make it more formal and academic'"
+                className="min-h-[100px]"
                 value={rewriteInstructions}
                 onChange={(e) => setRewriteInstructions(e.target.value)}
               />
             </div>
-
-            {/* Addition Instructions (for 'add' and 'hybrid' modes) */}
-            {(rewriteMode === 'add' || rewriteMode === 'hybrid') && (
-              <div className="space-y-2 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <Label htmlFor="addition-instructions" className="text-green-800 font-medium">
-                  New Content Instructions
-                </Label>
-                <Textarea
-                  id="addition-instructions"
-                  placeholder="Describe what new sections/chunks to add. Example: 'Add 2 new chapters about knowledge of the past' or 'Include sections on mathematical proofs and statistical analysis'"
-                  className="min-h-[80px] bg-white"
-                  value={additionInstructions}
-                  onChange={(e) => setAdditionInstructions(e.target.value)}
-                />
-                <p className="text-xs text-green-600">
-                  {rewriteMode === 'add' 
-                    ? "These new sections will be added while keeping all existing content unchanged"
-                    : "These new sections will be added in addition to rewriting existing content"
-                  }
-                </p>
-              </div>
-            )}
 
             {/* Rewrite Button */}
             <Button

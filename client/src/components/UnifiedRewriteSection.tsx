@@ -77,8 +77,6 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
   const [selectedProvider, setSelectedProvider] = useState<string>("openai");
   const [selectedPreset, setSelectedPreset] = useState<string>("");
   const [customInstructions, setCustomInstructions] = useState<string>("");
-  const [rewriteMode, setRewriteMode] = useState<'rewrite' | 'add' | 'hybrid'>('rewrite');
-  const [additionInstructions, setAdditionInstructions] = useState<string>("");
   const [isRewriting, setIsRewriting] = useState<boolean>(false);
   const [rewriteProgress, setRewriteProgress] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<string>("rewrite");
@@ -340,15 +338,6 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
       });
       return;
     }
-
-    if ((rewriteMode === 'add' || rewriteMode === 'hybrid') && !additionInstructions.trim()) {
-      toast({
-        title: "Addition instructions required",
-        description: "Please specify what new content to add",
-        variant: "destructive"
-      });
-      return;
-    }
     
     setIsRewriting(true);
     setRewriteProgress(0);
@@ -357,9 +346,7 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
       const options: RewriteOptions = {
         instruction: customInstructions.trim(),
         preserveLength: true,
-        preserveDepth: true,
-        rewriteMode: rewriteMode,
-        additionInstructions: additionInstructions.trim()
+        preserveDepth: true
       };
       
       // Add web search content if enabled and results selected
@@ -657,29 +644,6 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
                   </SelectContent>
                 </Select>
               </div>
-
-              {/* Rewrite Mode Selection - PROMINENTLY DISPLAYED */}
-              <div className="space-y-2 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
-                <Label htmlFor="rewrite-mode" className="text-lg font-bold text-blue-800">📝 REWRITE MODE</Label>
-                <Select
-                  value={rewriteMode}
-                  onValueChange={(value: 'rewrite' | 'add' | 'hybrid') => setRewriteMode(value)}
-                >
-                  <SelectTrigger id="rewrite-mode" className="border-2 border-blue-400">
-                    <SelectValue placeholder="Select rewrite mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="rewrite">🔄 Rewrite Existing Chunks</SelectItem>
-                    <SelectItem value="add">➕ Add New Chunks Only</SelectItem>
-                    <SelectItem value="hybrid">🔄➕ Rewrite + Add New Chunks</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-sm font-medium text-blue-700">
-                  {rewriteMode === 'rewrite' && "✏️ Modify existing content while keeping the same structure"}
-                  {rewriteMode === 'add' && "📝 Keep existing content unchanged and add new sections"}
-                  {rewriteMode === 'hybrid' && "🔄📝 Both modify existing content and add new sections"}
-                </p>
-              </div>
               
               {/* Rewrite Instructions */}
               <div className="space-y-2">
@@ -709,28 +673,6 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
                   onChange={(e) => setCustomInstructions(e.target.value)}
                 />
               </div>
-
-              {/* Addition Instructions (for 'add' and 'hybrid' modes) */}
-              {(rewriteMode === 'add' || rewriteMode === 'hybrid') && (
-                <div className="space-y-2 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <Label htmlFor="addition-instructions" className="text-green-800 font-medium">
-                    New Content Instructions
-                  </Label>
-                  <Textarea
-                    id="addition-instructions"
-                    placeholder="Describe what new sections/chunks to add. Example: 'Add 2 new chapters about knowledge of the past' or 'Include sections on mathematical proofs and statistical analysis'"
-                    className="min-h-[80px] bg-white"
-                    value={additionInstructions}
-                    onChange={(e) => setAdditionInstructions(e.target.value)}
-                  />
-                  <p className="text-xs text-green-600">
-                    {rewriteMode === 'add' 
-                      ? "These new sections will be added while keeping all existing content unchanged"
-                      : "These new sections will be added in addition to rewriting existing content"
-                    }
-                  </p>
-                </div>
-              )}
               
               {/* AI Research Integration */}
               <div className="space-y-2 pt-4 border-t border-gray-100">
