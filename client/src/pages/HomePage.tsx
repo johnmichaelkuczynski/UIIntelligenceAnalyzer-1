@@ -357,7 +357,7 @@ const HomePage: React.FC = () => {
         isOpen={showRewriteDialog}
         onClose={() => setShowRewriteDialog(false)}
         originalText={documentA.content}
-        rewrittenText={documentA.content}
+        rewrittenText=""
         onRewriteUpdate={(newText: string) => {
           setDocumentA({ ...documentA, content: newText });
         }}
