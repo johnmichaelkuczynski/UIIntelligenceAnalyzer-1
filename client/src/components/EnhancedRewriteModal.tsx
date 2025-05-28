@@ -91,7 +91,8 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
   const [showChunkSelection, setShowChunkSelection] = useState<boolean>(false);
   
   // State for current rewrite display
-  const [currentRewrite, setCurrentRewrite] = useState<string>(rewrittenText);
+  const [currentRewrite, setCurrentRewrite] = useState<string>("");
+  const [forceUpdate, setForceUpdate] = useState<number>(0);
   const [downloadLinkRef] = useState(useRef<HTMLAnchorElement | null>(null));
   
   // Email sharing state
@@ -260,6 +261,7 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       // FORCE IMMEDIATE DISPLAY UPDATE
       console.log("FORCING CONTENT UPDATE:", finalRewrite.substring(0, 100) + "...");
       setCurrentRewrite(finalRewrite);
+      setForceUpdate(prev => prev + 1);
       onRewriteUpdate(finalRewrite);
       
       // Update chunks
@@ -647,12 +649,12 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                 </CardHeader>
                 <CardContent>
                   <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
-                    <div className="whitespace-pre-wrap text-sm leading-relaxed" key={currentRewrite.length}>
-                      {currentRewrite || "No content yet - click Rewrite to generate content"}
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed" key={forceUpdate}>
+                      {currentRewrite.length > 0 ? currentRewrite : "No content yet - click Rewrite to generate content"}
                     </div>
                   </div>
                   <div className="mt-2 text-xs text-gray-400">
-                    Debug: Content length: {currentRewrite ? currentRewrite.length : 0} characters
+                    Debug: Content length: {currentRewrite ? currentRewrite.length : 0} characters | Force update: {forceUpdate} | Content preview: {currentRewrite.substring(0, 50)}...
                   </div>
                 </CardContent>
               </Card>
