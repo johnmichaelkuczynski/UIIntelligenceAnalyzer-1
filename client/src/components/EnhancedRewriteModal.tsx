@@ -102,21 +102,16 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
   
   // Initialize chunks when modal opens
   useEffect(() => {
-    if (isOpen && rewrittenText && rewrittenText !== originalText) {
-      const chunks = createTextChunks(rewrittenText);
-      setTextChunks(chunks);
-      setCurrentRewrite(rewrittenText);
-      
-      // If there are multiple chunks, show chunk selection for long texts
-      if (chunks.length > 1) {
-        setShowChunkSelection(true);
-      }
-    } else if (isOpen && !currentRewrite) {
-      // Only clear if we don't have existing rewritten content
+    if (isOpen) {
+      // Always clear when opening modal for fresh start
       setCurrentRewrite("");
       setTextChunks([]);
+      setRewriteMode("hybrid");
+      setCustomInstructions("");
+      setSelectedProvider("openai");
+      setShowChunkSelection(false);
     }
-  }, [isOpen, rewrittenText, originalText]);
+  }, [isOpen, originalText]);
   
   // Set up download link
   useEffect(() => {

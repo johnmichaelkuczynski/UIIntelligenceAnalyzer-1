@@ -51,8 +51,10 @@ export async function rewriteDocument(
     ${instruction}
 
     CRITICAL REQUIREMENTS:
-    - Remove ALL markup formatting including **, __, ##, \\[, \\], \\(, \\), and any other markup symbols
-    - Present text in clean, readable format without any formatting codes
+    - OUTPUT MUST BE COMPLETELY CLEAN TEXT WITH NO FORMATTING SYMBOLS WHATSOEVER
+    - Remove ALL markup: no #, **, __, [], (), \\, or any other symbols
+    - NO markdown, NO LaTeX, NO HTML, NO formatting codes of any kind
+    - Use only plain text with normal punctuation and spacing
     - The rewritten text MUST be MUCH LONGER than the original (minimum 200-300% of original length)
     - EXPAND EXTENSIVELY: Add detailed explanations, multiple examples, elaborate context
     - ELABORATE THOROUGHLY: Break down every concept, add supporting details, include analogies
