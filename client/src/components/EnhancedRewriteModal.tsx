@@ -447,24 +447,35 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                   <CardTitle className="text-lg">Rewrite Configuration</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Rewrite Mode Selection */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Rewrite Mode</Label>
-                    <Select value={rewriteMode} onValueChange={setRewriteMode}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {REWRITE_MODES.map((mode) => (
-                          <SelectItem key={mode.value} value={mode.value}>
+                  {/* Rewrite Mode Selection - PROMINENT */}
+                  <div className="space-y-3 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                    <Label className="text-lg font-bold text-blue-800">🚀 Choose Your Rewrite Mode</Label>
+                    <div className="grid gap-3">
+                      {REWRITE_MODES.map((mode) => (
+                        <div
+                          key={mode.value}
+                          className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                            rewriteMode === mode.value
+                              ? 'border-blue-500 bg-blue-100'
+                              : 'border-gray-200 bg-white hover:border-blue-300'
+                          }`}
+                          onClick={() => setRewriteMode(mode.value)}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="radio"
+                              checked={rewriteMode === mode.value}
+                              onChange={() => setRewriteMode(mode.value)}
+                              className="h-4 w-4 text-blue-600"
+                            />
                             <div>
-                              <div className="font-medium">{mode.label}</div>
-                              <div className="text-xs text-gray-500">{mode.description}</div>
+                              <div className="font-semibold text-gray-900">{mode.label}</div>
+                              <div className="text-sm text-gray-600">{mode.description}</div>
                             </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                   
                   {/* AI Provider Selection */}
