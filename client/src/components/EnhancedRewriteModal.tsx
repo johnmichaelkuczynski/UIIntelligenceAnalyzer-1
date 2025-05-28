@@ -235,8 +235,8 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       clearInterval(progressInterval);
       setRewriteProgress(100);
       
-      if (data.success) {
-        let finalRewrite = data.rewrittenText;
+      if (data.content) {
+        let finalRewrite = data.content;
         
         // If we only rewrote selected chunks, merge them back
         if (rewriteMode === "rewrite_existing" && selectedChunks.size > 0 && selectedChunks.size < textChunks.length) {
