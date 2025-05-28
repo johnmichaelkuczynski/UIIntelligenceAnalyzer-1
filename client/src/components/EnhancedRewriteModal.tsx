@@ -246,8 +246,8 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          text: textToRewrite,
-          customInstructions: rewriteInstructions,
+          originalText: textToRewrite,
+          instructions: rewriteInstructions,
           provider: selectedProvider,
           mode: rewriteMode,
           targetChunks: targetChunks,
