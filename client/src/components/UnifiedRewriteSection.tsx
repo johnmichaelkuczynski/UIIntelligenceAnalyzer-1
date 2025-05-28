@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DirectAIRequest from './DirectAIRequest';
 import { MathRenderer } from './MathRenderer';
+import { RewriteArchive } from './RewriteArchive';
 import {
   FileEdit,
   Sparkles,
@@ -387,10 +388,31 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
         onRewriteComplete(result.rewrittenText, result.stats);
       }
       
-      toast({
-        title: "Rewrite complete",
-        description: "Document has been rewritten successfully"
-      });
+      // Save to database automatically
+      try {
+        await fetch('/api/save-rewrite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            originalText: textToRewrite,
+            rewrittenText: result.rewrittenText,
+            instructions: customInstructions.trim(),
+            provider: selectedProvider,
+            rewriteLevel: 1,
+            stats: result.stats
+          })
+        });
+        
+        toast({
+          title: "Rewrite completed and archived!",
+          description: "Document has been rewritten successfully and saved to your archive"
+        });
+      } catch (error) {
+        toast({
+          title: "Rewrite complete",
+          description: "Document has been rewritten successfully"
+        });
+      }
       
       // Auto-switch to results tab
       setActiveTab("results");
@@ -577,7 +599,7 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
   return (
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 mb-4">
+        <TabsList className="grid grid-cols-3 mb-4">
           <TabsTrigger value="rewrite" className="flex items-center gap-2">
             <FileEdit className="h-4 w-4" />
             Rewrite Configuration
@@ -585,6 +607,10 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
           <TabsTrigger value="results" className="flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
             Rewrite Results
+          </TabsTrigger>
+          <TabsTrigger value="archive" className="flex items-center gap-2">
+            <RotateCcw className="h-4 w-4" />
+            Archive
           </TabsTrigger>
         </TabsList>
         
@@ -1048,6 +1074,11 @@ const UnifiedRewriteSection: React.FC<UnifiedRewriteSectionProps> = ({
               </Card>
             </div>
           )}
+        </TabsContent>
+
+        {/* Archive Tab */}
+        <TabsContent value="archive" className="space-y-4">
+          <RewriteArchive />
         </TabsContent>
       </Tabs>
     </div>
