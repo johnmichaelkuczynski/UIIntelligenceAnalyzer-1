@@ -93,6 +93,8 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
   // State for current rewrite display
   const [currentRewrite, setCurrentRewrite] = useState<string>("");
   const [forceUpdate, setForceUpdate] = useState<number>(0);
+  const [streamingContent, setStreamingContent] = useState<string>("");
+  const [isStreaming, setIsStreaming] = useState<boolean>(false);
   const [downloadLinkRef] = useState(useRef<HTMLAnchorElement | null>(null));
   
   // Email sharing state
@@ -161,6 +163,30 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
     }
   };
   
+  // Simulate streaming content display
+  const simulateStreaming = (finalContent: string) => {
+    setIsStreaming(true);
+    setStreamingContent("");
+    
+    const words = finalContent.split(' ');
+    const chunkSize = 10; // Show 10 words at a time
+    let currentIndex = 0;
+    
+    const streamInterval = setInterval(() => {
+      if (currentIndex >= words.length) {
+        clearInterval(streamInterval);
+        setIsStreaming(false);
+        setCurrentRewrite(finalContent);
+        setForceUpdate(prev => prev + 1);
+        return;
+      }
+      
+      const chunk = words.slice(0, currentIndex + chunkSize).join(' ');
+      setStreamingContent(chunk);
+      currentIndex += chunkSize;
+    }, 200); // Show new chunk every 200ms
+  };
+
   // Perform enhanced rewrite
   const handleEnhancedRewrite = async () => {
     if (!customInstructions.trim()) {
@@ -174,6 +200,7 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
     
     setIsRewriting(true);
     setRewriteProgress(0);
+    setStreamingContent("");
     
     try {
       let textToRewrite = currentRewrite;
@@ -258,10 +285,9 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
       setRewriteProgress(100);
       setIsRewriting(false);
       
-      // FORCE IMMEDIATE DISPLAY UPDATE
-      console.log("FORCING CONTENT UPDATE:", finalRewrite.substring(0, 100) + "...");
-      setCurrentRewrite(finalRewrite);
-      setForceUpdate(prev => prev + 1);
+      // START STREAMING DISPLAY
+      console.log("STARTING STREAMING DISPLAY:", finalRewrite.substring(0, 100) + "...");
+      simulateStreaming(finalRewrite);
       onRewriteUpdate(finalRewrite);
       
       // Update chunks
@@ -650,7 +676,17 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                 <CardContent>
                   <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
                     <div className="whitespace-pre-wrap text-sm leading-relaxed" key={forceUpdate}>
-                      {currentRewrite.length > 0 ? currentRewrite : "No content yet - click Rewrite to generate content"}
+                      {isStreaming ? (
+                        <div>
+                          <div className="text-blue-600 font-semibold mb-2">Writing in real-time...</div>
+                          {streamingContent}
+                          <span className="animate-pulse">|</span>
+                        </div>
+                      ) : currentRewrite.length > 0 ? (
+                        currentRewrite
+                      ) : (
+                        "No content yet - click Rewrite to generate content"
+                      )}
                     </div>
                   </div>
                   <div className="mt-2 text-xs text-gray-400">
