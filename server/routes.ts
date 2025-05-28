@@ -370,27 +370,38 @@ export async function registerRoutes(app: Express): Promise<Express> {
   // Rewrite document
   app.post("/api/rewrite", async (req: Request, res: Response) => {
     try {
-      const { originalText, options, provider = "openai" } = req.body;
+      const { originalText, instructions, options, provider = "openai", mode = "rewrite_existing" } = req.body;
       
       if (!originalText) {
         return res.status(400).json({ error: "Original text is required" });
       }
       
-      if (!options || !options.instruction) {
+      // Support both old 'options.instruction' and new 'instructions' format
+      const instruction = instructions || (options && options.instruction);
+      if (!instruction) {
         return res.status(400).json({ error: "Rewrite instruction is required" });
       }
       
       // Import the document rewrite service
       const { rewriteDocument } = await import('./services/documentRewrite');
       
+      // Create enhanced options object
+      const enhancedOptions = {
+        ...options,
+        instruction,
+        mode,
+        preserveLength: options?.preserveLength !== false,
+        preserveDepth: options?.preserveDepth !== false
+      };
+      
       // Log rewrite request
-      console.log(`Starting direct passthrough rewrite with ${provider}`);
+      console.log(`Starting enhanced rewrite with ${provider} in ${mode} mode`);
       console.log(`Text size: ${originalText.length} characters`);
-      console.log(`Instruction: ${options.instruction}`);
+      console.log(`Instruction: ${instruction}`);
       
       // Rewrite the document using the specified provider
-      console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR REWRITE`);
-      const result = await rewriteDocument(originalText, options, provider);
+      console.log(`ENHANCED ${provider.toUpperCase()} REWRITE - MODE: ${mode.toUpperCase()}`);
+      const result = await rewriteDocument(originalText, enhancedOptions, provider);
       
       // Log completion
       console.log(`DIRECT PASSTHROUGH REWRITE COMPLETE - Using ${provider}`);
