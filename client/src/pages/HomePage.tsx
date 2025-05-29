@@ -6,7 +6,7 @@ import ComparativeResults from "@/components/ComparativeResults";
 import AIDetectionModal from "@/components/AIDetectionModal";
 import ProviderSelector, { LLMProvider } from "@/components/ProviderSelector";
 import UnifiedRewriteSection from "@/components/UnifiedRewriteSection";
-import EnhancedRewriteModal from "@/components/EnhancedRewriteModal_fixed";
+import SimpleRewriteModal from "@/components/SimpleRewriteModal";
 import ChatDialog from "@/components/ChatDialog";
 
 import { Button } from "@/components/ui/button";
@@ -353,13 +353,11 @@ const HomePage: React.FC = () => {
         </div>
       )}
 
-      {/* Enhanced Rewrite Modal */}
-      <EnhancedRewriteModal
-        key={documentA.content.substring(0, 50)} // Force re-render for different documents
+      {/* Simple Rewrite Modal */}
+      <SimpleRewriteModal
         isOpen={showRewriteDialog}
         onClose={() => setShowRewriteDialog(false)}
         originalText={documentA.content}
-        rewrittenText=""
         onRewriteUpdate={(newText: string) => {
           setDocumentA({ ...documentA, content: newText });
         }}
