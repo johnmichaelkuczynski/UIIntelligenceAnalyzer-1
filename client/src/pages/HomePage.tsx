@@ -6,7 +6,7 @@ import ComparativeResults from "@/components/ComparativeResults";
 import AIDetectionModal from "@/components/AIDetectionModal";
 import ProviderSelector, { LLMProvider } from "@/components/ProviderSelector";
 import UnifiedRewriteSection from "@/components/UnifiedRewriteSection";
-import SimpleRewriteModal from "@/components/SimpleRewriteModal";
+import ChunkRewriteModal from "@/components/ChunkRewriteModal";
 import ChatDialog from "@/components/ChatDialog";
 
 import { Button } from "@/components/ui/button";
@@ -353,8 +353,8 @@ const HomePage: React.FC = () => {
         </div>
       )}
 
-      {/* Simple Rewrite Modal */}
-      <SimpleRewriteModal
+      {/* Chunk Rewrite Modal */}
+      <ChunkRewriteModal
         isOpen={showRewriteDialog}
         onClose={() => setShowRewriteDialog(false)}
         originalText={documentA.content}
