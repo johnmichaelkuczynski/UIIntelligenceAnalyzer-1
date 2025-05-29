@@ -191,6 +191,8 @@ const SelectiveChunkRewriter: React.FC<SelectiveChunkRewriterProps> = ({
         description: `Successfully rewrote ${selectedChunks.length} chunks. Check chat below for results.`
       });
 
+      // DON'T close modal - let user see results and manually close
+
     } catch (error) {
       console.error("Selective rewrite error:", error);
       toast({
@@ -200,6 +202,7 @@ const SelectiveChunkRewriter: React.FC<SelectiveChunkRewriterProps> = ({
       });
     } finally {
       setIsRewriting(false);
+      // Modal stays open so user can see results
     }
   };
 
