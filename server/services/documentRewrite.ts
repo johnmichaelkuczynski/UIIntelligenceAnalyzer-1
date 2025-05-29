@@ -22,6 +22,24 @@ interface RewriteResult {
   provider: string;
 }
 
+// Function to clean markup formatting from text
+function removeMarkupFormatting(text: string): string {
+  return text
+    // Remove markdown bold formatting
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    // Remove markdown italic formatting
+    .replace(/\*(.*?)\*/g, '$1')
+    // Remove markdown headers
+    .replace(/^#+\s*/gm, '')
+    // Remove markdown links but keep text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    // Remove other common markdown symbols
+    .replace(/`([^`]+)`/g, '$1')
+    // Clean up extra whitespace
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 // Function to split text into chunks
 function splitIntoChunks(text: string, maxChunkSize: number = 2000): string[] {
   const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
@@ -62,7 +80,10 @@ export async function streamRewriteDocument(
     
     // Rewrite this chunk
     const chunkResult = await rewriteDocument(chunk, options, provider);
-    const rewrittenChunk = chunkResult.content;
+    let rewrittenChunk = chunkResult.content;
+    
+    // 🧹 CLEAN ALL MARKUP FORMATTING FROM CHUNK
+    rewrittenChunk = removeMarkupFormatting(rewrittenChunk);
     
     fullRewrite += rewrittenChunk + '\n\n';
     

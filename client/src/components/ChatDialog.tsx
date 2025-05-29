@@ -108,7 +108,7 @@ User Question: ${inputMessage}
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          instructions: contextualMessage,
+          instruction: contextualMessage,
           provider: selectedProvider
         }),
       });
