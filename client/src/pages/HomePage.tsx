@@ -7,6 +7,7 @@ import AIDetectionModal from "@/components/AIDetectionModal";
 import ProviderSelector, { LLMProvider } from "@/components/ProviderSelector";
 import UnifiedRewriteSection from "@/components/UnifiedRewriteSection";
 import ChunkRewriteModal from "@/components/ChunkRewriteModal";
+import SimpleRewriteModal from "@/components/SimpleRewriteModal";
 import ChatDialog from "@/components/ChatDialog";
 
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ const HomePage: React.FC = () => {
 
   // State for immediate rewrite dialog
   const [showRewriteDialog, setShowRewriteDialog] = useState(false);
+  const [rewriteMode, setRewriteMode] = useState<"simple" | "chunk">("chunk");
   
   // State for LLM provider
   const [selectedProvider, setSelectedProvider] = useState<LLMProvider>("openai");
@@ -278,14 +280,24 @@ const HomePage: React.FC = () => {
             </span>
           </Button>
           
-          <Button
-            onClick={() => setShowRewriteDialog(true)}
-            className="px-6 py-3 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700 flex items-center"
-            disabled={!documentA.content.trim() || isAnalysisLoading}
-          >
-            <FileEdit className="h-5 w-5 mr-2" />
-            <span>Rewrite</span>
-          </Button>
+          <div className="flex items-center space-x-2">
+            <select
+              value={rewriteMode}
+              onChange={(e) => setRewriteMode(e.target.value as "simple" | "chunk")}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+            >
+              <option value="chunk">Chunk Rewrite (Large Docs)</option>
+              <option value="simple">Simple Rewrite (Small Docs)</option>
+            </select>
+            <Button
+              onClick={() => setShowRewriteDialog(true)}
+              className="px-6 py-3 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700 flex items-center"
+              disabled={!documentA.content.trim() || isAnalysisLoading}
+            >
+              <FileEdit className="h-5 w-5 mr-2" />
+              <span>Rewrite</span>
+            </Button>
+          </div>
           
           <Button
             onClick={handleReset}
@@ -353,15 +365,26 @@ const HomePage: React.FC = () => {
         </div>
       )}
 
-      {/* Chunk Rewrite Modal */}
-      <ChunkRewriteModal
-        isOpen={showRewriteDialog}
-        onClose={() => setShowRewriteDialog(false)}
-        originalText={documentA.content}
-        onRewriteUpdate={(newText: string) => {
-          setDocumentA({ ...documentA, content: newText });
-        }}
-      />
+      {/* Conditional Rewrite Modal */}
+      {rewriteMode === "chunk" ? (
+        <ChunkRewriteModal
+          isOpen={showRewriteDialog}
+          onClose={() => setShowRewriteDialog(false)}
+          originalText={documentA.content}
+          onRewriteUpdate={(newText: string) => {
+            setDocumentA({ ...documentA, content: newText });
+          }}
+        />
+      ) : (
+        <SimpleRewriteModal
+          isOpen={showRewriteDialog}
+          onClose={() => setShowRewriteDialog(false)}
+          originalText={documentA.content}
+          onRewriteUpdate={(newText: string) => {
+            setDocumentA({ ...documentA, content: newText });
+          }}
+        />
+      )}
 
       {/* Chat Dialog - Always visible below everything */}
       <ChatDialog 
