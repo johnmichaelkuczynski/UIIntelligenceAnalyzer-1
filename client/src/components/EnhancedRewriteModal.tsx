@@ -169,6 +169,11 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
                 
                 console.log(`🔥 LIVE CHUNK ${data.index}/${data.total} DISPLAYED!`);
                 
+                // 🔥 DEPOSIT CHUNK INTO CHAT DIALOG
+                if ((window as any).addChatChunk) {
+                  (window as any).addChatChunk(data.content, data.index, data.total);
+                }
+                
               } else if (data.type === 'complete') {
                 console.log('🎉 Live streaming completed successfully!');
                 break;

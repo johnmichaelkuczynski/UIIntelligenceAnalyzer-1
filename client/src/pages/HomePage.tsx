@@ -7,6 +7,7 @@ import AIDetectionModal from "@/components/AIDetectionModal";
 import ProviderSelector, { LLMProvider } from "@/components/ProviderSelector";
 import UnifiedRewriteSection from "@/components/UnifiedRewriteSection";
 import EnhancedRewriteModal from "@/components/EnhancedRewriteModal";
+import ChatDialog from "@/components/ChatDialog";
 
 import { Button } from "@/components/ui/button";
 import { Brain, Trash2, FileEdit } from "lucide-react";
@@ -131,7 +132,7 @@ const HomePage: React.FC = () => {
     }
     
     // Check if the selected provider is available
-    if (!apiStatus[selectedProvider]) {
+    if (selectedProvider !== "all" && !apiStatus[selectedProvider as keyof typeof apiStatus]) {
       alert(`The ${selectedProvider} API key is not configured or is invalid. Please select a different provider or ensure the API key is properly set.`);
       return;
     }
@@ -362,6 +363,12 @@ const HomePage: React.FC = () => {
         onRewriteUpdate={(newText: string) => {
           setDocumentA({ ...documentA, content: newText });
         }}
+      />
+
+      {/* Chat Dialog - Always visible below everything */}
+      <ChatDialog 
+        currentDocument={documentA.content}
+        analysisResults={mode === "single" ? analysisA : comparison}
       />
     </div>
   );
