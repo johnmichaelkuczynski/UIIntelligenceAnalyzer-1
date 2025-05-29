@@ -8,6 +8,7 @@ import ProviderSelector, { LLMProvider } from "@/components/ProviderSelector";
 import UnifiedRewriteSection from "@/components/UnifiedRewriteSection";
 import ChunkRewriteModal from "@/components/ChunkRewriteModal";
 import SimpleRewriteModal from "@/components/SimpleRewriteModal";
+import SelectiveChunkRewriter from "@/components/SelectiveChunkRewriter";
 import ChatDialog from "@/components/ChatDialog";
 
 import { Button } from "@/components/ui/button";
@@ -367,7 +368,7 @@ const HomePage: React.FC = () => {
 
       {/* Conditional Rewrite Modal */}
       {rewriteMode === "chunk" ? (
-        <ChunkRewriteModal
+        <SelectiveChunkRewriter
           isOpen={showRewriteDialog}
           onClose={() => setShowRewriteDialog(false)}
           originalText={documentA.content}
