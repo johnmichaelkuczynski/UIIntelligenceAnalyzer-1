@@ -62,6 +62,12 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
   const [isEmailSending, setIsEmailSending] = useState<boolean>(false);
   const [recipientEmail, setRecipientEmail] = useState<string>("");
   const [emailSubject, setEmailSubject] = useState<string>("Enhanced Document Rewrite");
+  
+  // 🔥 MINIMIZE STATE
+  const [isMinimized, setIsMinimized] = useState<boolean>(false);
+  
+  // 🚨 EMERGENCY FREEZE STATE
+  const [isFrozen, setIsFrozen] = useState<boolean>(false);
 
   // Update current rewrite when prop changes
   useEffect(() => {
@@ -321,12 +327,23 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <FileText className="h-5 w-5" />
-            <span>🔥 Enhanced Rewrite Studio - LIVE STREAMING</span>
+          <DialogTitle className="flex items-center justify-between space-x-2">
+            <div className="flex items-center space-x-2">
+              <FileText className="h-5 w-5" />
+              <span>🔥 Enhanced Rewrite Studio - LIVE STREAMING</span>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setIsMinimized(!isMinimized)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              {isMinimized ? "📖 Expand" : "📖 Minimize"}
+            </Button>
           </DialogTitle>
         </DialogHeader>
         
+        {!isMinimized && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
           {/* Left Panel - Controls */}
           <div className="space-y-4 overflow-y-auto pr-2">
@@ -535,6 +552,21 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
             </div>
           </DialogContent>
         </Dialog>
+        )}
+        
+        {/* 🚨 EMERGENCY FREEZE WARNING */}
+        {isFrozen && (
+          <div className="fixed inset-0 bg-red-500 bg-opacity-75 flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-lg shadow-xl text-center">
+              <h2 className="text-2xl font-bold text-red-600 mb-4">🚨 CONTENT PRESERVED!</h2>
+              <p className="text-lg mb-4">The rewrite is complete and FROZEN in place!</p>
+              <p className="text-sm text-gray-600 mb-4">Check the chat dialog below for the saved content.</p>
+              <Button onClick={() => setIsFrozen(false)} className="bg-red-600 hover:bg-red-700 text-white">
+                Unfreeze & Continue
+              </Button>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -6,7 +6,7 @@ import ComparativeResults from "@/components/ComparativeResults";
 import AIDetectionModal from "@/components/AIDetectionModal";
 import ProviderSelector, { LLMProvider } from "@/components/ProviderSelector";
 import UnifiedRewriteSection from "@/components/UnifiedRewriteSection";
-import EnhancedRewriteModal from "@/components/EnhancedRewriteModal";
+import EnhancedRewriteModal from "@/components/EnhancedRewriteModal_fixed";
 import ChatDialog from "@/components/ChatDialog";
 
 import { Button } from "@/components/ui/button";
