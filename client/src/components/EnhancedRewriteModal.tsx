@@ -70,18 +70,19 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
 
   // Reset instructions when modal opens for a new document
   useEffect(() => {
-    if (isOpen) {
-      // FORCE RESET EVERYTHING when modal opens
-      console.log("🔄 RESETTING MODAL STATE");
+    if (isOpen && !currentRewrite) {
+      // Only reset if there's no preserved content
+      console.log("🔄 RESETTING MODAL STATE - NO PRESERVED CONTENT");
       setCustomInstructions(""); // Start with EMPTY instructions
       setRewriteMode("hybrid");
       setTargetChunks(3);
       setStreamingContent("");
-      setCurrentRewrite(""); // Clear previous content
       setChunkProgress({ current: 0, total: 0 });
       setRewriteProgress(0);
       setIsStreaming(false);
       setIsRewriting(false);
+    } else if (isOpen && currentRewrite) {
+      console.log("🔒 MODAL OPENED WITH PRESERVED CONTENT - NOT RESETTING");
     }
   }, [isOpen]);
 
