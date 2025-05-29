@@ -88,7 +88,7 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
 
   // Reset when modal opens with different content
   useEffect(() => {
-    if (isOpen && originalText && !currentRewrite) {
+    if (isOpen) {
       resetModalState();
     }
   }, [isOpen, originalText]);
