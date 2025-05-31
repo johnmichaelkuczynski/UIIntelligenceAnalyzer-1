@@ -4,7 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Send, Upload, Download, Mail, FileText, Paperclip } from 'lucide-react';
+import { Send, Upload, Download, Mail, FileText, Paperclip, ArrowUp } from 'lucide-react';
 import { MathRenderer } from './MathRenderer';
 
 interface ChatMessage {
@@ -19,6 +19,7 @@ interface ChatDialogProps {
   currentDocument?: string;
   analysisResults?: any;
   onStreamingChunk?: (chunk: string, index: number, total: number) => void;
+  onSendToDocument?: (content: string) => void;
 }
 
 type LLMProvider = "openai" | "anthropic" | "perplexity";
@@ -32,7 +33,8 @@ const AI_PROVIDERS = [
 export const ChatDialog: React.FC<ChatDialogProps> = ({
   currentDocument,
   analysisResults,
-  onStreamingChunk
+  onStreamingChunk,
+  onSendToDocument
 }) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -348,6 +350,20 @@ User Question: ${inputMessage}
                   <div className="whitespace-pre-wrap">
                     <MathRenderer content={message.content} />
                   </div>
+                  {/* Send to Document button for AI messages */}
+                  {message.role === 'assistant' && onSendToDocument && (
+                    <div className="mt-2 pt-2 border-t border-gray-200">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onSendToDocument(message.content)}
+                        className="text-xs"
+                      >
+                        <ArrowUp className="h-3 w-3 mr-1" />
+                        Send to Document
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))

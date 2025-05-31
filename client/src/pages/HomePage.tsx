@@ -391,6 +391,12 @@ const HomePage: React.FC = () => {
       <ChatDialog 
         currentDocument={documentA.content}
         analysisResults={mode === "single" ? analysisA : comparison}
+        onSendToDocument={(content: string) => {
+          setDocumentA({ ...documentA, content: content });
+          // Clear any existing analysis when new content is added
+          setAnalysisA(null);
+          setComparison(null);
+        }}
       />
     </div>
   );
