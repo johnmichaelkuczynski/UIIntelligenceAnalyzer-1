@@ -104,8 +104,15 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
     try {
       // Simple passthrough with document content if available
       let contextualMessage = inputMessage;
+      
+      console.log("Current document length:", currentDocument?.length);
+      console.log("Current document preview:", currentDocument?.substring(0, 100));
+      
       if (currentDocument && currentDocument.trim()) {
         contextualMessage = `DOCUMENT:\n${currentDocument}\n\nUSER: ${inputMessage}`;
+        console.log("Sending contextual message length:", contextualMessage.length);
+      } else {
+        console.log("No document content available");
       }
 
       const response = await fetch('/api/direct-model-request', {
