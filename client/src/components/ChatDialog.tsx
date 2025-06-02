@@ -62,6 +62,57 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
     }
   }, [resetTrigger]);
 
+  // Auto-analyze document when it changes
+  useEffect(() => {
+    if (currentDocument && currentDocument.trim() && currentDocument.length > 50) {
+      // Auto-analyze new document
+      const autoAnalyze = async () => {
+        const analysisMessage: ChatMessage = {
+          id: `auto-analysis-${Date.now()}`,
+          role: 'assistant',
+          content: 'Analyzing uploaded document...',
+          timestamp: new Date(),
+          type: 'document'
+        };
+        
+        setMessages(prev => [...prev, analysisMessage]);
+        
+        try {
+          const response = await fetch('/api/direct-model-request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              instruction: `Analyze this document and provide a brief analytical summary and evaluation:\n\n${currentDocument}`,
+              provider: selectedProvider
+            }),
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            const analysisContent = data.content || "Analysis completed.";
+            
+            // Update the analysis message
+            setMessages(prev => prev.map(msg => 
+              msg.id === analysisMessage.id 
+                ? { ...msg, content: analysisContent }
+                : msg
+            ));
+          }
+        } catch (error) {
+          setMessages(prev => prev.map(msg => 
+            msg.id === analysisMessage.id 
+              ? { ...msg, content: "Error analyzing document." }
+              : msg
+          ));
+        }
+      };
+      
+      // Delay to avoid rapid re-analysis
+      const timeoutId = setTimeout(autoAnalyze, 1000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [currentDocument, selectedProvider]);
+
   // Add streaming chunk to chat
   const addStreamingChunk = (chunk: string, index: number, total: number) => {
     const chunkMessage: ChatMessage = {
