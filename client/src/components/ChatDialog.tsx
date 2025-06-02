@@ -4,7 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Send, Upload, Download, Mail, FileText, Paperclip, ArrowUp } from 'lucide-react';
+import { Send, Upload, Download, Mail, FileText, Paperclip } from 'lucide-react';
 import { MathRenderer } from './MathRenderer';
 
 interface ChatMessage {
@@ -19,8 +19,6 @@ interface ChatDialogProps {
   currentDocument?: string;
   analysisResults?: any;
   onStreamingChunk?: (chunk: string, index: number, total: number) => void;
-  onSendToDocument?: (content: string) => void;
-  resetTrigger?: number;
 }
 
 type LLMProvider = "openai" | "anthropic" | "perplexity";
@@ -34,9 +32,7 @@ const AI_PROVIDERS = [
 export const ChatDialog: React.FC<ChatDialogProps> = ({
   currentDocument,
   analysisResults,
-  onStreamingChunk,
-  onSendToDocument,
-  resetTrigger
+  onStreamingChunk
 }) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -53,65 +49,6 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  // Reset chat when resetTrigger changes
-  useEffect(() => {
-    if (resetTrigger !== undefined && resetTrigger > 0) {
-      setMessages([]);
-      setInputMessage("");
-    }
-  }, [resetTrigger]);
-
-  // Auto-analyze document when it changes
-  useEffect(() => {
-    if (currentDocument && currentDocument.trim() && currentDocument.length > 50) {
-      // Auto-analyze new document
-      const autoAnalyze = async () => {
-        const analysisMessage: ChatMessage = {
-          id: `auto-analysis-${Date.now()}`,
-          role: 'assistant',
-          content: 'Analyzing uploaded document...',
-          timestamp: new Date(),
-          type: 'document'
-        };
-        
-        setMessages(prev => [...prev, analysisMessage]);
-        
-        try {
-          const response = await fetch('/api/direct-model-request', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              instruction: `Analyze this document and provide a brief analytical summary and evaluation:\n\n${currentDocument}`,
-              provider: selectedProvider
-            }),
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            const analysisContent = data.content || "Analysis completed.";
-            
-            // Update the analysis message
-            setMessages(prev => prev.map(msg => 
-              msg.id === analysisMessage.id 
-                ? { ...msg, content: analysisContent }
-                : msg
-            ));
-          }
-        } catch (error) {
-          setMessages(prev => prev.map(msg => 
-            msg.id === analysisMessage.id 
-              ? { ...msg, content: "Error analyzing document." }
-              : msg
-          ));
-        }
-      };
-      
-      // Delay to avoid rapid re-analysis
-      const timeoutId = setTimeout(autoAnalyze, 1000);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [currentDocument, selectedProvider]);
 
   // Add streaming chunk to chat
   const addStreamingChunk = (chunk: string, index: number, total: number) => {
@@ -153,17 +90,16 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
     setIsLoading(true);
 
     try {
-      // Simple passthrough with document content if available
+      // Prepare context with current document and analysis
       let contextualMessage = inputMessage;
-      
-      console.log("Current document length:", currentDocument?.length);
-      console.log("Current document preview:", currentDocument?.substring(0, 100));
-      
-      if (currentDocument && currentDocument.trim()) {
-        contextualMessage = `DOCUMENT:\n${currentDocument}\n\nUSER: ${inputMessage}`;
-        console.log("Sending contextual message length:", contextualMessage.length);
-      } else {
-        console.log("No document content available");
+      if (currentDocument || analysisResults) {
+        contextualMessage = `
+Context Information:
+${currentDocument ? `Current Document: ${currentDocument.substring(0, 1000)}...` : ''}
+${analysisResults ? `Analysis Results: ${JSON.stringify(analysisResults, null, 2)}` : ''}
+
+User Question: ${inputMessage}
+        `.trim();
       }
 
       const response = await fetch('/api/direct-model-request', {
@@ -412,20 +348,6 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
                   <div className="whitespace-pre-wrap">
                     <MathRenderer content={message.content} />
                   </div>
-                  {/* Send to Document button for AI messages */}
-                  {message.role === 'assistant' && onSendToDocument && (
-                    <div className="mt-2 pt-2 border-t border-gray-200">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => onSendToDocument(message.content)}
-                        className="text-xs"
-                      >
-                        <ArrowUp className="h-3 w-3 mr-1" />
-                        Send to Document
-                      </Button>
-                    </div>
-                  )}
                 </div>
               </div>
             ))
