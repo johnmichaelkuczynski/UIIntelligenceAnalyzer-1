@@ -102,23 +102,10 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
     setIsLoading(true);
 
     try {
-      // Prepare context with current document and analysis
+      // Simple passthrough with document content if available
       let contextualMessage = inputMessage;
       if (currentDocument && currentDocument.trim()) {
-        const documentPreview = currentDocument.length > 2000 
-          ? currentDocument.substring(0, 2000) + '...' 
-          : currentDocument;
-        
-        contextualMessage = `You are helping analyze and discuss this document:
-
-DOCUMENT CONTENT:
-${documentPreview}
-
-${analysisResults ? `\nANALYSIS RESULTS:\n${JSON.stringify(analysisResults, null, 2)}\n` : ''}
-
-USER QUESTION: ${inputMessage}
-
-Please provide a helpful response based on the document content and user question.`;
+        contextualMessage = `DOCUMENT:\n${currentDocument}\n\nUSER: ${inputMessage}`;
       }
 
       const response = await fetch('/api/direct-model-request', {
