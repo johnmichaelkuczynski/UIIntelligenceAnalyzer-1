@@ -20,6 +20,7 @@ interface ChatDialogProps {
   analysisResults?: any;
   onStreamingChunk?: (chunk: string, index: number, total: number) => void;
   onSendToDocument?: (content: string) => void;
+  resetTrigger?: number;
 }
 
 type LLMProvider = "openai" | "anthropic" | "perplexity";
@@ -34,7 +35,8 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
   currentDocument,
   analysisResults,
   onStreamingChunk,
-  onSendToDocument
+  onSendToDocument,
+  resetTrigger
 }) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -51,6 +53,14 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Reset chat when resetTrigger changes
+  useEffect(() => {
+    if (resetTrigger !== undefined && resetTrigger > 0) {
+      setMessages([]);
+      setInputMessage("");
+    }
+  }, [resetTrigger]);
 
   // Add streaming chunk to chat
   const addStreamingChunk = (chunk: string, index: number, total: number) => {
@@ -94,14 +104,21 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
     try {
       // Prepare context with current document and analysis
       let contextualMessage = inputMessage;
-      if (currentDocument || analysisResults) {
-        contextualMessage = `
-Context Information:
-${currentDocument ? `Current Document: ${currentDocument.substring(0, 1000)}...` : ''}
-${analysisResults ? `Analysis Results: ${JSON.stringify(analysisResults, null, 2)}` : ''}
+      if (currentDocument && currentDocument.trim()) {
+        const documentPreview = currentDocument.length > 2000 
+          ? currentDocument.substring(0, 2000) + '...' 
+          : currentDocument;
+        
+        contextualMessage = `You are helping analyze and discuss this document:
 
-User Question: ${inputMessage}
-        `.trim();
+DOCUMENT CONTENT:
+${documentPreview}
+
+${analysisResults ? `\nANALYSIS RESULTS:\n${JSON.stringify(analysisResults, null, 2)}\n` : ''}
+
+USER QUESTION: ${inputMessage}
+
+Please provide a helpful response based on the document content and user question.`;
       }
 
       const response = await fetch('/api/direct-model-request', {

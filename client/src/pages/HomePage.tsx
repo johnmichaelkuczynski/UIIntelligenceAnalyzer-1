@@ -60,6 +60,9 @@ const HomePage: React.FC = () => {
     anthropic: false,
     perplexity: false
   });
+
+  // State for chat reset trigger
+  const [chatResetTrigger, setChatResetTrigger] = useState(0);
   
   // Check API status when component mounts
   useEffect(() => {
@@ -194,9 +197,13 @@ const HomePage: React.FC = () => {
     setIsAnalysisLoading(false);
     setIsAICheckLoading(false);
     setAIDetectionResult(undefined);
+    setShowRewriteDialog(false);
     
     // Reset to single mode
     setMode("single");
+    
+    // Reset chat messages
+    setChatResetTrigger(prev => prev + 1);
     
     // Scroll to top
     window.scrollTo(0, 0);
