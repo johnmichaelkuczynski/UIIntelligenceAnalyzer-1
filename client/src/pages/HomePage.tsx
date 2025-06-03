@@ -391,6 +391,9 @@ const HomePage: React.FC = () => {
       <ChatDialog 
         currentDocument={documentA.content}
         analysisResults={mode === "single" ? analysisA : comparison}
+        onSendToInput={(content: string) => {
+          setDocumentA({ ...documentA, content: content });
+        }}
       />
     </div>
   );

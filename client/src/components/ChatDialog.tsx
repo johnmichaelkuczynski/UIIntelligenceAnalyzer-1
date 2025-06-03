@@ -4,7 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Send, Upload, Download, Mail, FileText, Paperclip } from 'lucide-react';
+import { Send, Upload, Download, Mail, FileText, Paperclip, ArrowUpToLine } from 'lucide-react';
 import { MathRenderer } from './MathRenderer';
 
 interface ChatMessage {
@@ -19,6 +19,7 @@ interface ChatDialogProps {
   currentDocument?: string;
   analysisResults?: any;
   onStreamingChunk?: (chunk: string, index: number, total: number) => void;
+  onSendToInput?: (content: string) => void;
 }
 
 type LLMProvider = "openai" | "anthropic" | "perplexity";
@@ -32,7 +33,8 @@ const AI_PROVIDERS = [
 export const ChatDialog: React.FC<ChatDialogProps> = ({
   currentDocument,
   analysisResults,
-  onStreamingChunk
+  onStreamingChunk,
+  onSendToInput
 }) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -44,6 +46,16 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleSendToInput = (content: string) => {
+    if (onSendToInput) {
+      onSendToInput(content);
+      toast({
+        title: "Content sent to input",
+        description: "AI response has been added to the document input box"
+      });
+    }
   };
 
   useEffect(() => {
@@ -334,20 +346,36 @@ User Question: ${inputMessage}
           ) : (
             messages.map((message) => (
               <div key={message.id} className={`mb-4 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
-                <div className={`inline-block max-w-[80%] p-3 rounded-lg ${
+                <div className={`inline-block max-w-[80%] ${
                   message.role === 'user' 
-                    ? 'bg-blue-500 text-white' 
+                    ? 'bg-blue-500 text-white p-3 rounded-lg' 
                     : message.type === 'chunk'
-                    ? 'bg-green-100 text-green-800 border-l-4 border-green-500'
-                    : 'bg-white text-gray-800 border'
+                    ? 'bg-green-100 text-green-800 border-l-4 border-green-500 p-3 rounded-lg'
+                    : 'bg-white text-gray-800 border rounded-lg'
                 }`}>
-                  <div className="text-xs opacity-70 mb-1">
-                    {message.role === 'user' ? 'You' : selectedProvider.toUpperCase()} • {message.timestamp.toLocaleTimeString()}
-                    {message.type === 'chunk' && ' • Streaming Chunk'}
+                  <div className="p-3">
+                    <div className="text-xs opacity-70 mb-1">
+                      {message.role === 'user' ? 'You' : selectedProvider.toUpperCase()} • {message.timestamp.toLocaleTimeString()}
+                      {message.type === 'chunk' && ' • Streaming Chunk'}
+                    </div>
+                    <div className="whitespace-pre-wrap">
+                      <MathRenderer content={message.content} />
+                    </div>
                   </div>
-                  <div className="whitespace-pre-wrap">
-                    <MathRenderer content={message.content} />
-                  </div>
+                  {/* Send to Input button for AI responses */}
+                  {message.role === 'assistant' && onSendToInput && (
+                    <div className="border-t bg-gray-50 px-3 py-2 rounded-b-lg">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSendToInput(message.content)}
+                        className="text-xs"
+                      >
+                        <ArrowUpToLine className="h-3 w-3 mr-1" />
+                        Send to Input
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))
