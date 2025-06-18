@@ -10,6 +10,7 @@ import ChunkRewriteModal from "@/components/ChunkRewriteModal";
 import SimpleRewriteModal from "@/components/SimpleRewriteModal";
 import SelectiveChunkRewriter from "@/components/SelectiveChunkRewriter";
 import ChatDialog from "@/components/ChatDialog";
+import SemanticDensityAnalyzer from "@/components/SemanticDensityAnalyzer";
 
 import { Button } from "@/components/ui/button";
 import { Brain, Trash2, FileEdit } from "lucide-react";
@@ -362,6 +363,13 @@ const HomePage: React.FC = () => {
                   />
                   
                   {/* Rewrite results are now displayed inside the UnifiedRewriteSection component */}
+                </div>
+              )}
+              
+              {/* Semantic Density Analysis - only shown for single document analysis */}
+              {analysisA && mode === "single" && documentA.content.trim() && (
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8 mt-8">
+                  <SemanticDensityAnalyzer text={documentA.content} />
                 </div>
               )}
             </div>

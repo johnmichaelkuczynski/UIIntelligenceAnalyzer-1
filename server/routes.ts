@@ -605,5 +605,30 @@ export async function registerRoutes(app: Express): Promise<Express> {
     }
   });
   
+  app.post("/api/semantic-analysis", async (req: Request, res: Response) => {
+    try {
+      const { text } = req.body;
+      
+      if (!text || typeof text !== 'string') {
+        return res.status(400).json({ error: "Text content is required" });
+      }
+      
+      console.log(`Starting semantic analysis for text of length: ${text.length}`);
+      
+      const { analyzeSemanticDensity } = await import('./services/semanticAnalysis');
+      const result = await analyzeSemanticDensity(text);
+      
+      console.log(`Semantic analysis complete: ${result.sentences.length} sentences, ${result.paragraphs.length} paragraphs`);
+      
+      return res.json(result);
+    } catch (error: any) {
+      console.error("Error in semantic analysis:", error);
+      return res.status(500).json({ 
+        error: "Failed to analyze semantic density",
+        message: error.message 
+      });
+    }
+  });
+
   return app;
 }
