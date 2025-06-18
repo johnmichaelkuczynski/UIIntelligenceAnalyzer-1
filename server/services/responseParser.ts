@@ -119,9 +119,9 @@ function extractPercentileExplanation(text: string): string | undefined {
  * Extract summary diagnosis from intelligence report
  */
 function extractSummaryDiagnosis(text: string): string | undefined {
-  const summaryMatch = text.match(/1\.\s*Summary Diagnosis[^2]*2\./s);
+  const summaryMatch = text.match(/1\.\s*Summary Diagnosis[\s\S]*?(?=2\.)/);
   if (summaryMatch) {
-    return summaryMatch[0].replace(/1\.\s*Summary Diagnosis[^a-zA-Z]*/, '').replace(/2\.$/, '').trim();
+    return summaryMatch[0].replace(/1\.\s*Summary Diagnosis[^a-zA-Z]*/, '').trim();
   }
   return undefined;
 }
@@ -130,22 +130,27 @@ function extractSummaryDiagnosis(text: string): string | undefined {
  * Extract comparative placement from intelligence report
  */
 function extractComparativePlacement(text: string): string | undefined {
-  const placementMatch = text.match(/3\.\s*Comparative Placement[^4]*4\./s);
-  if (placementMatch) {
-    return placementMatch[0].replace(/3\.\s*Comparative Placement[^a-zA-Z]*/, '').replace(/4\.$/, '').trim();
-  }
-  return undefined;
+  // Use indexOf approach for broader compatibility
+  const startMarker = "3. Comparative Placement";
+  const endMarker = "4.";
+  const startIndex = text.indexOf(startMarker);
+  if (startIndex === -1) return undefined;
+  
+  const endIndex = text.indexOf(endMarker, startIndex + startMarker.length);
+  if (endIndex === -1) return undefined;
+  
+  return text.substring(startIndex + startMarker.length, endIndex).trim();
 }
 
 /**
  * Extract final assessment from intelligence report
  */
 function extractFinalAssessment(text: string): string | undefined {
-  const assessmentMatch = text.match(/4\.\s*Final Assessment(.*)$/s);
-  if (assessmentMatch) {
-    return assessmentMatch[1].trim();
-  }
-  return undefined;
+  const startMarker = "4. Final Assessment";
+  const startIndex = text.indexOf(startMarker);
+  if (startIndex === -1) return undefined;
+  
+  return text.substring(startIndex + startMarker.length).trim();
 }
 
 /**

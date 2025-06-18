@@ -132,6 +132,13 @@ Build process:
   - Dimensions now properly reflect cognitive assessment focus rather than prose quality
   - PDF exports include detailed breakdown of each cognitive dimension with scores and descriptions
   - System rewards genuine intellectual risk-taking over polished academic simulation
+- June 18, 2025. Comprehensive Intelligence Report Structure Implementation:
+  - Implemented percentile ranking interpretation: scores represent how many people the author outperforms in cognitive ability
+  - Added psychiatric-style intelligence report format with six cognitive dimensions (0-10 scale each)
+  - Enhanced response parsing to extract structured report components: Summary Diagnosis, Cognitive Breakdown, Comparative Placement, Final Assessment
+  - Updated AI prompts to generate comprehensive intelligence profiles rather than simple scores
+  - System now provides detailed cognitive profiles with narrative assessments of intelligence flavor and psychological tone
+  - Reports include comparative placement relative to undergraduate, graduate, journal authors, and canonical thinkers
 
 ## User Preferences
 
