@@ -14,40 +14,43 @@ const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
 // FORENSIC COGNITIVE PROFILER - USING ADVANCED INTELLIGENCE EVALUATION
-const ANALYSIS_PROMPT = `You are a FORENSIC COGNITIVE PROFILER analyzing a text sample to determine the intelligence level of its author. 
+const ANALYSIS_PROMPT = `INTELLIGENCE SCORING DIRECTIVE
+Estimate the intelligence of the author based solely on what kind of mind must exist to have produced this writing, assuming the author wrote it without external help. You are not evaluating writing quality, style, or clarity, but rather cognitive depth, conceptual compression, inferential architecture, originality, and symbolic manipulation.
 
-THIS IS NOT A GRADING SYSTEM. You are NOT evaluating:
-- Academic merit
-- Novelty or originality of ideas
-- Citation practices
-- Formatting or presentation
-- How "revolutionary" the content is
-- Adherence to academic standards
-- Whether the author has "seen the full development" of ideas
+Use the following calibration anchor:
 
-INSTEAD, you are ONLY identifying cognitive patterns that reveal raw intelligence:
-- Complexity of abstract reasoning
-- Precision in logical structure
-- Ability to manipulate symbolic systems
-- Inferential architecture
-- Depth of conceptual understanding
-- Intellectual control over difficult material
+ANCHOR TEXT (Score = 98–100/100):
+"According to the computational theory of mind, to think is to compute. But what is meant by the word 'compute'? The generally given answer is this: Every case of computing is a case of manipulating symbols, but not vice versa—a manipulation of symbols must be driven exclusively by the formal properties of those symbols if it is to qualify as a computation. In this paper, I will present the following argument. Words like 'form' and 'formal' are ambiguous, as they can refer to formal properties in at least two different senses..."
 
-On a scale from 0–100, where 50 reflects the median intelligence of a typical college graduate, estimate the author's intelligence level, based solely on what is demonstrated in this text. Treat the text as forensic evidence, like a detective analyzing a note left by a suspect.
+Any author capable of writing the above demonstrates:
+- Deep abstraction
+- Philosophical originality
+- Inferential control
+- Strong manipulation of symbolic concepts
+- Conceptual disentanglement of terminological ambiguities
 
-Calibration Points:
-- 50: Average college graduate (baseline)
-- 60-70: Pop-sci essay on AI ethics
-- 70-80: Undergraduate paper with basic arguments
-- 85-95: PhD-level philosophical critique 
-- 95-100: Formal mathematical/logical work
+Use this as the 100 anchor point. No text that is less intellectually rich or conceptually potent should score above 95. 
 
-IMPORTANT CALIBRATION RULES:
-1. Technical/abstract content should score 90+ EVEN IF not "groundbreaking" or "original"
-2. Formal mathematical and logical work should always score 95-100
-3. NEVER penalize for density, difficulty, or obscure notation
-4. Focus on cognitive capacity (abstraction, logical control, structural insight)
-5. A text can reveal high intelligence even if it's not laying out a "revolutionary" idea
+CALIBRATION SCALE:
+- 98-100: Philosophy of mind, formal logic, advanced mathematics, complex theoretical frameworks
+- 95-97: PhD-level theoretical work, sophisticated philosophical analysis
+- 90-94: Graduate-level academic writing with strong conceptual control
+- 85-89: Advanced undergraduate work, complex interdisciplinary analysis
+- 80-84: Solid academic writing with some theoretical depth
+- 75-79: Clear analytical writing with moderate complexity
+- 70-74: Basic academic or professional writing
+- 60-69: General educated discourse
+- 50-59: Average college graduate writing
+- Below 50: Below college level
+
+CRITICAL RULES:
+1. Philosophical, mathematical, and theoretical content should score 95+ when demonstrating conceptual sophistication
+2. Academic dissertations discussing complex frameworks should score 90+
+3. Never penalize for technical difficulty or abstract content
+4. Focus on the cognitive capacity required to produce the text
+5. Reward inferential control, conceptual precision, and abstract reasoning
+
+Final output: Return a score (0–100) with a single paragraph justifying the estimate by reference to author intelligence, not text quality.
 
 IMPORTANT: Start your response with "Intelligence Score: [score]/100" at the top, followed by your detailed analysis.`;
 
