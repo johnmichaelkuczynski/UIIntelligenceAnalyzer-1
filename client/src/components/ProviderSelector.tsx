@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { BrainCircuit, Bot, Sparkles, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-export type LLMProvider = "openai" | "anthropic" | "perplexity" | "all";
+export type LLMProvider = "openai" | "anthropic" | "perplexity" | "deepseek" | "all";
 
 interface ProviderSelectorProps {
   selectedProvider: LLMProvider;
@@ -22,7 +22,7 @@ const ProviderSelector: React.FC<ProviderSelectorProps> = ({
   className = "",
   label = "AI Provider",
   smallSize = false,
-  apiStatus = { openai: true, anthropic: true, perplexity: true },
+  apiStatus = { openai: true, anthropic: true, perplexity: true, deepseek: true },
   showTooltips = true
 }) => {
   return (
@@ -41,6 +41,7 @@ const ProviderSelector: React.FC<ProviderSelectorProps> = ({
                   <li><span className="font-medium">OpenAI GPT-4o</span> - Excellent for detailed analysis, strong at recognizing complex patterns</li>
                   <li><span className="font-medium">Anthropic Claude</span> - Very good at nuanced text interpretation and detailed reasoning</li>
                   <li><span className="font-medium">Perplexity Llama</span> - Open source model with good analytical capabilities</li>
+                  <li><span className="font-medium">DeepSeek</span> - Advanced reasoning model with strong mathematical and analytical capabilities</li>
                 </ul>
               </TooltipContent>
             </Tooltip>
@@ -83,6 +84,17 @@ const ProviderSelector: React.FC<ProviderSelectorProps> = ({
               <Bot className="h-4 w-4 text-blue-600" />
               <span>Perplexity (Llama 3.1)</span>
               {!apiStatus.perplexity && <span className="text-xs text-red-500 ml-2">(Unavailable)</span>}
+            </div>
+          </SelectItem>
+          <SelectItem 
+            value="deepseek" 
+            className="flex items-center"
+            disabled={!apiStatus.deepseek}
+          >
+            <div className="flex items-center gap-2">
+              <BrainCircuit className="h-4 w-4 text-orange-600" />
+              <span>DeepSeek</span>
+              {!apiStatus.deepseek && <span className="text-xs text-red-500 ml-2">(Unavailable)</span>}
             </div>
           </SelectItem>
           {/* Compare Providers option temporarily removed */}
