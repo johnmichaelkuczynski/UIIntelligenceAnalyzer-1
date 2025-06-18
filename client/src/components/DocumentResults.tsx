@@ -22,6 +22,7 @@ import { rewriteDocument, analyzeDocument, checkForAI } from "@/lib/analysis";
 import { useToast } from "@/hooks/use-toast";
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import { jsPDF } from "jspdf";
+import { cleanAIResponse } from "@/lib/textUtils";
 
 interface DocumentResultsProps {
   id: "A" | "B";
