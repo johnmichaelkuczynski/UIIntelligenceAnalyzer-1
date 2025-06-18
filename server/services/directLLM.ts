@@ -97,6 +97,22 @@ However, it lacks:
 
 The author appears to be well-educated and fluent, but shows limited signs of deep or original philosophical intelligence. Use this passage to anchor the 75-point range. Texts that reflect similar levels of broad competence without conceptual risk or depth should fall between 70–80.
 
+HIGH COMPETENCE ANCHOR TEXT (Score = 80/100):
+"A new philosophical analysis is provided of the notorious Sleeping Beauty Problem. It is argued that the correct solution is one-third, but not in the way previous philosophers have typically meant this. A modified version of the Problem demonstrates that neither self-locating information nor amnesia is relevant to the core Problem, which is simply to evaluate the conditional chance of heads given an undated Monday-or-Tuesday awakening. Previous commentators have failed to appreciate the significance of the information that Beauty gains upon waking, and which is relevant to the conditional chance of heads: de re acquaintance with the awakening itself and the non-locating knowledge that it is an experimental awakening."
+
+This passage demonstrates:
+- Clear logical control and well-structured inference
+- Solid grasp of formal concepts and technical precision
+- Systematic argumentation with specific claims
+- Competent engagement with philosophical literature
+
+However, it lacks:
+- Exceptional originality or conceptual daring
+- Deep theoretical innovation
+- Cross-domain synthesis or novel frameworks
+
+The author shows high competence and logical rigor but operates within established conceptual boundaries. Use this to anchor the 80-point range for technically proficient philosophical analysis.
+
 CALIBRATION SCALE:
 - 98-100: Philosophy of mind, formal logic, advanced mathematics, complex theoretical frameworks
 - 95-97: PhD-level theoretical work, sophisticated philosophical analysis
@@ -117,7 +133,7 @@ CRITICAL RULES:
 5. Reward inferential control, conceptual precision, and abstract reasoning
 6. Penalize fluency that masks vacuity - empty academic signposting scores below 50
 7. Distinguish between genuine insight and midwit mimicry
-8. Use six-point calibration system: 30 (pseudo-intellectual mimicry), 40 (superficial mimicry), 70 (competent but unoriginal), 75 (scholarly competence), 98-100 (conceptual sophistication), 100 (maximum theoretical construction)
+8. Use seven-point calibration system: 30 (pseudo-intellectual mimicry), 40 (superficial mimicry), 70 (competent but unoriginal), 75 (scholarly competence), 80 (high competence), 98-100 (conceptual sophistication), 100 (maximum theoretical construction)
 
 Final output: Return a score (0–100) and a paragraph assessing author intelligence only. Judge based on cognitive capability revealed in the writing, not fluency or familiarity alone.
 
