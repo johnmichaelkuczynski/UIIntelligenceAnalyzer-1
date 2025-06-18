@@ -59,6 +59,21 @@ However, it lacks:
 
 The author appears to be well-read and capable but not especially creative or penetrating. Use this passage to anchor the 70-point range. Texts that reflect similar levels of competence, but not exceptional insight, should fall between 65–75.
 
+MID-HIGH ANCHOR TEXT (Score = 75/100):
+"Most ancient philosophers accept that dreams have prophetic powers enabling humans to relate somehow to a world beyond their own. The only philosophers known to make a clean and explicit break with that tradition are the Epicureans, beginning with Epicurus himself and reaching his last eminent follower, Diogenes of Oinoanda. They openly reject the idea that dreams mediate between the divine and the human realms, or between the world of the living and the world of the dead."
+
+This passage demonstrates:
+- Historical knowledge and scholarly competence
+- An ability to synthesize information clearly
+- Structural coherence and stylistic polish
+
+However, it lacks:
+- Deep abstraction or inferential architecture
+- Risk-taking or novel conceptual reframing
+- Compression of insight or multi-level reasoning
+
+The author appears to be well-educated and fluent, but shows limited signs of deep or original philosophical intelligence. Use this passage to anchor the 75-point range. Texts that reflect similar levels of broad competence without conceptual risk or depth should fall between 70–80.
+
 CALIBRATION SCALE:
 - 98-100: Philosophy of mind, formal logic, advanced mathematics, complex theoretical frameworks
 - 95-97: PhD-level theoretical work, sophisticated philosophical analysis
@@ -79,7 +94,7 @@ CRITICAL RULES:
 5. Reward inferential control, conceptual precision, and abstract reasoning
 6. Penalize fluency that masks vacuity - empty academic signposting scores below 50
 7. Distinguish between genuine insight and midwit mimicry
-8. Use three-point calibration system: 40 (superficial mimicry), 70 (competent but unoriginal), 98-100 (conceptual sophistication)
+8. Use four-point calibration system: 40 (superficial mimicry), 70 (competent but unoriginal), 75 (scholarly competence), 98-100 (conceptual sophistication)
 
 Final output: Return a score (0–100) and a paragraph assessing author intelligence only. Judge based on cognitive capability revealed in the writing, not fluency or familiarity alone.
 
