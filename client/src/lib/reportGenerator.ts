@@ -486,12 +486,6 @@ export async function generateWordReport(
       }),
       new Paragraph({
         children: [
-          new TextRun({ text: "Claim Necessity: ", bold: true }),
-          new TextRun({ text: `${analysisA.deep?.claimNecessity || 0}/100` })
-        ]
-      }),
-      new Paragraph({
-        children: [
           new TextRun({ text: "Semantic Compression: ", bold: true }),
           new TextRun({ text: `${analysisA.deep?.semanticCompression || 0}/100` })
         ]
@@ -504,8 +498,8 @@ export async function generateWordReport(
       }),
       new Paragraph({
         children: [
-          new TextRun({ text: "Depth Fluency: ", bold: true }),
-          new TextRun({ text: `${analysisA.deep?.depthFluency || 0}/100` })
+          new TextRun({ text: "Conceptual Depth: ", bold: true }),
+          new TextRun({ text: `${analysisA.deep?.conceptualDepth || 0}/100` })
         ]
       }),
       new Paragraph({

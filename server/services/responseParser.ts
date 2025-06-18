@@ -28,23 +28,31 @@ export interface ParsedAnalysis {
  * Parse intelligence score from AI response text
  */
 export function extractIntelligenceScore(text: string): number | null {
-  // Look for "Intelligence Score: X/100" pattern
-  const scoreMatch = text.match(/Intelligence Score:\s*(\d+)\/100/i);
-  if (scoreMatch) {
-    return parseInt(scoreMatch[1], 10);
+  // Multiple patterns to catch various score formats
+  const patterns = [
+    /Intelligence Score:\s*(\d+)\/100/i,
+    /(?:Overall\s+)?Score:\s*(\d+)\/100/i,
+    /(?:Final\s+)?(?:Assessment|Score):\s*(\d+)\/100/i,
+    /(\d+)\/100(?:\s*-\s*Intelligence)/i,
+    /Assessment:\s*(\d+)\s*(?:out of|\/)\s*100/i,
+    /Intelligence Level:\s*(\d+)/i,
+    /Cognitive Score:\s*(\d+)/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const score = parseInt(match[1], 10);
+      if (score >= 0 && score <= 100) {
+        return score;
+      }
+    }
   }
   
-  // Look for "Score: X/100" pattern
-  const altScoreMatch = text.match(/Score:\s*(\d+)\/100/i);
-  if (altScoreMatch) {
-    return parseInt(altScoreMatch[1], 10);
-  }
-  
-  // Look for standalone score patterns like "95/100" or "Score: 95"
-  const standaloneMatch = text.match(/(?:Score:?\s*)?(\d+)(?:\/100)?/i);
-  if (standaloneMatch) {
-    const score = parseInt(standaloneMatch[1], 10);
-    // Only accept scores in reasonable range
+  // Look for any number between 0-100 in context of intelligence/score
+  const contextualMatch = text.match(/(?:intelligence|cognitive|score|assessment).*?(\d{1,3})(?!\d)/i);
+  if (contextualMatch) {
+    const score = parseInt(contextualMatch[1], 10);
     if (score >= 0 && score <= 100) {
       return score;
     }
@@ -94,7 +102,7 @@ export function parseIntelligenceResponse(
       "Conceptual Depth": {
         name: "Conceptual Depth",
         rating: Math.max(0, fallbackScore - 3),
-        description: "Assessment of abstract reasoning and theoretical sophistication",
+        description: "Abstract reasoning and theoretical sophistication",
         quote: extractQuoteFromText(cleanedReport)
       },
       "Inferential Control": {
@@ -107,6 +115,30 @@ export function parseIntelligenceResponse(
         name: "Semantic Compression",
         rating: Math.min(100, fallbackScore + 2),
         description: "Information density and conceptual efficiency",
+        quote: extractQuoteFromText(cleanedReport)
+      },
+      "Novel Abstraction": {
+        name: "Novel Abstraction",
+        rating: Math.max(0, fallbackScore - 8),
+        description: "Original conceptual frameworks and creative synthesis",
+        quote: extractQuoteFromText(cleanedReport)
+      },
+      "Cognitive Risk": {
+        name: "Cognitive Risk",
+        rating: Math.max(0, fallbackScore - 12),
+        description: "Willingness to engage with difficult or controversial ideas",
+        quote: extractQuoteFromText(cleanedReport)
+      },
+      "Authenticity": {
+        name: "Authenticity",
+        rating: Math.min(100, fallbackScore + 5),
+        description: "Genuine intellectual engagement vs simulated academic prose",
+        quote: extractQuoteFromText(cleanedReport)
+      },
+      "Symbolic Manipulation": {
+        name: "Symbolic Manipulation",
+        rating: Math.max(0, fallbackScore - 5),
+        description: "Facility with abstract symbolic reasoning and formal logic",
         quote: extractQuoteFromText(cleanedReport)
       }
     },

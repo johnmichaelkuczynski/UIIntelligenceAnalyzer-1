@@ -124,6 +124,14 @@ Build process:
   - Enhanced semantic density PDF exports with comprehensive statistics and interpretation
   - Structured data now properly flows from backend to frontend
   - Intelligence reports now display actual scores instead of undefined values
+- June 18, 2025. Enhanced Dimension Analysis System:
+  - Added seven comprehensive cognitive dimensions: Conceptual Depth, Inferential Control, Semantic Compression, Novel Abstraction, Cognitive Risk, Authenticity, Symbolic Manipulation
+  - Fixed PDF dimension score display - now shows actual numeric ratings instead of dashes
+  - Updated data structure mapping between backend response parser and frontend PDF generator
+  - Enhanced score extraction with multiple patterns to handle varied AI response formats
+  - Dimensions now properly reflect cognitive assessment focus rather than prose quality
+  - PDF exports include detailed breakdown of each cognitive dimension with scores and descriptions
+  - System rewards genuine intellectual risk-taking over polished academic simulation
 
 ## User Preferences
 
