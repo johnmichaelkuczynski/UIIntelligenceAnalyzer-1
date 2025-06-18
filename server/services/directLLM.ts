@@ -563,11 +563,11 @@ export async function directPerplexityAnalyze(textInput: string): Promise<any> {
         throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
       }
       
-      const data = await response.json();
+      const data = await response.json() as any;
       
       return {
         provider: "Perplexity (LLaMA 3.1)",
-        formattedReport: data.choices[0].message.content
+        formattedReport: data.choices?.[0]?.message?.content || "No response received from Perplexity"
       };
     } catch (error: any) {
       console.error(`Error in direct passthrough to Perplexity:`, error);

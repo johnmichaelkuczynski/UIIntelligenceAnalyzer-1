@@ -132,13 +132,14 @@ export async function registerRoutes(app: Express): Promise<Express> {
       
       // If the user requests a specific single provider
       if (provider.toLowerCase() !== 'all') {
-        // Import the direct analysis methods
+        // Import the direct analysis methods and response parser
         const { 
           directOpenAIAnalyze, 
           directAnthropicAnalyze, 
           directPerplexityAnalyze,
           directDeepSeekAnalyze 
         } = await import('./services/directLLM');
+        const { parseIntelligenceResponse } = await import('./services/responseParser');
         
         // Perform direct analysis with the specified provider
         console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR ANALYSIS`);
@@ -162,12 +163,22 @@ export async function registerRoutes(app: Express): Promise<Express> {
               break;
           }
           
-          // Simple passthrough of the direct AI model response
+          // Parse the response to extract structured data including score
+          const parsedResult = parseIntelligenceResponse(
+            directResult.formattedReport || "Analysis not available",
+            directResult.provider || provider
+          );
+          
           const result = {
             id: 0,
             documentId: 0,
-            provider: directResult.provider || provider,
-            formattedReport: directResult.formattedReport || "Analysis not available"
+            provider: parsedResult.provider,
+            formattedReport: parsedResult.formattedReport,
+            overallScore: parsedResult.overallScore,
+            surface: parsedResult.surface,
+            deep: parsedResult.deep,
+            dimensions: parsedResult.dimensions,
+            analysis: parsedResult.analysis
           };
           
           return res.json(result);

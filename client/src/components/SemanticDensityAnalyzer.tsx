@@ -131,18 +131,47 @@ const SemanticDensityAnalyzer: React.FC<SemanticDensityAnalyzerProps> = ({ text 
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       pdf.addImage(imgData, 'PNG', 20, 30, imgWidth, imgHeight);
       
-      // Add statistics
+      // Add comprehensive statistics
       const stats = analysisResult.statistics[`${viewType}s` as keyof typeof analysisResult.statistics];
       let yPos = 30 + imgHeight + 20;
       
+      pdf.setFontSize(14);
+      pdf.text('Semantic Density Report', 20, yPos);
+      yPos += 15;
+      
       pdf.setFontSize(12);
-      pdf.text('Statistics:', 20, yPos);
+      pdf.text('Core Statistics:', 20, yPos);
       yPos += 10;
       pdf.text(`Mean Density: ${stats.mean.toFixed(3)}`, 25, yPos);
       yPos += 7;
       pdf.text(`Standard Deviation: ${stats.stdDev.toFixed(3)}`, 25, yPos);
       yPos += 7;
-      pdf.text(`Range: ${stats.min.toFixed(3)} - ${stats.max.toFixed(3)}`, 25, yPos);
+      pdf.text(`Range: ${stats.min.toFixed(3)} – ${stats.max.toFixed(3)}`, 25, yPos);
+      yPos += 15;
+      
+      // Add interpretation
+      pdf.text('Interpretation:', 20, yPos);
+      yPos += 10;
+      const variance = stats.stdDev < 0.05 ? 'low variance' : stats.stdDev < 0.1 ? 'moderate variance' : 'high variance';
+      const pressure = stats.mean > 0.6 ? 'high conceptual pressure' : stats.mean > 0.4 ? 'moderate conceptual pressure' : 'low conceptual pressure';
+      pdf.text(`Consistently ${stats.mean > 0.5 ? 'high' : 'moderate'} semantic density with ${variance}.`, 25, yPos);
+      yPos += 7;
+      pdf.text(`This implies ${pressure} with ${stats.stdDev < 0.05 ? 'very few' : 'some'} empty sentences.`, 25, yPos);
+      yPos += 7;
+      pdf.text(`The writing is ${stats.mean > 0.6 ? 'tight, information-rich, and inferentially loaded' : 'moderately dense'}.`, 25, yPos);
+      
+      // Add highest density examples if space allows
+      if (yPos < 180) {
+        yPos += 15;
+        pdf.text(`Top 3 Highest Density ${viewType.charAt(0).toUpperCase() + viewType.slice(1)}s:`, 20, yPos);
+        yPos += 10;
+        stats.densest.slice(0, 3).forEach((unit, index) => {
+          if (yPos < 200) {
+            pdf.text(`${index + 1}. [${unit.semanticDensity.toFixed(3)}] ${unit.content.substring(0, 80)}${unit.content.length > 80 ? '...' : ''}`, 25, yPos);
+            yPos += 7;
+          }
+        });
+      }
       
       // Save PDF
       pdf.save(`semantic_density_${viewType}_level.pdf`);
