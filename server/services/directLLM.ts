@@ -54,6 +54,18 @@ This passage superficially imitates academic structure but lacks:
 
 It consists primarily of redundant rewordings, name-dropping, and undeveloped claims. The author shows familiarity with vocabulary but no evidence of insight, synthesis, or deep reasoning. Use this text to anchor the 40-point range. Any text that reveals similarly shallow conceptual engagement, empty signposting, or meaningless jargon should be scored below 50.
 
+MID-LOW ANCHOR TEXT (Score = 30/100):
+"In this paper, I explore the fundamental interrelations between meaning, affectivity, and spatiality within the broader framework of ontological emergence. Drawing from both continental and analytic traditions, I attempt to show that being-in-the-world is not merely a passive receptivity to sensory content, but rather an active resonance with the phenomenologically given. This resonance, which I term 'semantic vibration,' is what allows subjectivity to navigate the polycentric terrain of post-representational ontology."
+
+This passage demonstrates pseudo-intellectual mimicry:
+- Conceptual incoherence: terms conflict or remain undefined
+- No inferential structure: just a string of allusions without argument
+- Low semantic density: bloated sentences with low-yield content
+- Zero originality: recycled terminology with no novel organization
+- Uncontrolled abstraction: vague gestures at complexity with no conceptual load-bearing
+
+This is classic academic mimicry that simulates sophistication but reveals no high-level thinking, planning, or abstraction. Use this to anchor the 30-point range for pseudo-intellectual writing.
+
 MID-RANGE ANCHOR TEXT (Score = 70/100):
 "It is generally agreed that dispositions cannot be analyzed in terms of simple subjunctive conditionals (because of what are called 'masked dispositions' and 'finkish dispositions'). I here defend a qualified subjunctive account of dispositions according to which an object is disposed to Φ when conditions C obtain if and only if, if conditions C were to obtain, then the object would Φ ceteris paribus. I argue that this account does not fall prey to the objections that have been raised in the literature."
 
@@ -105,7 +117,7 @@ CRITICAL RULES:
 5. Reward inferential control, conceptual precision, and abstract reasoning
 6. Penalize fluency that masks vacuity - empty academic signposting scores below 50
 7. Distinguish between genuine insight and midwit mimicry
-8. Use five-point calibration system: 40 (superficial mimicry), 70 (competent but unoriginal), 75 (scholarly competence), 98-100 (conceptual sophistication), 100 (maximum theoretical construction)
+8. Use six-point calibration system: 30 (pseudo-intellectual mimicry), 40 (superficial mimicry), 70 (competent but unoriginal), 75 (scholarly competence), 98-100 (conceptual sophistication), 100 (maximum theoretical construction)
 
 Final output: Return a score (0–100) and a paragraph assessing author intelligence only. Judge based on cognitive capability revealed in the writing, not fluency or familiarity alone.
 

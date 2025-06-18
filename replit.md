@@ -100,12 +100,13 @@ Build process:
   - Added PDF export functionality for analysis results
   - Integrated into main document workflow
 - June 18, 2025. Intelligence Assessment Calibration Fix:
-  - Fixed broken intelligence scoring with five-point calibration system
+  - Fixed broken intelligence scoring with six-point calibration system
   - Ultra-high anchor (100): "The Will to Project" - maximum theoretical construction
   - High-end anchor (98-100): Computational theory of mind - conceptual sophistication
   - Mid-high anchor (75): Ancient philosophy dreams - scholarly competence without depth
   - Mid-range anchor (70): Dispositions philosophy - competent but unoriginal
   - Low-end anchor (40): Superficial academic mimicry - empty signposting
+  - Mid-low anchor (30): Pseudo-intellectual mimicry - conceptual incoherence masked by jargon
   - Removed markup formatting from AI responses
   - System now properly distinguishes between genuine insight and academic mimicry
 
