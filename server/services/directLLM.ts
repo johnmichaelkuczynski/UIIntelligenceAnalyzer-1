@@ -583,3 +583,191 @@ export async function directPerplexityAnalyze(textInput: string): Promise<any> {
   const combinedResult = combineAnalysisResults(results);
   return combinedResult;
 }
+
+/**
+ * Direct pass-through to DeepSeek AI
+ */
+export async function directDeepSeekAnalyze(textInput: string): Promise<any> {
+  // Fallback response in case all chunks fail
+  const fallbackResponse = {
+    provider: "DeepSeek - Error",
+    formattedReport: "Failed to analyze document with DeepSeek. Please try again or use a different AI provider."
+  };
+  
+  // Ensure we have text to analyze
+  const text = textInput || "";
+  
+  // For small texts, process directly
+  if (text.length <= MAX_CHUNK_SIZE) {
+    try {
+      const response = await fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: [
+            {
+              role: "system",
+              content: ANALYSIS_PROMPT
+            },
+            {
+              role: "user",
+              content: text
+            }
+          ],
+          temperature: 0.2
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`DeepSeek API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      return {
+        provider: "DeepSeek",
+        formattedReport: data.choices[0].message.content
+      };
+    } catch (error: any) {
+      console.error(`Error in direct passthrough to DeepSeek:`, error);
+      
+      return {
+        provider: "DeepSeek - Error",
+        formattedReport: `Error: ${error.message || "Unknown error occurred"}`
+      };
+    }
+  }
+  
+  // For large texts, split into chunks and process each one
+  console.log(`Text is large (${text.length} chars), splitting into chunks for processing...`);
+  
+  const chunks = splitTextIntoChunks(text);
+  console.log(`Split into ${chunks.length} chunks`);
+  
+  // Limit the number of chunks to prevent excessive API usage
+  const chunksToProcess = chunks.slice(0, MAX_CHUNKS);
+  if (chunksToProcess.length < chunks.length) {
+    console.log(`Processing only the first ${MAX_CHUNKS} chunks to limit API usage`);
+  }
+  
+  const results = [];
+  
+  for (let i = 0; i < chunksToProcess.length; i++) {
+    const chunk = chunksToProcess[i];
+    console.log(`Processing chunk ${i+1}/${chunksToProcess.length} (${chunk.length} chars)...`);
+    
+    try {
+      // Process each chunk
+      const response = await fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: [
+            {
+              role: "system",
+              content: ANALYSIS_PROMPT
+            },
+            {
+              role: "user",
+              content: chunk
+            }
+          ],
+          temperature: 0.2
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`DeepSeek API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Store the raw text result
+      const result = { 
+        formattedReport: data.choices[0].message.content,
+        provider: "DeepSeek"
+      };
+      results.push(result);
+      console.log(`Successfully processed chunk ${i+1}`);
+      
+      // Add delay between requests to avoid rate limiting
+      if (i < chunksToProcess.length - 1) {
+        console.log(`Waiting ${REQUEST_DELAY}ms before processing next chunk...`);
+        await delay(REQUEST_DELAY);
+      }
+    } catch (error: any) {
+      console.error(`Error processing chunk ${i+1}:`, error);
+      
+      // If it's a rate limit error, wait and retry once
+      if (error.status === 429 || (error.response && error.response.status === 429)) {
+        console.log(`Rate limit exceeded. Waiting ${RATE_LIMIT_RETRY_DELAY}ms before retrying...`);
+        await delay(RATE_LIMIT_RETRY_DELAY);
+        
+        try {
+          // Retry the chunk
+          console.log(`Retrying chunk ${i+1}...`);
+          const response = await fetch('https://api.deepseek.com/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+            },
+            body: JSON.stringify({
+              model: "deepseek-chat",
+              messages: [
+                {
+                  role: "system",
+                  content: ANALYSIS_PROMPT
+                },
+                {
+                  role: "user",
+                  content: chunk
+                }
+              ],
+              temperature: 0.2
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`DeepSeek API error on retry: ${response.status} ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+          
+          const result = { 
+            formattedReport: data.choices[0].message.content,
+            provider: "DeepSeek"
+          };
+          results.push(result);
+          console.log(`Successfully processed chunk ${i+1} with DeepSeek on retry`);
+        } catch (retryError) {
+          console.error(`Error retrying chunk ${i+1} with DeepSeek:`, retryError);
+        }
+      }
+      
+      // Continue to the next chunk even if this one failed
+      if (i < chunksToProcess.length - 1) {
+        console.log(`Continuing to next DeepSeek chunk despite error...`);
+        await delay(REQUEST_DELAY);
+      }
+    }
+  }
+  
+  // If we got no results at all, return the fallback
+  if (results.length === 0) {
+    return fallbackResponse;
+  }
+  
+  // Combine the results from all chunks
+  console.log(`Combining results from ${results.length} chunks processed by DeepSeek...`);
+  const combinedResult = combineAnalysisResults(results);
+  return combinedResult;
+}
