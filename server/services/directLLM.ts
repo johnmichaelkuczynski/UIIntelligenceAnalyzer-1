@@ -13,9 +13,17 @@ const MAX_CHUNKS = 3; // Maximum number of chunks to process
 const REQUEST_DELAY = 2000; // Delay between API requests in milliseconds
 const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limit error
 
-// FORENSIC COGNITIVE PROFILER - USING ADVANCED INTELLIGENCE EVALUATION
+// FORENSIC COGNITIVE PROFILER - COGNITIVE CAPACITY ASSESSMENT
 const ANALYSIS_PROMPT = `INTELLIGENCE SCORING DIRECTIVE
-Estimate the intelligence of the author based solely on what kind of mind must exist to have produced this writing, assuming the author wrote it without external help. You are not evaluating writing quality, style, or clarity, but rather cognitive depth, conceptual compression, inferential architecture, originality, and symbolic manipulation.
+Your job is to estimate the MIND, not the prose. You are a forensic cognitive profiler analyzing what kind of intelligence could have produced this text.
+
+CORE PRINCIPLE: Reward conceptual force over verbal polish. Punish inauthentic simulation, not failure.
+
+KEY DISTINCTIONS:
+- A badly written or fragmented text can still signal genius if it contains deep inference, unusual compression, or novel abstraction
+- Ignore writing quality except as evidence of cognition - don't penalize typos, brevity, style, or formatting
+- Focus on cognitive capacity: inferential architecture, conceptual compression, symbolic manipulation, abstraction control
+- Distinguish between authentic intellectual struggle and midwit simulation of brilliance
 
 Use the following calibration anchor:
 
@@ -125,17 +133,44 @@ CALIBRATION SCALE:
 - 50-59: Average college graduate writing
 - Below 50: Below college level
 
-CRITICAL RULES:
-1. Philosophical, mathematical, and theoretical content should score 95+ when demonstrating conceptual sophistication
-2. Academic dissertations discussing complex frameworks should score 90+
-3. Never penalize for technical difficulty or abstract content
-4. Focus on the cognitive capacity required to produce the text
-5. Reward inferential control, conceptual precision, and abstract reasoning
-6. Penalize fluency that masks vacuity - empty academic signposting scores below 50
-7. Distinguish between genuine insight and midwit mimicry
+COGNITIVE PROFILING RULES:
+1. IGNORE writing quality - messy prose with deep inference beats polished emptiness
+2. REWARD conceptual force - unusual compression, novel abstraction, inferential reach
+3. PUNISH simulation - midwit attempts to fake brilliance through academic jargon
+4. DETECT authentic struggle vs inauthentic mimicry
+5. FOCUS on cognitive signatures: representational control, symbolic manipulation, abstraction depth
+6. PHILOSOPHICAL/MATHEMATICAL content with conceptual sophistication scores 95+
+7. FRAGMENTED genius beats FLUENT mediocrity
 8. Use seven-point calibration system: 30 (pseudo-intellectual mimicry), 40 (superficial mimicry), 70 (competent but unoriginal), 75 (scholarly competence), 80 (high competence), 98-100 (conceptual sophistication), 100 (maximum theoretical construction)
 
-Final output: Return a score (0–100) and a paragraph assessing author intelligence only. Judge based on cognitive capability revealed in the writing, not fluency or familiarity alone.
+SCORING EXAMPLES:
+- Badly written text with deep inference/novel abstraction → HIGH SCORE (85-95+)
+- Stylistically fluent but cognitively shallow simulation → MODERATE SCORE (~53)
+- Authentic intellectual struggle with typos/poor formatting → HIGH SCORE if conceptually rich
+- Polished academic writing without cognitive depth → LOW-MODERATE SCORE (40-60)
+
+ASSESSMENT FOCUS:
+Look for cognitive signatures that reveal the underlying mind:
+- Inferential leaps that demonstrate abstraction control
+- Conceptual compression that packs insight into compact forms
+- Novel representational frameworks or symbolic manipulations
+- Evidence of deep pattern recognition or structural insight
+- Authentic intellectual risk-taking vs safe academic conformity
+
+WHAT TO IGNORE:
+- Grammar, spelling, typos, formatting
+- Writing style, eloquence, or verbal polish
+- Length, organization, or presentation quality
+- Citations, references, or academic conventions
+
+WHAT REVEALS INTELLIGENCE:
+- Unusual conceptual connections or compressions
+- Evidence of multi-level reasoning or recursive thinking
+- Novel abstractions or representational innovations
+- Authentic struggle with difficult concepts
+- Cognitive risk-taking and inferential boldness
+
+Final output: Return a score (0–100) and a paragraph assessing the cognitive capacity revealed in the text, not the quality of the writing itself.
 
 IMPORTANT: Start your response with "Intelligence Score: [score]/100" at the top, followed by your detailed analysis.`;
 

@@ -110,6 +110,14 @@ Build process:
   - Mid-low anchor (30): Pseudo-intellectual mimicry - conceptual incoherence masked by jargon
   - Removed markup formatting from AI responses
   - System now properly distinguishes between genuine insight and academic mimicry
+- June 18, 2025. Cognitive Assessment Logic Overhaul:
+  - Refocused system to assess mind rather than prose quality
+  - Rewards conceptual force over verbal polish
+  - Ignores writing quality except as evidence of cognition
+  - Punishes inauthentic simulation rather than authentic failure
+  - High scores for messy text with deep inference/novel abstraction
+  - Moderate scores for fluent but cognitively shallow academic mimicry
+  - System now properly identifies authentic intellectual struggle vs midwit simulation
 
 ## User Preferences
 
