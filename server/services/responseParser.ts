@@ -7,6 +7,18 @@ export interface ParsedAnalysis {
   overallScore: number;
   formattedReport: string;
   provider: string;
+  percentileExplanation?: string;
+  summaryDiagnosis?: string;
+  cognitiveBreakdown?: {
+    semanticCompression: { score: number; analysis: string };
+    inferentialControl: { score: number; analysis: string };
+    conceptualInnovation: { score: number; analysis: string };
+    cognitiveRisk: { score: number; analysis: string };
+    theoreticalIntegration: { score: number; analysis: string };
+    metaCognition: { score: number; analysis: string };
+  };
+  comparativePlacement?: string;
+  finalAssessment?: string;
   surface?: {
     grammar: number;
     structure: number;
@@ -30,13 +42,15 @@ export interface ParsedAnalysis {
 export function extractIntelligenceScore(text: string): number | null {
   // Multiple patterns to catch various score formats
   const patterns = [
+    /Estimated Intelligence Score:\s*(\d+)\/100/i,
     /Intelligence Score:\s*(\d+)\/100/i,
     /(?:Overall\s+)?Score:\s*(\d+)\/100/i,
     /(?:Final\s+)?(?:Assessment|Score):\s*(\d+)\/100/i,
     /(\d+)\/100(?:\s*-\s*Intelligence)/i,
     /Assessment:\s*(\d+)\s*(?:out of|\/)\s*100/i,
     /Intelligence Level:\s*(\d+)/i,
-    /Cognitive Score:\s*(\d+)/i
+    /Cognitive Score:\s*(\d+)/i,
+    /Percentile:\s*Author outperforms\s*(\d+)%/i
   ];
   
   for (const pattern of patterns) {
@@ -62,6 +76,79 @@ export function extractIntelligenceScore(text: string): number | null {
 }
 
 /**
+ * Extract structured cognitive breakdown from intelligence report
+ */
+function extractCognitiveBreakdown(text: string): ParsedAnalysis['cognitiveBreakdown'] {
+  const breakdown: any = {};
+  
+  // Extract dimension scores and analyses
+  const dimensionPattern = /([a-zA-Z\s&]+)\s*\((\d+)\/10\)\s*([^a-zA-Z]*(?:[^(](?!\d+\/10))*)/g;
+  let match;
+  
+  while ((match = dimensionPattern.exec(text)) !== null) {
+    const [, name, score, analysis] = match;
+    const cleanName = name.trim().toLowerCase().replace(/[^a-z]/g, '');
+    
+    if (cleanName.includes('semantic') || cleanName.includes('compression')) {
+      breakdown.semanticCompression = { score: parseInt(score), analysis: analysis.trim() };
+    } else if (cleanName.includes('inferential') || cleanName.includes('control')) {
+      breakdown.inferentialControl = { score: parseInt(score), analysis: analysis.trim() };
+    } else if (cleanName.includes('conceptual') || cleanName.includes('innovation')) {
+      breakdown.conceptualInnovation = { score: parseInt(score), analysis: analysis.trim() };
+    } else if (cleanName.includes('cognitive') || cleanName.includes('risk')) {
+      breakdown.cognitiveRisk = { score: parseInt(score), analysis: analysis.trim() };
+    } else if (cleanName.includes('theoretical') || cleanName.includes('integration')) {
+      breakdown.theoreticalIntegration = { score: parseInt(score), analysis: analysis.trim() };
+    } else if (cleanName.includes('meta') || cleanName.includes('cognition')) {
+      breakdown.metaCognition = { score: parseInt(score), analysis: analysis.trim() };
+    }
+  }
+  
+  return Object.keys(breakdown).length > 0 ? breakdown : undefined;
+}
+
+/**
+ * Extract percentile explanation from intelligence report
+ */
+function extractPercentileExplanation(text: string): string | undefined {
+  const percentileMatch = text.match(/Percentile:\s*Author outperforms\s*(\d+)%[^.]*\./i);
+  return percentileMatch ? percentileMatch[0] : undefined;
+}
+
+/**
+ * Extract summary diagnosis from intelligence report
+ */
+function extractSummaryDiagnosis(text: string): string | undefined {
+  const summaryMatch = text.match(/1\.\s*Summary Diagnosis[^2]*2\./s);
+  if (summaryMatch) {
+    return summaryMatch[0].replace(/1\.\s*Summary Diagnosis[^a-zA-Z]*/, '').replace(/2\.$/, '').trim();
+  }
+  return undefined;
+}
+
+/**
+ * Extract comparative placement from intelligence report
+ */
+function extractComparativePlacement(text: string): string | undefined {
+  const placementMatch = text.match(/3\.\s*Comparative Placement[^4]*4\./s);
+  if (placementMatch) {
+    return placementMatch[0].replace(/3\.\s*Comparative Placement[^a-zA-Z]*/, '').replace(/4\.$/, '').trim();
+  }
+  return undefined;
+}
+
+/**
+ * Extract final assessment from intelligence report
+ */
+function extractFinalAssessment(text: string): string | undefined {
+  const assessmentMatch = text.match(/4\.\s*Final Assessment(.*)$/s);
+  if (assessmentMatch) {
+    return assessmentMatch[1].trim();
+  }
+  return undefined;
+}
+
+/**
  * Parse and structure AI response for intelligence analysis
  */
 export function parseIntelligenceResponse(
@@ -80,11 +167,23 @@ export function parseIntelligenceResponse(
   // Generate fallback scores if parsing fails
   const fallbackScore = score !== null ? score : 50;
   
+  // Extract comprehensive report components
+  const percentileExplanation = extractPercentileExplanation(cleanedReport);
+  const summaryDiagnosis = extractSummaryDiagnosis(cleanedReport);
+  const cognitiveBreakdown = extractCognitiveBreakdown(cleanedReport);
+  const comparativePlacement = extractComparativePlacement(cleanedReport);
+  const finalAssessment = extractFinalAssessment(cleanedReport);
+  
   // Create structured response
   const result: ParsedAnalysis = {
     overallScore: fallbackScore,
     formattedReport: cleanedReport,
     provider: provider,
+    percentileExplanation,
+    summaryDiagnosis,
+    cognitiveBreakdown,
+    comparativePlacement,
+    finalAssessment,
     surface: {
       grammar: Math.max(0, fallbackScore - 10),
       structure: Math.max(0, fallbackScore - 5),

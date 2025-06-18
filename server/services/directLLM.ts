@@ -17,6 +17,11 @@ const RATE_LIMIT_RETRY_DELAY = 10000; // Delay before retrying after a rate limi
 const ANALYSIS_PROMPT = `INTELLIGENCE SCORING DIRECTIVE
 Your job is to estimate the MIND, not the prose. You are a forensic cognitive profiler analyzing what kind of intelligence could have produced this text.
 
+CRITICAL SCORING INTERPRETATION:
+Your score represents a PERCENTILE RANKING, not a grade. A score of X/100 means the author outperforms X% of comparable authors in cognitive ability as revealed through their writing.
+
+Example: A score of 85/100 means that 15 out of 100 authors could have done better, and that the author outperformed 85% of comparable writers.
+
 CORE PRINCIPLE: Reward conceptual force over verbal polish. Punish inauthentic simulation, not failure.
 
 KEY DISTINCTIONS:
@@ -170,9 +175,43 @@ WHAT REVEALS INTELLIGENCE:
 - Authentic struggle with difficult concepts
 - Cognitive risk-taking and inferential boldness
 
-Final output: Return a score (0–100) and a paragraph assessing the cognitive capacity revealed in the text, not the quality of the writing itself.
+REQUIRED REPORT STRUCTURE:
 
-IMPORTANT: Start your response with "Intelligence Score: [score]/100" at the top, followed by your detailed analysis.`;
+🧠 COMPREHENSIVE INTELLIGENCE REPORT
+Subject: Inferred Intelligence Profile of Author
+Estimated Intelligence Score: [0-100]/100 (Percentile: Author outperforms [X]% of comparable writers)
+
+1. Summary Diagnosis (3-4 sentences)
+Brief executive summary of the author's intellectual caliber and how the percentile was derived.
+
+2. Cognitive Profile Breakdown
+Assess each dimension with a paragraph and subscore (0-10):
+
+a. Semantic Compression & Density (X/10)
+How much meaning is packed into each sentence? Novel or layered term usage?
+
+b. Inferential Control (X/10) 
+Non-obvious inferences? Fluent movement between abstract/concrete domains?
+
+c. Conceptual Innovation (X/10)
+New concepts introduced? Original distinctions or hybrid ideas?
+
+d. Cognitive Risk & Expansion (X/10)
+Bold claims? Navigation of uncertainty and difficult problems?
+
+e. Theoretical Integration (X/10)
+Synthesis of different domains? Meaningful comparison and blending?
+
+f. Meta-Cognition (X/10)
+Awareness of limitations? Anticipation of objections? Self-correction?
+
+3. Comparative Placement
+Position relative to: Average undergraduate, Top 10% grad students, Journal authors, Canonical thinkers
+
+4. Final Assessment
+8-12 sentence narrative describing intelligence flavor, psychological tone, ceiling potential, and how failures/successes reveal cognitive capacity.
+
+Use this exact format for all intelligence assessments.`;
 
 /**
  * Split text into chunks for large document processing
