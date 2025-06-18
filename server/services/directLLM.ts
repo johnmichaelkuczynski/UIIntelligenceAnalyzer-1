@@ -43,6 +43,22 @@ This passage superficially imitates academic structure but lacks:
 
 It consists primarily of redundant rewordings, name-dropping, and undeveloped claims. The author shows familiarity with vocabulary but no evidence of insight, synthesis, or deep reasoning. Use this text to anchor the 40-point range. Any text that reveals similarly shallow conceptual engagement, empty signposting, or meaningless jargon should be scored below 50.
 
+MID-RANGE ANCHOR TEXT (Score = 70/100):
+"It is generally agreed that dispositions cannot be analyzed in terms of simple subjunctive conditionals (because of what are called 'masked dispositions' and 'finkish dispositions'). I here defend a qualified subjunctive account of dispositions according to which an object is disposed to Φ when conditions C obtain if and only if, if conditions C were to obtain, then the object would Φ ceteris paribus. I argue that this account does not fall prey to the objections that have been raised in the literature."
+
+This passage demonstrates:
+- Familiarity with standard problems in metaphysics
+- Clear articulation of a technical position
+- Safe but competent reasoning
+
+However, it lacks:
+- Original conceptual framing
+- Inferential layering or abstraction
+- Semantic density beyond terminology
+- Risk or expansion beyond what's already discussed in the literature
+
+The author appears to be well-read and capable but not especially creative or penetrating. Use this passage to anchor the 70-point range. Texts that reflect similar levels of competence, but not exceptional insight, should fall between 65–75.
+
 CALIBRATION SCALE:
 - 98-100: Philosophy of mind, formal logic, advanced mathematics, complex theoretical frameworks
 - 95-97: PhD-level theoretical work, sophisticated philosophical analysis
@@ -63,8 +79,9 @@ CRITICAL RULES:
 5. Reward inferential control, conceptual precision, and abstract reasoning
 6. Penalize fluency that masks vacuity - empty academic signposting scores below 50
 7. Distinguish between genuine insight and midwit mimicry
+8. Use three-point calibration system: 40 (superficial mimicry), 70 (competent but unoriginal), 98-100 (conceptual sophistication)
 
-Final output: Return a score (0–100) and a paragraph assessing author intelligence only. Penalize fluency that masks vacuity.
+Final output: Return a score (0–100) and a paragraph assessing author intelligence only. Judge based on cognitive capability revealed in the writing, not fluency or familiarity alone.
 
 IMPORTANT: Start your response with "Intelligence Score: [score]/100" at the top, followed by your detailed analysis.`;
 

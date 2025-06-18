@@ -100,11 +100,12 @@ Build process:
   - Added PDF export functionality for analysis results
   - Integrated into main document workflow
 - June 18, 2025. Intelligence Assessment Calibration Fix:
-  - Fixed broken intelligence scoring with proper anchor points
-  - Set computational theory of mind text as 98-100 anchor
-  - Set superficial academic mimicry as 40/100 low-end anchor
+  - Fixed broken intelligence scoring with three-point calibration system
+  - High-end anchor (98-100): Computational theory of mind - conceptual sophistication
+  - Mid-range anchor (70): Dispositions philosophy - competent but unoriginal
+  - Low-end anchor (40): Superficial academic mimicry - empty signposting
   - Removed markup formatting from AI responses
-  - Calibrated system to properly score sophisticated academic content
+  - System now properly distinguishes between genuine insight and academic mimicry
 
 ## User Preferences
 
