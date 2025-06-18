@@ -366,8 +366,8 @@ const HomePage: React.FC = () => {
                 </div>
               )}
               
-              {/* Semantic Density Analysis - only shown for single document analysis */}
-              {analysisA && mode === "single" && documentA.content.trim() && (
+              {/* Semantic Density Analysis - always shown when there's text */}
+              {mode === "single" && documentA.content.trim() && (
                 <div className="bg-white rounded-lg shadow-md p-6 mb-8 mt-8">
                   <SemanticDensityAnalyzer text={documentA.content} />
                 </div>

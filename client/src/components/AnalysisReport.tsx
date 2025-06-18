@@ -1,5 +1,6 @@
 import React from 'react';
 import { DocumentAnalysis, DocumentComparison } from '@/lib/types';
+import { cleanAIResponse } from '@/lib/textUtils';
 import { Doughnut, Bar, Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -449,9 +450,9 @@ const AnalysisReport: React.FC<AnalysisReportProps> = ({
           <div className="prose max-w-none">
             {/* Use the formatted report if available, otherwise fall back to the analysis field */}
             {analysisA.formattedReport ? (
-              <div className="whitespace-pre-line font-serif">{analysisA.formattedReport}</div>
+              <div className="whitespace-pre-line font-serif">{cleanAIResponse(analysisA.formattedReport)}</div>
             ) : (
-              <p className="whitespace-pre-line">{analysisA.analysis}</p>
+              <p className="whitespace-pre-line">{cleanAIResponse(analysisA.analysis || '')}</p>
             )}
           </div>
         </div>

@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentAnalysis } from '@/lib/types';
 import { MultiProviderResults } from './MultiProviderResults';
+import { cleanAIResponse } from '@/lib/textUtils';
 
 interface PhilosophicalIntelligenceReportProps {
   analysis: DocumentAnalysis;
@@ -46,12 +47,13 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
   const formatReport = (text: string) => {
     if (!text) return <p>No analysis available</p>;
     
+    // Clean markup first
+    const cleanedText = cleanAIResponse(text);
+    
     // Split by line breaks to display paragraphs properly
-    return text.split('\n').map((line, index) => {
-      // Check if it's a header (starts with a #)
-      if (line.startsWith('#')) {
-        return <h3 key={index} className="text-lg font-bold mt-4 mb-2">{line.replace(/^#+\s*/, '')}</h3>;
-      }
+    return cleanedText.split('\n').map((line, index) => {
+      // Skip empty lines
+      if (!line.trim()) return null;
       
       // Check if it contains the intelligence score
       if (line.toLowerCase().includes('intelligence score')) {
