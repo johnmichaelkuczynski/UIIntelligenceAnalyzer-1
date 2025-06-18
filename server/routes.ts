@@ -565,6 +565,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         directOpenAIRequest, 
         directClaudeRequest, 
         directPerplexityRequest,
+        directDeepSeekRequest,
         directMultiModelRequest
       } = await import('./api/directModelRequest');
       
@@ -583,6 +584,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
             break;
           case 'perplexity':
             result = await directPerplexityRequest(instruction);
+            break;
+          case 'deepseek':
+            result = await directDeepSeekRequest(instruction);
             break;
           case 'openai':
           default:

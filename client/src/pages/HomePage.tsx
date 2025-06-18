@@ -55,10 +55,12 @@ const HomePage: React.FC = () => {
     openai: boolean;
     anthropic: boolean;
     perplexity: boolean;
+    deepseek: boolean;
   }>({
     openai: false,
     anthropic: false,
-    perplexity: false
+    perplexity: false,
+    deepseek: false
   });
   
   // Check API status when component mounts
@@ -72,7 +74,8 @@ const HomePage: React.FC = () => {
           setApiStatus({
             openai: data.api_keys.openai === "configured",
             anthropic: data.api_keys.anthropic === "configured",
-            perplexity: data.api_keys.perplexity === "configured"
+            perplexity: data.api_keys.perplexity === "configured",
+            deepseek: data.api_keys.deepseek === "configured"
           });
           
           console.log("API Status:", data.api_keys);

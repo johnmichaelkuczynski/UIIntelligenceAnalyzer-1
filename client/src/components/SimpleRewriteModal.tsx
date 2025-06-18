@@ -13,12 +13,13 @@ interface SimpleRewriteModalProps {
   onRewriteUpdate: (newText: string) => void;
 }
 
-type LLMProvider = "openai" | "anthropic" | "perplexity";
+type LLMProvider = "openai" | "anthropic" | "perplexity" | "deepseek";
 
 const AI_PROVIDERS = [
   { value: "openai", label: "OpenAI (GPT-4)" },
   { value: "anthropic", label: "Anthropic (Claude)" },
-  { value: "perplexity", label: "Perplexity AI" }
+  { value: "perplexity", label: "Perplexity AI" },
+  { value: "deepseek", label: "DeepSeek" }
 ] as const;
 
 const SimpleRewriteModal: React.FC<SimpleRewriteModalProps> = ({
