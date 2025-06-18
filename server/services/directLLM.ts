@@ -563,7 +563,7 @@ export async function directPerplexityAnalyze(textInput: string): Promise<any> {
         throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
       }
       
-      const data = await response.json() as any;
+      const data: any = await response.json();
       
       return {
         provider: "Perplexity (LLaMA 3.1)",
@@ -624,10 +624,10 @@ export async function directPerplexityAnalyze(textInput: string): Promise<any> {
         throw new Error(`Perplexity API error: ${response.status} ${response.statusText}`);
       }
       
-      const data = await response.json();
+      const data: any = await response.json();
       
       const result = { 
-        formattedReport: data.choices[0].message.content,
+        formattedReport: data.choices?.[0]?.message?.content || "No response received",
         provider: "Perplexity (LLaMA 3.1)"
       };
       results.push(result);
@@ -675,10 +675,10 @@ export async function directPerplexityAnalyze(textInput: string): Promise<any> {
             throw new Error(`Perplexity API error on retry: ${response.status} ${response.statusText}`);
           }
           
-          const data = await response.json();
+          const data: any = await response.json();
           
           const result = { 
-            formattedReport: data.choices[0].message.content,
+            formattedReport: data.choices?.[0]?.message?.content || "No response received",
             provider: "Perplexity (LLaMA 3.1)"
           };
           results.push(result);
@@ -749,11 +749,11 @@ export async function directDeepSeekAnalyze(textInput: string): Promise<any> {
         throw new Error(`DeepSeek API error: ${response.status} ${response.statusText}`);
       }
       
-      const data = await response.json();
+      const data: any = await response.json();
       
       return {
         provider: "DeepSeek",
-        formattedReport: data.choices[0].message.content
+        formattedReport: data.choices?.[0]?.message?.content || "No response received from DeepSeek"
       };
     } catch (error: any) {
       console.error(`Error in direct passthrough to DeepSeek:`, error);
@@ -811,11 +811,11 @@ export async function directDeepSeekAnalyze(textInput: string): Promise<any> {
         throw new Error(`DeepSeek API error: ${response.status} ${response.statusText}`);
       }
       
-      const data = await response.json();
+      const data: any = await response.json();
       
       // Store the raw text result
       const result = { 
-        formattedReport: data.choices[0].message.content,
+        formattedReport: data.choices?.[0]?.message?.content || "No response received",
         provider: "DeepSeek"
       };
       results.push(result);
@@ -863,10 +863,10 @@ export async function directDeepSeekAnalyze(textInput: string): Promise<any> {
             throw new Error(`DeepSeek API error on retry: ${response.status} ${response.statusText}`);
           }
           
-          const data = await response.json();
+          const data: any = await response.json();
           
           const result = { 
-            formattedReport: data.choices[0].message.content,
+            formattedReport: data.choices?.[0]?.message?.content || "No response received",
             provider: "DeepSeek"
           };
           results.push(result);
