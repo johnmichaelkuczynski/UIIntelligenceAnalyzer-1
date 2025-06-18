@@ -29,7 +29,18 @@ Any author capable of writing the above demonstrates:
 - Strong manipulation of symbolic concepts
 - Conceptual disentanglement of terminological ambiguities
 
-Use this as the 100 anchor point. No text that is less intellectually rich or conceptually potent should score above 95.
+Use this as the 98-100 anchor point. However, for the absolute maximum (100/100), use the following ultra-high anchor:
+
+ULTRA-HIGH ANCHOR TEXT (Score = 100/100):
+"The Will to Project: Cults, Hyperreality, and the Foundations of Religion" - This text demonstrates maximum cognitive sophistication through:
+- Abstract conceptual synthesis across domains (philosophy of mind, religion, psychology)
+- Deep structural inference and meta-theoretical self-awareness
+- Original philosophical framework construction
+- Cross-domain compression and symbolic control
+- Multi-layered reasoning with recursive conceptual analysis
+- Novel theoretical contributions that reframe fundamental concepts
+
+This represents the pinnacle of philosophical intelligence - original theoretical construction with profound conceptual depth and inferential sophistication.
 
 LOW-END ANCHOR TEXT (Score = 40/100):
 "In this dissertation, I critically examine the philosophy of transcendental empiricism. Transcendental empiricism is, among other things, a philosophy of mental content. It attempts to dissolve an epistemological dilemma of mental content by splitting the difference between two diametrically opposed accounts of content. John McDowell's minimal empiricism and Richard Gaskin's minimalist empiricism are two versions of transcendental empiricism..."
@@ -94,7 +105,7 @@ CRITICAL RULES:
 5. Reward inferential control, conceptual precision, and abstract reasoning
 6. Penalize fluency that masks vacuity - empty academic signposting scores below 50
 7. Distinguish between genuine insight and midwit mimicry
-8. Use four-point calibration system: 40 (superficial mimicry), 70 (competent but unoriginal), 75 (scholarly competence), 98-100 (conceptual sophistication)
+8. Use five-point calibration system: 40 (superficial mimicry), 70 (competent but unoriginal), 75 (scholarly competence), 98-100 (conceptual sophistication), 100 (maximum theoretical construction)
 
 Final output: Return a score (0–100) and a paragraph assessing author intelligence only. Judge based on cognitive capability revealed in the writing, not fluency or familiarity alone.
 
