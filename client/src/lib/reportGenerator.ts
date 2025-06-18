@@ -205,16 +205,29 @@ export async function generatePDFReport(
   doc.text('Dimension Analysis', margin, currentY);
   currentY += 10;
   
-  // Add dimension table
-  const dimensions = [
-    { name: 'Definition Coherence', key: 'definitionCoherence' },
-    { name: 'Claim Formation', key: 'claimFormation' },
-    { name: 'Inferential Continuity', key: 'inferentialContinuity' },
-    { name: 'Semantic Load', key: 'semanticLoad' },
-    { name: 'Jargon Detection', key: 'jargonDetection' },
-    { name: 'Surface Complexity', key: 'surfaceComplexity' },
-    { name: 'Deep Complexity', key: 'deepComplexity' }
-  ];
+  // Debug: Log the actual analysis data structure
+  console.log('Analysis data for PDF:', analysisA);
+  console.log('Dimensions data:', analysisA.dimensions);
+  
+  // Get dimensions from the analysis data or create fallback dimensions
+  const dimensionsData = analysisA.dimensions || {};
+  const dimensionKeys = Object.keys(dimensionsData);
+  
+  // If we have dimension data, use it; otherwise use fallback structure
+  const dimensions = dimensionKeys.length > 0 
+    ? dimensionKeys.map(key => ({ 
+        name: dimensionsData[key]?.name || key, 
+        key: key 
+      }))
+    : [
+        { name: 'Definition Coherence', key: 'definitionCoherence' },
+        { name: 'Claim Formation', key: 'claimFormation' },
+        { name: 'Inferential Continuity', key: 'inferentialContinuity' },
+        { name: 'Semantic Load', key: 'semanticLoad' },
+        { name: 'Jargon Detection', key: 'jargonDetection' },
+        { name: 'Surface Complexity', key: 'surfaceComplexity' },
+        { name: 'Deep Complexity', key: 'deepComplexity' }
+      ];
   
   const colWidths = analysisB
     ? [(pageWidth - margin * 2) * 0.4, (pageWidth - margin * 2) * 0.3, (pageWidth - margin * 2) * 0.3]
@@ -247,12 +260,12 @@ export async function generatePDFReport(
     doc.setTextColor(50, 50, 50);
     doc.text(dim.name, margin + 3, currentY + 5);
     
-    const ratingA = analysisA.dimensions?.[dim.key as keyof typeof analysisA.dimensions]?.rating || '-';
-    doc.text(ratingA, margin + colWidths[0] + 3, currentY + 5);
+    const ratingA = analysisA.dimensions?.[dim.key]?.score || analysisA.dimensions?.[dim.key]?.rating || '-';
+    doc.text(String(ratingA), margin + colWidths[0] + 3, currentY + 5);
     
     if (analysisB) {
-      const ratingB = analysisB.dimensions?.[dim.key as keyof typeof analysisB.dimensions]?.rating || '-';
-      doc.text(ratingB, margin + colWidths[0] + colWidths[1] + 3, currentY + 5);
+      const ratingB = analysisB.dimensions?.[dim.key]?.score || analysisB.dimensions?.[dim.key]?.rating || '-';
+      doc.text(String(ratingB), margin + colWidths[0] + colWidths[1] + 3, currentY + 5);
     }
     
     currentY += 8;

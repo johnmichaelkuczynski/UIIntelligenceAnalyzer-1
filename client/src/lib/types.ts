@@ -68,6 +68,33 @@ export interface DocumentAnalysis {
     formattedReport: string;
   }>;
   
+  // Dimension analysis data from response parser
+  dimensions?: Record<string, {
+    name?: string;
+    score?: number;
+    rating?: string;
+    description?: string;
+  }>;
+  
+  // Surface and deep analysis metrics
+  surface?: {
+    grammar?: number;
+    structure?: number;
+    jargonUsage?: number;
+    surfaceFluency?: number;
+  };
+  
+  deep?: {
+    conceptualDepth?: number;
+    inferentialContinuity?: number;
+    semanticCompression?: number;
+    logicalLaddering?: number;
+    originality?: number;
+  };
+  
+  // Full analysis text
+  analysis?: string;
+  
   // Optional fields for error handling and AI detection
   aiDetection?: AIDetectionResult;
   error?: boolean;
