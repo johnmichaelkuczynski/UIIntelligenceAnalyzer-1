@@ -29,7 +29,19 @@ Any author capable of writing the above demonstrates:
 - Strong manipulation of symbolic concepts
 - Conceptual disentanglement of terminological ambiguities
 
-Use this as the 100 anchor point. No text that is less intellectually rich or conceptually potent should score above 95. 
+Use this as the 100 anchor point. No text that is less intellectually rich or conceptually potent should score above 95.
+
+LOW-END ANCHOR TEXT (Score = 40/100):
+"In this dissertation, I critically examine the philosophy of transcendental empiricism. Transcendental empiricism is, among other things, a philosophy of mental content. It attempts to dissolve an epistemological dilemma of mental content by splitting the difference between two diametrically opposed accounts of content. John McDowell's minimal empiricism and Richard Gaskin's minimalist empiricism are two versions of transcendental empiricism..."
+
+This passage superficially imitates academic structure but lacks:
+- Inferential development
+- Conceptual originality  
+- Semantic compression
+- Cognitive risk
+- Intellectual intervention
+
+It consists primarily of redundant rewordings, name-dropping, and undeveloped claims. The author shows familiarity with vocabulary but no evidence of insight, synthesis, or deep reasoning. Use this text to anchor the 40-point range. Any text that reveals similarly shallow conceptual engagement, empty signposting, or meaningless jargon should be scored below 50.
 
 CALIBRATION SCALE:
 - 98-100: Philosophy of mind, formal logic, advanced mathematics, complex theoretical frameworks
@@ -49,8 +61,10 @@ CRITICAL RULES:
 3. Never penalize for technical difficulty or abstract content
 4. Focus on the cognitive capacity required to produce the text
 5. Reward inferential control, conceptual precision, and abstract reasoning
+6. Penalize fluency that masks vacuity - empty academic signposting scores below 50
+7. Distinguish between genuine insight and midwit mimicry
 
-Final output: Return a score (0–100) with a single paragraph justifying the estimate by reference to author intelligence, not text quality.
+Final output: Return a score (0–100) and a paragraph assessing author intelligence only. Penalize fluency that masks vacuity.
 
 IMPORTANT: Start your response with "Intelligence Score: [score]/100" at the top, followed by your detailed analysis.`;
 

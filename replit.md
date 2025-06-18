@@ -94,6 +94,17 @@ Build process:
   - Integrated DeepSeek into document analysis, chat dialog, and rewrite modals
   - Backend routes configured for DeepSeek API calls
   - API status monitoring includes DeepSeek availability
+- June 18, 2025. Semantic Density Analysis System:
+  - Implemented comprehensive text segmentation and density computation
+  - Created interactive visualizations with line and bar charts
+  - Added PDF export functionality for analysis results
+  - Integrated into main document workflow
+- June 18, 2025. Intelligence Assessment Calibration Fix:
+  - Fixed broken intelligence scoring with proper anchor points
+  - Set computational theory of mind text as 98-100 anchor
+  - Set superficial academic mimicry as 40/100 low-end anchor
+  - Removed markup formatting from AI responses
+  - Calibrated system to properly score sophisticated academic content
 
 ## User Preferences
 
