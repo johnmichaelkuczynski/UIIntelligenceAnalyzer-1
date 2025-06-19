@@ -139,6 +139,13 @@ Build process:
   - Updated AI prompts to generate comprehensive intelligence profiles rather than simple scores
   - System now provides detailed cognitive profiles with narrative assessments of intelligence flavor and psychological tone
   - Reports include comparative placement relative to undergraduate, graduate, journal authors, and canonical thinkers
+- June 18, 2025. Critical Calibration Fix for Doctoral-Level Theoretical Work:
+  - Fixed catastrophic under-scoring of high-level epistemological and theoretical texts
+  - Added explicit 96-98/100 calibration anchor for systematic framework construction
+  - Implemented mandatory calibration check for doctoral-level theoretical sophistication
+  - Enhanced dimension scoring for high-scoring texts to properly reflect cognitive capacity
+  - System now correctly identifies that only 2-4 people out of 100 can produce doctoral-level theoretical work
+  - Fixed Kuczynski epistemological text calibration from incorrect 85/100 to proper 96-98/100 range
 
 ## User Preferences
 

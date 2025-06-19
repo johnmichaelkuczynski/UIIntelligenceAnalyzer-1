@@ -205,13 +205,13 @@ export function parseIntelligenceResponse(
     dimensions: {
       "Conceptual Depth": {
         name: "Conceptual Depth",
-        rating: Math.max(0, fallbackScore - 3),
+        rating: fallbackScore >= 95 ? Math.min(100, fallbackScore + 2) : Math.max(0, fallbackScore - 3),
         description: "Abstract reasoning and theoretical sophistication",
         quote: extractQuoteFromText(cleanedReport)
       },
       "Inferential Control": {
         name: "Inferential Control", 
-        rating: fallbackScore,
+        rating: fallbackScore >= 95 ? Math.min(100, fallbackScore + 1) : fallbackScore,
         description: "Quality of logical reasoning and argument structure",
         quote: extractQuoteFromText(cleanedReport)
       },
@@ -223,13 +223,13 @@ export function parseIntelligenceResponse(
       },
       "Novel Abstraction": {
         name: "Novel Abstraction",
-        rating: Math.max(0, fallbackScore - 8),
+        rating: fallbackScore >= 95 ? Math.max(90, fallbackScore - 3) : Math.max(0, fallbackScore - 8),
         description: "Original conceptual frameworks and creative synthesis",
         quote: extractQuoteFromText(cleanedReport)
       },
       "Cognitive Risk": {
         name: "Cognitive Risk",
-        rating: Math.max(0, fallbackScore - 12),
+        rating: fallbackScore >= 95 ? Math.max(85, fallbackScore - 8) : Math.max(0, fallbackScore - 12),
         description: "Willingness to engage with difficult or controversial ideas",
         quote: extractQuoteFromText(cleanedReport)
       },
@@ -241,7 +241,7 @@ export function parseIntelligenceResponse(
       },
       "Symbolic Manipulation": {
         name: "Symbolic Manipulation",
-        rating: Math.max(0, fallbackScore - 5),
+        rating: fallbackScore >= 95 ? Math.max(90, fallbackScore - 2) : Math.max(0, fallbackScore - 5),
         description: "Facility with abstract symbolic reasoning and formal logic",
         quote: extractQuoteFromText(cleanedReport)
       }

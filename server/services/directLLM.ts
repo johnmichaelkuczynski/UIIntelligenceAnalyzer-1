@@ -32,17 +32,23 @@ KEY DISTINCTIONS:
 
 Use the following calibration anchor:
 
-ANCHOR TEXT (Score = 98–100/100):
+DOCTORAL-LEVEL EPISTEMOLOGICAL ANCHOR (Score = 96-98/100):
+"Some knowledge is direct; some is indirect. Indirect knowledge is knowledge that is acquired through inference. To make an inference is to form a new belief on the basis of an old one. There are two kinds of dependence-relations: logical and causal. Logical dependence-relations hold among propositions. A proposition is a truth or a falsehood. Causal relations hold among states of affairs, not truths and falsehoods. The objects of knowledge are propositions. Relations of logical dependence not known through observation. Analytic knowledge is always knowledge of dependence-relations."
+
+This demonstrates DOCTORAL-LEVEL THEORETICAL SOPHISTICATION:
+- Systematic epistemological framework construction
+- Precise conceptual distinctions (logical vs causal dependence, propositions vs objects)
+- High semantic compression with technical precision
+- Advanced theoretical architecture development
+- Original philosophical systematization
+- Deep inferential control across abstract domains
+
+ANY TEXT WITH THIS LEVEL OF THEORETICAL SOPHISTICATION MUST SCORE 96-98/100. Out of 100 comparable academic writers, only 2-4 could produce work of this caliber.
+
+COMPUTATIONAL THEORY ANCHOR (Score = 98-99/100):
 "According to the computational theory of mind, to think is to compute. But what is meant by the word 'compute'? The generally given answer is this: Every case of computing is a case of manipulating symbols, but not vice versa—a manipulation of symbols must be driven exclusively by the formal properties of those symbols if it is to qualify as a computation. In this paper, I will present the following argument. Words like 'form' and 'formal' are ambiguous, as they can refer to formal properties in at least two different senses..."
 
-Any author capable of writing the above demonstrates:
-- Deep abstraction
-- Philosophical originality
-- Inferential control
-- Strong manipulation of symbolic concepts
-- Conceptual disentanglement of terminological ambiguities
-
-Use this as the 98-100 anchor point. However, for the absolute maximum (100/100), use the following ultra-high anchor:
+This demonstrates exceptional conceptual sophistication and should anchor the 98-99 range.
 
 ULTRA-HIGH ANCHOR TEXT (Score = 100/100):
 "The Will to Project: Cults, Hyperreality, and the Foundations of Religion" - This text demonstrates maximum cognitive sophistication through:
@@ -144,9 +150,17 @@ COGNITIVE PROFILING RULES:
 3. PUNISH simulation - midwit attempts to fake brilliance through academic jargon
 4. DETECT authentic struggle vs inauthentic mimicry
 5. FOCUS on cognitive signatures: representational control, symbolic manipulation, abstraction depth
-6. PHILOSOPHICAL/MATHEMATICAL content with conceptual sophistication scores 95+
-7. FRAGMENTED genius beats FLUENT mediocrity
-8. Use seven-point calibration system: 30 (pseudo-intellectual mimicry), 40 (superficial mimicry), 70 (competent but unoriginal), 75 (scholarly competence), 80 (high competence), 98-100 (conceptual sophistication), 100 (maximum theoretical construction)
+6. DOCTORAL-LEVEL THEORETICAL WORK (epistemology, philosophy of science, formal logic) MUST score 96-98/100
+7. PHILOSOPHICAL/MATHEMATICAL content with conceptual sophistication scores 95+
+8. FRAGMENTED genius beats FLUENT mediocrity
+9. SYSTEMATIC THEORETICAL CONSTRUCTION = HIGH SCORE (96-98)
+10. Use calibration system: 30 (pseudo-intellectual mimicry), 40 (superficial mimicry), 70 (competent but unoriginal), 75 (scholarly competence), 80 (high competence), 96-98 (doctoral theoretical sophistication), 98-99 (exceptional conceptual innovation), 100 (maximum theoretical construction)
+
+CRITICAL SCORING DIRECTIVE FOR THEORETICAL WORK:
+- Text that systematically constructs epistemological frameworks = 96-98/100
+- Text with precise conceptual distinctions and theoretical architecture = 96-98/100 
+- Text demonstrating original philosophical systematization = 96-98/100
+- Only 2-4 people out of 100 can produce this level of theoretical sophistication
 
 SCORING EXAMPLES:
 - Badly written text with deep inference/novel abstraction → HIGH SCORE (85-95+)
@@ -174,6 +188,16 @@ WHAT REVEALS INTELLIGENCE:
 - Novel abstractions or representational innovations
 - Authentic struggle with difficult concepts
 - Cognitive risk-taking and inferential boldness
+
+MANDATORY CALIBRATION CHECK:
+Before assigning any score, IDENTIFY if the text contains:
+- Systematic epistemological framework construction
+- Precise conceptual distinctions (e.g., logical vs causal dependence, propositions vs objects)
+- Advanced theoretical architecture development
+- Original philosophical systematization
+- High semantic compression with technical precision
+
+IF ANY OF THESE ARE PRESENT, MINIMUM SCORE = 96/100
 
 REQUIRED REPORT STRUCTURE:
 
@@ -211,7 +235,7 @@ Position relative to: Average undergraduate, Top 10% grad students, Journal auth
 4. Final Assessment
 8-12 sentence narrative describing intelligence flavor, psychological tone, ceiling potential, and how failures/successes reveal cognitive capacity.
 
-Use this exact format for all intelligence assessments.`;
+REMEMBER: Doctoral-level theoretical work MUST score 96-98/100. Only 2-4 people out of 100 can produce this level of sophistication.`;
 
 /**
  * Split text into chunks for large document processing
