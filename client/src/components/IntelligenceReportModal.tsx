@@ -32,7 +32,17 @@ function extractIntelligenceScore(text: string): number | null {
 
 function extractExecutiveSummary(text: string): string {
   const summaryMatch = text.match(/## Executive Summary([\s\S]*?)(?=## Detailed|$)/i);
-  return summaryMatch ? summaryMatch[1].trim() : '';
+  if (summaryMatch) return summaryMatch[1].trim();
+  
+  // Fallback: Look for any paragraph after the score
+  const scoreMatch = text.match(/🧠\s*Final Intelligence Score:\s*\d+\/100([\s\S]*?)(?=##|$)/i);
+  if (scoreMatch) {
+    const afterScore = scoreMatch[1].trim();
+    const firstParagraphs = afterScore.split('\n\n').slice(0, 2).join('\n\n');
+    return firstParagraphs;
+  }
+  
+  return '';
 }
 
 function extractDimensions(text: string): Array<{name: string, score: string, icon: React.ReactNode, analysis: string}> {
@@ -46,6 +56,7 @@ function extractDimensions(text: string): Array<{name: string, score: string, ic
     { name: 'Epistemic Resistance', pattern: /### 6\. Epistemic Resistance Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=## |\n## |$)/i, icon: <Brain className="w-5 h-5" /> }
   ];
   
+  // Try new structured format first
   for (const dim of dimensionPatterns) {
     const match = text.match(dim.pattern);
     if (match && match[1] && match[2]) {
@@ -58,17 +69,59 @@ function extractDimensions(text: string): Array<{name: string, score: string, ic
     }
   }
   
+  // Fallback: Extract from older format or simpler patterns
+  if (dimensions.length === 0) {
+    const fallbackPatterns = [
+      { name: 'Semantic Compression', pattern: /Semantic Compression.*?(\d+\.?\d*\/10|(\d+\.?\d*)\/10)/i, icon: <Zap className="w-5 h-5" /> },
+      { name: 'Inferential Control', pattern: /Inferential Control.*?(\d+\.?\d*\/10|(\d+\.?\d*)\/10)/i, icon: <Target className="w-5 h-5" /> },
+      { name: 'Cognitive Risk', pattern: /Cognitive Risk.*?(\d+\.?\d*\/10|(\d+\.?\d*)\/10)/i, icon: <TrendingUp className="w-5 h-5" /> },
+      { name: 'Meta-Theoretical Awareness', pattern: /Meta-Theoretical Awareness.*?(\d+\.?\d*\/10|(\d+\.?\d*)\/10)/i, icon: <Eye className="w-5 h-5" /> },
+      { name: 'Conceptual Innovation', pattern: /Conceptual Innovation.*?(\d+\.?\d*\/10|(\d+\.?\d*)\/10)/i, icon: <Lightbulb className="w-5 h-5" /> },
+      { name: 'Epistemic Resistance', pattern: /Epistemic Resistance.*?(\d+\.?\d*\/10|(\d+\.?\d*)\/10)/i, icon: <Brain className="w-5 h-5" /> }
+    ];
+    
+    for (const dim of fallbackPatterns) {
+      const match = text.match(dim.pattern);
+      if (match && match[1]) {
+        dimensions.push({
+          name: dim.name,
+          score: match[1],
+          icon: dim.icon,
+          analysis: `Assessment found in report: ${match[0]}`
+        });
+      }
+    }
+  }
+  
   return dimensions;
 }
 
 function extractComparativePlacement(text: string): string {
   const placementMatch = text.match(/## Comparative Intelligence Placement([\s\S]*?)(?=## Final Verdict|$)/i);
-  return placementMatch ? placementMatch[1].trim() : '';
+  if (placementMatch) return placementMatch[1].trim();
+  
+  // Fallback: Look for placement or comparison sections
+  const comparisonMatch = text.match(/(comparative|comparison|placement|position).*?:?([\s\S]*?)(?=##|final|verdict|$)/i);
+  if (comparisonMatch) return comparisonMatch[2].trim();
+  
+  return '';
 }
 
 function extractFinalVerdict(text: string): string {
   const verdictMatch = text.match(/## Final Verdict([\s\S]*?)(?=## |$)/i);
-  return verdictMatch ? verdictMatch[1].trim() : '';
+  if (verdictMatch) return verdictMatch[1].trim();
+  
+  // Fallback: Look for final assessment or conclusion
+  const finalMatch = text.match(/(final|verdict|conclusion|assessment).*?:?([\s\S]*?)(?=analyzed by|$)/i);
+  if (finalMatch) return finalMatch[2].trim();
+  
+  // Get last substantial paragraph
+  const paragraphs = text.split('\n\n').filter(p => p.trim().length > 50);
+  if (paragraphs.length > 0) {
+    return paragraphs[paragraphs.length - 1];
+  }
+  
+  return '';
 }
 
 function formatTextContent(text: string, colorClass: string = "text-gray-700 dark:text-gray-300") {
@@ -137,7 +190,7 @@ const IntelligenceReportModal: React.FC<IntelligenceReportModalProps> = ({ isOpe
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden">
+      <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden" aria-describedby="intelligence-report-description">
         <DialogHeader className="pb-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -146,7 +199,7 @@ const IntelligenceReportModal: React.FC<IntelligenceReportModalProps> = ({ isOpe
                 <DialogTitle className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                   Comprehensive Intelligence Assessment
                 </DialogTitle>
-                <p className="text-base text-gray-600 dark:text-gray-400 mt-2">
+                <p id="intelligence-report-description" className="text-base text-gray-600 dark:text-gray-400 mt-2">
                   Forensic Cognitive Analysis with Extensive Textual Evidence
                 </p>
               </div>
@@ -162,6 +215,22 @@ const IntelligenceReportModal: React.FC<IntelligenceReportModalProps> = ({ isOpe
 
         <ScrollArea className="h-[calc(95vh-150px)] pr-6">
           <div className="space-y-8">
+            {/* Debug Info */}
+            {!executiveSummary && !dimensions.length && !comparativePlacement && !finalVerdict && (
+              <Card className="bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800">
+                <CardHeader>
+                  <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200">Raw Report Content</h3>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <pre className="whitespace-pre-wrap text-xs bg-gray-100 dark:bg-gray-900 p-4 rounded overflow-auto max-h-96">
+                      {cleanedReport}
+                    </pre>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Executive Summary */}
             {executiveSummary && (
               <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
@@ -245,6 +314,21 @@ const IntelligenceReportModal: React.FC<IntelligenceReportModalProps> = ({ isOpe
                 <CardContent>
                   <div className="prose prose-lg dark:prose-invert max-w-none">
                     {formatTextContent(finalVerdict, "text-green-700 dark:text-green-300")}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Fallback: Show full report if structured content is missing */}
+            {!executiveSummary && !dimensions.length && !comparativePlacement && !finalVerdict && cleanedReport && (
+              <Card>
+                <CardHeader>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Complete Intelligence Analysis</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Full report content</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    {formatTextContent(cleanedReport)}
                   </div>
                 </CardContent>
               </Card>
