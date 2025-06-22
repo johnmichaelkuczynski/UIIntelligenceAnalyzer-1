@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DocumentAnalysis } from '@/lib/types';
 import { MultiProviderResults } from './MultiProviderResults';
 import { cleanAIResponse } from '@/lib/textUtils';
-import { Brain, TrendingUp, Target, Zap, Eye, Lightbulb } from 'lucide-react';
+import { Brain, TrendingUp, Target, Zap, Eye, Lightbulb, Maximize2 } from 'lucide-react';
+import IntelligenceReportModal from './IntelligenceReportModal';
 
 interface PhilosophicalIntelligenceReportProps {
   analysis: DocumentAnalysis;
@@ -86,6 +88,8 @@ function extractExecutiveSummary(text: string): string {
 }
 
 const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportProps> = ({ analysis }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
   // Check if the analysis contains multiple provider results
   const hasMultipleProviders = analysis.analysisResults && Array.isArray(analysis.analysisResults) && analysis.analysisResults.length > 0;
   
@@ -119,12 +123,22 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
                 <p className="text-sm text-gray-600 dark:text-gray-400">Cognitive Analysis Report</p>
               </div>
             </div>
-            {intelligenceScore && (
-              <div className="text-right">
-                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{intelligenceScore}/100</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Final Score</div>
-              </div>
-            )}
+            <div className="flex items-center gap-4">
+              {intelligenceScore && (
+                <div className="text-right">
+                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{intelligenceScore}/100</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Final Score</div>
+                </div>
+              )}
+              <Button 
+                onClick={() => setIsModalOpen(true)}
+                variant="outline"
+                className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950 dark:hover:bg-blue-900 border-blue-200 dark:border-blue-800"
+              >
+                <Maximize2 className="w-4 h-4" />
+                View Full Report
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -293,6 +307,13 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
           Analyzed by {provider}
         </Badge>
       </div>
+
+      {/* Intelligence Report Modal */}
+      <IntelligenceReportModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        analysis={analysis}
+      />
     </div>
   );
 };

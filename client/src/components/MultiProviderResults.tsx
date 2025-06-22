@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileEdit, ShieldAlert, Share2 } from "lucide-react";
+import { FileEdit, ShieldAlert, Share2, Maximize2 } from "lucide-react";
 import ReportDownloadButton from "./ReportDownloadButton";
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { cleanAIResponse } from "@/lib/textUtils";
+import IntelligenceReportModal from './IntelligenceReportModal';
 
 interface MultiProviderResultsProps {
   results: any[];
@@ -15,6 +16,7 @@ interface MultiProviderResultsProps {
 
 export function MultiProviderResults({ results, documentId }: MultiProviderResultsProps) {
   const [activeProvider, setActiveProvider] = useState<string>("openai");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   if (!results || results.length === 0) {
     return (
@@ -86,6 +88,15 @@ export function MultiProviderResults({ results, documentId }: MultiProviderResul
               <CardDescription>Analysis from multiple AI providers</CardDescription>
             </div>
             <div className="flex space-x-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950 dark:hover:bg-blue-900"
+              >
+                <Maximize2 className="h-4 w-4" />
+                View Full Report
+              </Button>
               <Button size="sm" variant="outline" className="flex items-center gap-2">
                 <FileEdit className="h-4 w-4" />
                 Rewrite
@@ -137,6 +148,13 @@ export function MultiProviderResults({ results, documentId }: MultiProviderResul
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Intelligence Report Modal */}
+      <IntelligenceReportModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        analysis={getActiveResult()}
+      />
     </div>
   );
 }

@@ -1,0 +1,248 @@
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Brain, TrendingUp, Target, Zap, Eye, Lightbulb, FileText } from 'lucide-react';
+import { DocumentAnalysis } from '@/lib/types';
+import { cleanAIResponse } from '@/lib/textUtils';
+
+interface IntelligenceReportModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  analysis: DocumentAnalysis;
+}
+
+function extractIntelligenceScore(text: string): number | null {
+  const patterns = [
+    /🧠\s*Final Intelligence Score:\s*(\d+)\/100/i,
+    /Final Intelligence Score:\s*(\d+)\/100/i,
+    /Intelligence Score:\s*(\d+)\/100/i,
+    /Overall Score:\s*(\d+)\/100/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match && match[1]) {
+      return parseInt(match[1], 10);
+    }
+  }
+  return null;
+}
+
+function extractExecutiveSummary(text: string): string {
+  const summaryMatch = text.match(/## Executive Summary([\s\S]*?)(?=## Detailed|$)/i);
+  return summaryMatch ? summaryMatch[1].trim() : '';
+}
+
+function extractDimensions(text: string): Array<{name: string, score: string, icon: React.ReactNode, analysis: string}> {
+  const dimensions = [];
+  const dimensionPatterns = [
+    { name: 'Semantic Compression', pattern: /### 1\. Semantic Compression Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=### 2\.|\n## |$)/i, icon: <Zap className="w-5 h-5" /> },
+    { name: 'Inferential Control', pattern: /### 2\. Inferential Control Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=### 3\.|\n## |$)/i, icon: <Target className="w-5 h-5" /> },
+    { name: 'Cognitive Risk', pattern: /### 3\. Cognitive Risk Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=### 4\.|\n## |$)/i, icon: <TrendingUp className="w-5 h-5" /> },
+    { name: 'Meta-Theoretical Awareness', pattern: /### 4\. Meta-Theoretical Awareness Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=### 5\.|\n## |$)/i, icon: <Eye className="w-5 h-5" /> },
+    { name: 'Conceptual Innovation', pattern: /### 5\. Conceptual Innovation Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=### 6\.|\n## |$)/i, icon: <Lightbulb className="w-5 h-5" /> },
+    { name: 'Epistemic Resistance', pattern: /### 6\. Epistemic Resistance Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=## |\n## |$)/i, icon: <Brain className="w-5 h-5" /> }
+  ];
+  
+  for (const dim of dimensionPatterns) {
+    const match = text.match(dim.pattern);
+    if (match && match[1] && match[2]) {
+      dimensions.push({
+        name: dim.name,
+        score: match[1],
+        icon: dim.icon,
+        analysis: match[2].trim()
+      });
+    }
+  }
+  
+  return dimensions;
+}
+
+function extractComparativePlacement(text: string): string {
+  const placementMatch = text.match(/## Comparative Intelligence Placement([\s\S]*?)(?=## Final Verdict|$)/i);
+  return placementMatch ? placementMatch[1].trim() : '';
+}
+
+function extractFinalVerdict(text: string): string {
+  const verdictMatch = text.match(/## Final Verdict([\s\S]*?)(?=## |$)/i);
+  return verdictMatch ? verdictMatch[1].trim() : '';
+}
+
+function formatTextContent(text: string, colorClass: string = "text-gray-700 dark:text-gray-300") {
+  return text.split('\n').map((paragraph, index) => {
+    if (!paragraph.trim()) return null;
+    
+    // Handle quotes specially with enhanced styling
+    if (paragraph.includes('"')) {
+      return (
+        <blockquote key={index} className="border-l-4 border-blue-400 dark:border-blue-600 pl-6 my-6 italic bg-blue-50 dark:bg-blue-950 p-4 rounded-r-lg">
+          <div className="text-blue-800 dark:text-blue-200 font-medium leading-relaxed">
+            {paragraph}
+          </div>
+        </blockquote>
+      );
+    }
+    
+    // Handle section headers
+    if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
+      const cleanHeader = paragraph.replace(/\*\*/g, '');
+      return (
+        <h5 key={index} className="font-semibold text-gray-900 dark:text-gray-100 mt-6 mb-3 text-lg">
+          {cleanHeader}
+        </h5>
+      );
+    }
+    
+    // Regular paragraphs
+    return (
+      <p key={index} className={`mb-4 ${colorClass} leading-relaxed`}>
+        {paragraph}
+      </p>
+    );
+  });
+}
+
+const IntelligenceReportModal: React.FC<IntelligenceReportModalProps> = ({ isOpen, onClose, analysis }) => {
+  const formattedReport = analysis.formattedReport || analysis.report || "";
+  const cleanedReport = cleanAIResponse(formattedReport);
+  
+  const intelligenceScore = extractIntelligenceScore(cleanedReport);
+  const executiveSummary = extractExecutiveSummary(cleanedReport);
+  const dimensions = extractDimensions(cleanedReport);
+  const comparativePlacement = extractComparativePlacement(cleanedReport);
+  const finalVerdict = extractFinalVerdict(cleanedReport);
+  const provider = analysis.provider || "AI";
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+        <DialogHeader className="pb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Brain className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              <div>
+                <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  Comprehensive Intelligence Assessment
+                </DialogTitle>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Evidence-Based Cognitive Analysis Report
+                </p>
+              </div>
+            </div>
+            {intelligenceScore && (
+              <div className="text-right">
+                <div className="text-4xl font-bold text-blue-600 dark:text-blue-400">{intelligenceScore}/100</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Final Intelligence Score</div>
+              </div>
+            )}
+          </div>
+        </DialogHeader>
+
+        <ScrollArea className="h-[calc(90vh-120px)] pr-6">
+          <div className="space-y-8">
+            {/* Executive Summary */}
+            {executiveSummary && (
+              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
+                <CardHeader>
+                  <h3 className="text-xl font-semibold text-blue-800 dark:text-blue-200 flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    Executive Summary
+                  </h3>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose prose-lg dark:prose-invert max-w-none">
+                    {formatTextContent(executiveSummary, "text-blue-800 dark:text-blue-200")}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Detailed Cognitive Dimensions */}
+            {dimensions.length > 0 && (
+              <div className="space-y-6">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 border-b-2 border-gray-200 dark:border-gray-700 pb-2">
+                  Detailed Cognitive Analysis
+                </h3>
+                {dimensions.map((dim, index) => (
+                  <Card key={index} className="border-l-4 border-l-blue-500 shadow-lg">
+                    <CardHeader className="pb-4 bg-gray-50 dark:bg-gray-900">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {dim.icon}
+                          <div>
+                            <h4 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{dim.name}</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Cognitive Dimension Assessment</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{dim.score}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">Score</div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        {formatTextContent(dim.analysis)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Comparative Intelligence Placement */}
+            {comparativePlacement && (
+              <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950 dark:to-indigo-950 border-purple-200 dark:border-purple-800 shadow-lg">
+                <CardHeader>
+                  <h3 className="text-xl font-semibold text-purple-800 dark:text-purple-200">
+                    Comparative Intelligence Placement
+                  </h3>
+                  <p className="text-sm text-purple-600 dark:text-purple-400">
+                    Evidence-based positioning relative to academic and intellectual benchmarks
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    {formatTextContent(comparativePlacement, "text-purple-700 dark:text-purple-300")}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Final Verdict */}
+            {finalVerdict && (
+              <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200 dark:border-green-800 shadow-lg">
+                <CardHeader>
+                  <h3 className="text-xl font-semibold text-green-800 dark:text-green-200">
+                    Final Assessment
+                  </h3>
+                  <p className="text-sm text-green-600 dark:text-green-400">
+                    Comprehensive evaluation of cognitive architecture and intelligence type
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose prose-lg dark:prose-invert max-w-none">
+                    {formatTextContent(finalVerdict, "text-green-700 dark:text-green-300")}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Analysis Metadata */}
+            <div className="flex justify-center pt-4 border-t border-gray-200 dark:border-gray-700">
+              <Badge variant="outline" className="px-4 py-2 text-sm">
+                <Brain className="w-4 h-4 mr-2" />
+                Analyzed by {provider}
+              </Badge>
+            </div>
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default IntelligenceReportModal;
