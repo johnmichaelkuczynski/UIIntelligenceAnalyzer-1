@@ -75,30 +75,49 @@ function formatTextContent(text: string, colorClass: string = "text-gray-700 dar
   return text.split('\n').map((paragraph, index) => {
     if (!paragraph.trim()) return null;
     
-    // Handle quotes specially with enhanced styling
+    // Handle quotes specially with enhanced styling and larger text
     if (paragraph.includes('"')) {
       return (
-        <blockquote key={index} className="border-l-4 border-blue-400 dark:border-blue-600 pl-6 my-6 italic bg-blue-50 dark:bg-blue-950 p-4 rounded-r-lg">
-          <div className="text-blue-800 dark:text-blue-200 font-medium leading-relaxed">
+        <blockquote key={index} className="border-l-4 border-blue-400 dark:border-blue-600 pl-6 my-8 italic bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-6 rounded-r-lg shadow-sm">
+          <div className="text-blue-800 dark:text-blue-200 font-medium leading-relaxed text-lg">
             {paragraph}
           </div>
         </blockquote>
       );
     }
     
-    // Handle section headers
+    // Handle evidence analysis headers
+    if (paragraph.startsWith('**Quote Analysis:**') || paragraph.startsWith('**Additional Evidence:**') || paragraph.startsWith('**Justification:**')) {
+      const cleanHeader = paragraph.replace(/\*\*/g, '');
+      return (
+        <h6 key={index} className="font-bold text-gray-900 dark:text-gray-100 mt-8 mb-4 text-md bg-gray-100 dark:bg-gray-800 p-3 rounded">
+          {cleanHeader}
+        </h6>
+      );
+    }
+    
+    // Handle main section headers
     if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
       const cleanHeader = paragraph.replace(/\*\*/g, '');
       return (
-        <h5 key={index} className="font-semibold text-gray-900 dark:text-gray-100 mt-6 mb-3 text-lg">
+        <h5 key={index} className="font-semibold text-gray-900 dark:text-gray-100 mt-8 mb-4 text-lg border-b border-gray-200 dark:border-gray-700 pb-2">
           {cleanHeader}
         </h5>
       );
     }
     
-    // Regular paragraphs
+    // Handle numbered analysis steps
+    if (/^\d+\./.test(paragraph.trim())) {
+      return (
+        <div key={index} className={`mb-4 ${colorClass} leading-relaxed pl-4 border-l-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-3 rounded`}>
+          {paragraph}
+        </div>
+      );
+    }
+    
+    // Regular paragraphs with enhanced spacing
     return (
-      <p key={index} className={`mb-4 ${colorClass} leading-relaxed`}>
+      <p key={index} className={`mb-5 ${colorClass} leading-relaxed text-base`}>
         {paragraph}
       </p>
     );
@@ -118,30 +137,30 @@ const IntelligenceReportModal: React.FC<IntelligenceReportModalProps> = ({ isOpe
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
-        <DialogHeader className="pb-6">
+      <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden">
+        <DialogHeader className="pb-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Brain className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              <Brain className="w-10 h-10 text-blue-600 dark:text-blue-400" />
               <div>
-                <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <DialogTitle className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                   Comprehensive Intelligence Assessment
                 </DialogTitle>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  Evidence-Based Cognitive Analysis Report
+                <p className="text-base text-gray-600 dark:text-gray-400 mt-2">
+                  Forensic Cognitive Analysis with Extensive Textual Evidence
                 </p>
               </div>
             </div>
             {intelligenceScore && (
-              <div className="text-right">
-                <div className="text-4xl font-bold text-blue-600 dark:text-blue-400">{intelligenceScore}/100</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Final Intelligence Score</div>
+              <div className="text-right bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-4 rounded-lg">
+                <div className="text-5xl font-bold text-blue-600 dark:text-blue-400">{intelligenceScore}/100</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Final Intelligence Score</div>
               </div>
             )}
           </div>
         </DialogHeader>
 
-        <ScrollArea className="h-[calc(90vh-120px)] pr-6">
+        <ScrollArea className="h-[calc(95vh-150px)] pr-6">
           <div className="space-y-8">
             {/* Executive Summary */}
             {executiveSummary && (

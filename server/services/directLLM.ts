@@ -276,13 +276,25 @@ REQUIRED COMPREHENSIVE REPORT STRUCTURE:
 [Comprehensive 4-6 sentence assessment of the author's cognitive architecture, intelligence type, and overall intellectual capacity, anchored in the textual evidence presented above]
 
 CRITICAL REQUIREMENTS:
-- Every dimension score MUST be supported by at least 2 direct quotes
-- Every quote MUST have detailed justification explaining its relevance
-- Report should be 2000+ words with extensive evidence
-- NO unjustified statements - everything must be anchored in text
+- Every dimension score MUST be supported by at least 3-4 direct quotes with detailed analysis
+- Each quote MUST have 3-4 sentences explaining WHY it demonstrates that cognitive capacity
+- Report should be 3000+ words minimum with exhaustive textual evidence
+- Include micro-analysis of sentence structure, word choice, and conceptual relationships
+- Analyze the COGNITIVE PROCESS behind each passage, not just what it says
+- Compare author's reasoning patterns to known intellectual benchmarks
+- NO unjustified statements - every claim requires textual proof and logical argumentation
 - Doctoral-level theoretical work MUST score 96-98/100
+- For each dimension, explain HOW the evidence connects to intelligence markers
+- Quote analysis should examine: semantic density, inferential leaps, conceptual innovation, epistemic sophistication
 
-REMEMBER: This is a comprehensive intelligence assessment report, not a summary. Provide extensive evidence and detailed analysis.`;
+EVIDENCE ANALYSIS TEMPLATE FOR EACH QUOTE:
+1. Present the quote
+2. Identify specific cognitive markers within the passage
+3. Explain the inferential sophistication demonstrated
+4. Connect to broader patterns of intellectual capacity
+5. Compare to typical reasoning at different educational levels
+
+REMEMBER: This is a forensic analysis of cognitive capacity through textual evidence. Be thorough, rigorous, and comprehensive in your assessment.`;
 
 /**
  * Split text into chunks for large document processing
