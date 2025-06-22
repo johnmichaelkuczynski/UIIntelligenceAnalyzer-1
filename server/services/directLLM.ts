@@ -485,10 +485,12 @@ export async function directOpenAIAnalyze(textInput: string): Promise<any> {
         temperature: 0.2
       });
       
-      // Return the raw text response
+      // Parse with pseudo-intellectual detection for single chunk
+      const rawContent = response.choices[0].message.content || "No analysis available.";
+      const result = parseCleanIntelligenceResponse(rawContent, "OpenAI (GPT-4o)", text);
       return {
-        provider: "OpenAI (GPT-4o)",
-        formattedReport: response.choices[0].message.content || "No analysis available."
+        provider: result.provider,
+        formattedReport: result.formattedReport
       };
     } catch (error: any) {
       // Handle OpenAI API errors
@@ -530,9 +532,9 @@ export async function directOpenAIAnalyze(textInput: string): Promise<any> {
         temperature: 0.2
       });
       
-      // Parse with clean response parser (no statistical proxies)
+      // Parse with clean response parser (no statistical proxies) and original text for pseudo-intellectual detection
       const rawContent = response.choices[0].message.content || "";
-      const result = parseCleanIntelligenceResponse(rawContent, "OpenAI (GPT-4o)");
+      const result = parseCleanIntelligenceResponse(rawContent, "OpenAI (GPT-4o)", chunk);
       results.push(result);
       console.log(`Successfully processed chunk ${i+1}`);
       
@@ -609,11 +611,13 @@ export async function directAnthropicAnalyze(textInput: string): Promise<any> {
         ]
       });
       
-      // Parse the response content and return the raw text
+      // Parse the response content with pseudo-intellectual detection
       if (response.content && response.content[0] && 'text' in response.content[0]) {
+        const rawContent = response.content[0].text;
+        const result = parseCleanIntelligenceResponse(rawContent, "Anthropic (Claude 3 Sonnet)", text);
         return {
-          provider: "Anthropic (Claude 3 Sonnet)",
-          formattedReport: response.content[0].text
+          provider: result.provider,
+          formattedReport: result.formattedReport
         };
       } else {
         return {
@@ -773,7 +777,11 @@ export async function directPerplexityAnalyze(textInput: string): Promise<any> {
       const data: any = await response.json();
       
       const rawContent = data.choices?.[0]?.message?.content || "No response received from Perplexity";
-      return parseCleanIntelligenceResponse(rawContent, "Perplexity (LLaMA 3.1)");
+      const result = parseCleanIntelligenceResponse(rawContent, "Perplexity (LLaMA 3.1)", text);
+      return {
+        provider: result.provider,
+        formattedReport: result.formattedReport
+      };
     } catch (error: any) {
       console.error(`Error in direct passthrough to Perplexity:`, error);
       
@@ -951,7 +959,11 @@ export async function directDeepSeekAnalyze(textInput: string): Promise<any> {
       const data: any = await response.json();
       
       const rawContent = data.choices?.[0]?.message?.content || "No response received from DeepSeek";
-      return parseCleanIntelligenceResponse(rawContent, "DeepSeek");
+      const result = parseCleanIntelligenceResponse(rawContent, "DeepSeek", text);
+      return {
+        provider: result.provider,
+        formattedReport: result.formattedReport
+      };
     } catch (error: any) {
       console.error(`Error in direct passthrough to DeepSeek:`, error);
       

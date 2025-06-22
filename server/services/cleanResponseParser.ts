@@ -132,20 +132,26 @@ export function cleanAIResponse(text: string): string {
 }
 
 /**
- * Main parsing function - ONLY extracts from LLM narrative
+ * Main parsing function - ONLY extracts from LLM narrative with pseudo-intellectual override
  */
-export function parseCleanIntelligenceResponse(rawResponse: string, provider: string): CleanAnalysis {
+export function parseCleanIntelligenceResponse(rawResponse: string, provider: string, originalText?: string): CleanAnalysis {
   const cleanedResponse = cleanAIResponse(rawResponse);
   
-  const overallScore = extractIntelligenceScore(cleanedResponse) || 0;
+  const overallScore = extractIntelligenceScore(cleanedResponse, originalText) || 0;
   const summary = extractSummary(cleanedResponse);
   const dimensions = extractDimensions(cleanedResponse);
   const highlights = extractHighlights(cleanedResponse);
   const verdict = extractVerdict(cleanedResponse);
   
+  // Apply pseudo-intellectual detection to formatted report
+  let finalReport = cleanedResponse;
+  if (originalText && detectPseudoIntellectualProse(originalText)) {
+    finalReport = `⚠️ PSEUDO-INTELLECTUAL IMPOSTOR PROSE DETECTED ⚠️\n\nThis text contains academic jargon without logical structure. Score overridden to 35/100.\n\nOriginal Analysis:\n${cleanedResponse}`;
+  }
+  
   return {
     overallScore,
-    formattedReport: cleanedResponse,
+    formattedReport: finalReport,
     provider,
     summary,
     dimensions,

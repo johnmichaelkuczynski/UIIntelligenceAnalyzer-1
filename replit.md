@@ -179,6 +179,13 @@ Build process:
   - Enhanced calibration with specific example: text proposing "System L" as alternative to classical logic must score 96-98/100
   - Updated all LLM provider prompts to recognize meta-theoretical analysis and novel framework construction as top-tier intelligence markers
   - System now properly identifies that foundational critiques and theoretical innovations represent top 2-4% cognitive capacity
+- June 22, 2025. Backend Failsafe Implementation for Pseudo-Intellectual Detection:
+  - Implemented critical backend override system to prevent pseudo-intellectual prose from scoring 92/100
+  - Added pattern detection for jargon combinations: "conceptual scaffolding", "recursive landscape", "fluid interface", "polycentric episteme"
+  - Created parseCleanIntelligenceResponse function with mandatory 35% score override for buzzword stacking without logical structure
+  - Enhanced all LLM providers (OpenAI, Anthropic, Perplexity, DeepSeek) to pass original text for pseudo-intellectual detection
+  - System now prevents academic simulation from inflating intelligence scores regardless of vocabulary complexity
+  - Backend failsafe overrides LLM scoring when 3+ red flag patterns detected without clear arguments
 
 ## User Preferences
 
