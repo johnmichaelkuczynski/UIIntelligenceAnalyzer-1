@@ -307,18 +307,9 @@ function delay(ms: number): Promise<void> {
 async function combineAnalysisResults(results: any[], fullText: string): Promise<any> {
   if (results.length === 0) return null;
   
-  // Enhanced analysis with structural evaluation (fixes broken statistical proxies)
-  const structuralEvaluator = new StructuralEvaluator();
-  const cognitiveResult = await structuralEvaluator.evaluate(fullText);
-  
+  // NO STATISTICAL PROXIES - Only use LLM-generated analysis
   if (results.length === 1) {
-    return {
-      ...results[0],
-      overallScore: cognitiveResult.overallScore, // Use structural score as primary
-      structuralMarkers: cognitiveResult.markers,
-      cognitiveVariance: cognitiveResult.variance,
-      enhancedAnalysis: cognitiveResult.analysis
-    };
+    return results[0]; // Return pure LLM analysis without any statistical overlays
   }
   
   // For multiple chunks, use cognitive evaluation as authoritative score
