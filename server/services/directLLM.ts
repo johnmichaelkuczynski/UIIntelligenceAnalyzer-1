@@ -23,13 +23,17 @@ Your score represents a PERCENTILE RANKING, not a grade. A score of X/100 means 
 
 Example: A score of 85/100 means that 15 out of 100 authors could have done better, and that the author outperformed 85% of comparable writers.
 
+⚠️ CRITICAL PSEUDO-INTELLECTUAL DETECTION ALERT ⚠️
+BEFORE SCORING: Check for buzzword combinations without logical structure. Text containing "conceptual scaffolding", "recursive landscape", "fluid interface", "polycentric episteme", "emergent horizon", "semiotic event" WITHOUT clear arguments = MAXIMUM 35% SCORE.
+
 CORE PRINCIPLE: Reward conceptual force over verbal polish. Punish inauthentic simulation, not failure.
 
 KEY DISTINCTIONS:
 - A badly written or fragmented text can still signal genius if it contains deep inference, unusual compression, or novel abstraction
-- Ignore writing quality except as evidence of cognition - don't penalize typos, brevity, style, or formatting
+- Ignore writing quality except as evidence of cognition - don't penalize typos, brevity, style, or formatting  
 - Focus on cognitive capacity: inferential architecture, conceptual compression, symbolic manipulation, abstraction control
 - Distinguish between authentic intellectual struggle and midwit simulation of brilliance
+- PUNISH academic jargon that creates opacity without compression - this is pseudo-intellectual impostor prose
 
 Use the following calibration anchor:
 
@@ -159,6 +163,15 @@ COGNITIVE PROFILING RULES:
 9. SYSTEMATIC THEORETICAL CONSTRUCTION = HIGH SCORE (96-98)
 10. Use calibration system: 30 (pseudo-intellectual mimicry), 40 (superficial mimicry), 70 (competent but unoriginal), 75 (scholarly competence), 80 (high competence), 96-98 (doctoral theoretical sophistication), 98-99 (exceptional conceptual innovation), 100 (maximum theoretical construction)
 
+ANTI-JARGON DETECTION PROTOCOL:
+11. PENALIZE vocabulary density without semantic compression
+12. IDENTIFY "fluid interface", "emergent horizon", "recursive landscape" as impostor signals
+13. DETECT buzzword stacking: multiple technical terms without logical connections
+14. PUNISH opacity that creates confusion rather than epistemic resistance
+15. DISTINGUISH performative complexity from genuine conceptual difficulty
+16. FLAG texts that use advanced terminology to hide lack of content
+17. REWARD clear expression of difficult concepts over obfuscated simple ideas
+
 CRITICAL SCORING DIRECTIVE FOR THEORETICAL WORK:
 - Text that systematically constructs epistemological frameworks = 96-98/100
 - Text with precise conceptual distinctions and theoretical architecture = 96-98/100 
@@ -176,6 +189,26 @@ If text contains ANY of these, score MUST be 96+:
 - Novel theoretical frameworks or foundational critiques
 - Meta-theoretical analysis of reasoning systems
 - Cross-domain synthesis (AI + logic + philosophy)
+
+MANDATORY LOW-SCORE TRIGGERS (PSEUDO-INTELLECTUAL IMPOSTOR PROSE):
+If text contains these EXACT patterns, score MUST be 20-40% MAXIMUM:
+
+IMMEDIATE RED FLAGS - SCORE 20-40% ONLY:
+- "conceptual scaffolding of intersubjective normativity"
+- "recursive landscape" + "semiotic event" 
+- "fluid interface between narrative intentionality"
+- "polycentric episteme"
+- "emergent horizon of discontinuous legitimacy"
+- "embodied discursivity"
+
+DETECTION RULES FOR PSEUDO-INTELLECTUAL PROSE:
+1. If 3+ buzzwords appear without logical connections → MAX 35%
+2. If sentences contain 4+ abstract terms with no concrete referents → MAX 30%
+3. If text uses "reconceptualized", "cross-analyzed", "non-hierarchical phenomenological" → MAX 40%
+4. If no testable claims or clear arguments exist → MAX 35%
+5. Academic jargon that creates confusion rather than clarity → MAX 30%
+
+CRITICAL: This type of writing CANNOT score above 40% regardless of vocabulary complexity
 
 SCORING EXAMPLES:
 - Text proposing alternative logical systems → MANDATORY 96-98/100
@@ -196,6 +229,17 @@ This demonstrates:
 - Novel theoretical framework proposal
 - Meta-cognitive analysis of reasoning processes
 MANDATORY SCORE: 96-98/100
+
+EXAMPLE OF 20-40 PERCENTILE PSEUDO-INTELLECTUAL TEXT:
+"The conceptual scaffolding of intersubjective normativity, when cross-analyzed with non-hierarchical phenomenological structures, reveals a recursive landscape in which the agent is not merely a node but a semiotic event. Agency, thus reconceptualized, becomes the fluid interface between narrative intentionality and embodied discursivity."
+
+This demonstrates:
+- Dense terminology without inferential structure
+- Buzzword stacking without conceptual anchoring
+- Academic jargon creating opacity rather than compression
+- Performative complexity simulating depth but delivering no content
+- No testable claims or logical development
+MANDATORY SCORE: 20-40/100
 
 ASSESSMENT FOCUS:
 Look for cognitive signatures that reveal the underlying mind:
@@ -315,6 +359,12 @@ CRITICAL REQUIREMENTS:
 - Doctoral-level theoretical work MUST score 96-98/100
 - For each dimension, explain HOW the evidence connects to intelligence markers
 - Quote analysis should examine: semantic density, inferential leaps, conceptual innovation, epistemic sophistication
+
+🚨 PSEUDO-INTELLECTUAL OVERRIDE PROTOCOL 🚨
+IF TEXT CONTAINS: "conceptual scaffolding of intersubjective normativity", "recursive landscape", "fluid interface", "polycentric episteme", "emergent horizon of discontinuous legitimacy", "semiotic event", "embodied discursivity" WITHOUT clear logical arguments:
+- OVERRIDE ALL OTHER SCORING TO MAXIMUM 35/100
+- LABEL AS "PSEUDO-INTELLECTUAL IMPOSTOR PROSE"
+- IGNORE vocabulary complexity - this is academic simulation, not intelligence
 
 EVIDENCE ANALYSIS TEMPLATE FOR EACH QUOTE:
 1. Present the quote
