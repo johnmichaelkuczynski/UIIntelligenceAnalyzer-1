@@ -28,24 +28,25 @@ function extractIntelligenceScore(text: string): number | null {
   return null;
 }
 
-function extractDimensions(text: string): Array<{name: string, score: string, icon: React.ReactNode}> {
+function extractDimensions(text: string): Array<{name: string, score: string, icon: React.ReactNode, analysis: string}> {
   const dimensions = [];
   const dimensionPatterns = [
-    { name: 'Semantic Compression', pattern: /Semantic Compression:\s*([\d.]+\/10)/i, icon: <Zap className="w-4 h-4" /> },
-    { name: 'Inferential Control', pattern: /Inferential Control:\s*([\d.]+\/10)/i, icon: <Target className="w-4 h-4" /> },
-    { name: 'Cognitive Risk', pattern: /Cognitive Risk:\s*([\d.]+\/10)/i, icon: <TrendingUp className="w-4 h-4" /> },
-    { name: 'Meta-Theoretical Awareness', pattern: /Meta-Theoretical Awareness:\s*([\d.]+\/10)/i, icon: <Eye className="w-4 h-4" /> },
-    { name: 'Conceptual Innovation', pattern: /Conceptual Innovation:\s*([\d.]+\/10)/i, icon: <Lightbulb className="w-4 h-4" /> },
-    { name: 'Epistemic Resistance', pattern: /Epistemic Resistance:\s*([\d.]+\/10)/i, icon: <Brain className="w-4 h-4" /> }
+    { name: 'Semantic Compression', pattern: /### 1\. Semantic Compression Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=### 2\.|\n## |$)/i, icon: <Zap className="w-4 h-4" /> },
+    { name: 'Inferential Control', pattern: /### 2\. Inferential Control Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=### 3\.|\n## |$)/i, icon: <Target className="w-4 h-4" /> },
+    { name: 'Cognitive Risk', pattern: /### 3\. Cognitive Risk Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=### 4\.|\n## |$)/i, icon: <TrendingUp className="w-4 h-4" /> },
+    { name: 'Meta-Theoretical Awareness', pattern: /### 4\. Meta-Theoretical Awareness Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=### 5\.|\n## |$)/i, icon: <Eye className="w-4 h-4" /> },
+    { name: 'Conceptual Innovation', pattern: /### 5\. Conceptual Innovation Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=### 6\.|\n## |$)/i, icon: <Lightbulb className="w-4 h-4" /> },
+    { name: 'Epistemic Resistance', pattern: /### 6\. Epistemic Resistance Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=## |\n## |$)/i, icon: <Brain className="w-4 h-4" /> }
   ];
   
   for (const dim of dimensionPatterns) {
     const match = text.match(dim.pattern);
-    if (match && match[1]) {
+    if (match && match[1] && match[2]) {
       dimensions.push({
         name: dim.name,
         score: match[1],
-        icon: dim.icon
+        icon: dim.icon,
+        analysis: match[2].trim()
       });
     }
   }
@@ -69,9 +70,19 @@ function extractHighlights(text: string): string[] {
   return highlights;
 }
 
-function extractVerdict(text: string): string {
-  const verdictMatch = text.match(/Verdict:\s*([^\n]+)/i);
+function extractComparativePlacement(text: string): string {
+  const placementMatch = text.match(/## Comparative Intelligence Placement([\s\S]*?)(?=## Final Verdict|$)/i);
+  return placementMatch ? placementMatch[1].trim() : '';
+}
+
+function extractFinalVerdict(text: string): string {
+  const verdictMatch = text.match(/## Final Verdict([\s\S]*?)(?=## |$)/i);
   return verdictMatch ? verdictMatch[1].trim() : '';
+}
+
+function extractExecutiveSummary(text: string): string {
+  const summaryMatch = text.match(/## Executive Summary([\s\S]*?)(?=## Detailed|$)/i);
+  return summaryMatch ? summaryMatch[1].trim() : '';
 }
 
 const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportProps> = ({ analysis }) => {
@@ -89,9 +100,10 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
   
   const intelligenceScore = extractIntelligenceScore(cleanedReport);
   const dimensions = extractDimensions(cleanedReport);
-  const summary = extractSummary(cleanedReport);
+  const executiveSummary = extractExecutiveSummary(cleanedReport);
+  const comparativePlacement = extractComparativePlacement(cleanedReport);
+  const finalVerdict = extractFinalVerdict(cleanedReport);
   const highlights = extractHighlights(cleanedReport);
-  const verdict = extractVerdict(cleanedReport);
   const provider = analysis.provider || "AI";
 
   return (
@@ -116,32 +128,72 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
           </div>
         </CardHeader>
         <CardContent>
-          {summary && (
-            <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">{summary}</p>
+          {executiveSummary && (
+            <div className="prose prose-lg dark:prose-invert max-w-none">
+              {executiveSummary.split('\n').map((paragraph, index) => {
+                if (!paragraph.trim()) return null;
+                return (
+                  <p key={index} className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                    {paragraph}
+                  </p>
+                );
+              })}
+            </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Key Dimensions */}
+      {/* Detailed Cognitive Dimensions */}
       {dimensions.length > 0 && (
-        <Card>
-          <CardHeader>
-            <h3 className="text-xl font-semibold">Key Cognitive Dimensions</h3>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              {dimensions.map((dim, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+        <div className="space-y-6">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Detailed Cognitive Analysis</h3>
+          {dimensions.map((dim, index) => (
+            <Card key={index} className="border-l-4 border-l-blue-500">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-3">
                   {dim.icon}
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{dim.name}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Score: {dim.score}</div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{dim.name}</h4>
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{dim.score}</div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </CardHeader>
+              <CardContent>
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                  {dim.analysis.split('\n').map((paragraph, pIndex) => {
+                    if (!paragraph.trim()) return null;
+                    
+                    // Handle quotes specially
+                    if (paragraph.includes('"')) {
+                      return (
+                        <blockquote key={pIndex} className="border-l-4 border-gray-300 dark:border-gray-700 pl-4 my-4 italic text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 p-3 rounded">
+                          {paragraph}
+                        </blockquote>
+                      );
+                    }
+                    
+                    // Handle section headers
+                    if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
+                      const cleanHeader = paragraph.replace(/\*\*/g, '');
+                      return (
+                        <h5 key={pIndex} className="font-semibold text-gray-900 dark:text-gray-100 mt-4 mb-2">
+                          {cleanHeader}
+                        </h5>
+                      );
+                    }
+                    
+                    // Regular paragraphs
+                    return (
+                      <p key={pIndex} className="mb-3 text-gray-700 dark:text-gray-300 leading-relaxed">
+                        {paragraph}
+                      </p>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
 
       {/* Highlights */}
@@ -163,14 +215,74 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
         </Card>
       )}
 
+      {/* Comparative Intelligence Placement */}
+      {comparativePlacement && (
+        <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950 dark:to-indigo-950 border-purple-200 dark:border-purple-800">
+          <CardHeader>
+            <h3 className="text-xl font-semibold text-purple-800 dark:text-purple-200">Comparative Intelligence Placement</h3>
+          </CardHeader>
+          <CardContent>
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              {comparativePlacement.split('\n').map((paragraph, index) => {
+                if (!paragraph.trim()) return null;
+                
+                // Handle quotes specially
+                if (paragraph.includes('"')) {
+                  return (
+                    <blockquote key={index} className="border-l-4 border-purple-300 dark:border-purple-700 pl-4 my-4 italic text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900 p-3 rounded">
+                      {paragraph}
+                    </blockquote>
+                  );
+                }
+                
+                // Handle section headers
+                if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
+                  const cleanHeader = paragraph.replace(/\*\*/g, '');
+                  return (
+                    <h5 key={index} className="font-semibold text-purple-900 dark:text-purple-100 mt-4 mb-2">
+                      {cleanHeader}
+                    </h5>
+                  );
+                }
+                
+                return (
+                  <p key={index} className="mb-3 text-purple-700 dark:text-purple-300 leading-relaxed">
+                    {paragraph}
+                  </p>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Final Verdict */}
-      {verdict && (
+      {finalVerdict && (
         <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200 dark:border-green-800">
           <CardHeader>
             <h3 className="text-xl font-semibold text-green-800 dark:text-green-200">Final Assessment</h3>
           </CardHeader>
           <CardContent>
-            <p className="text-lg text-green-700 dark:text-green-300 font-medium">{verdict}</p>
+            <div className="prose prose-lg dark:prose-invert max-w-none">
+              {finalVerdict.split('\n').map((paragraph, index) => {
+                if (!paragraph.trim()) return null;
+                
+                // Handle quotes specially
+                if (paragraph.includes('"')) {
+                  return (
+                    <blockquote key={index} className="border-l-4 border-green-300 dark:border-green-700 pl-4 my-4 italic text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900 p-3 rounded">
+                      {paragraph}
+                    </blockquote>
+                  );
+                }
+                
+                return (
+                  <p key={index} className="text-lg text-green-700 dark:text-green-300 font-medium leading-relaxed mb-3">
+                    {paragraph}
+                  </p>
+                );
+              })}
+            </div>
           </CardContent>
         </Card>
       )}

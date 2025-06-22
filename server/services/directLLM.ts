@@ -200,28 +200,89 @@ Before assigning any score, IDENTIFY if the text contains:
 
 IF ANY OF THESE ARE PRESENT, MINIMUM SCORE = 96/100
 
-REQUIRED REPORT STRUCTURE:
+REQUIRED COMPREHENSIVE REPORT STRUCTURE:
 
 🧠 Final Intelligence Score: [0-100]/100
 
-Summary: [2-3 sentence executive summary of the author's intellectual caliber]
+## Executive Summary
+[3-4 detailed sentences explaining the author's intellectual caliber, supported by specific textual evidence]
 
-KEY DIMENSIONS:
-- Semantic Compression: [X.X]/10
-- Inferential Control: [X.X]/10  
-- Cognitive Risk: [X.X]/10
-- Meta-Theoretical Awareness: [X.X]/10
-- Conceptual Innovation: [X.X]/10
-- Epistemic Resistance: [X.X]/10
+## Detailed Cognitive Analysis
 
-Highlights:
-✓ [Key strength or achievement 1]
-✓ [Key strength or achievement 2] 
-✓ [Key strength or achievement 3]
+### 1. Semantic Compression Assessment: [X.X]/10
+**Quote Analysis:**
+"[Direct quote from text showing high/low semantic density]"
 
-Verdict: [Final 1-2 sentence assessment of cognitive architecture and intelligence type]
+**Justification:** [2-3 sentences explaining how this quote demonstrates the author's ability to pack meaning into sentences, with specific analysis of layered concepts, implicit connections, and information density]
 
-REMEMBER: Doctoral-level theoretical work MUST score 96-98/100. Only 2-4 people out of 100 can produce this level of sophistication.`;
+**Additional Evidence:**
+"[Second supporting quote]"
+[Further analysis of compression patterns]
+
+### 2. Inferential Control Assessment: [X.X]/10
+**Quote Analysis:**
+"[Direct quote showing logical reasoning patterns]"
+
+**Justification:** [2-3 sentences analyzing the quality of inferences, non-obvious connections, and logical structure demonstrated in this passage]
+
+**Additional Evidence:**
+"[Second supporting quote]"
+[Further analysis of inferential sophistication]
+
+### 3. Cognitive Risk Assessment: [X.X]/10
+**Quote Analysis:**
+"[Direct quote showing intellectual boldness or caution]"
+
+**Justification:** [2-3 sentences evaluating the author's willingness to engage with difficult problems, make bold claims, or navigate uncertainty]
+
+**Additional Evidence:**
+"[Second supporting quote]"
+[Further analysis of intellectual courage]
+
+### 4. Meta-Theoretical Awareness Assessment: [X.X]/10
+**Quote Analysis:**
+"[Direct quote showing self-reflection or framework awareness]"
+
+**Justification:** [2-3 sentences analyzing evidence of metacognitive sophistication, awareness of limitations, anticipation of objections]
+
+**Additional Evidence:**
+"[Second supporting quote]"
+[Further analysis of metacognitive patterns]
+
+### 5. Conceptual Innovation Assessment: [X.X]/10
+**Quote Analysis:**
+"[Direct quote showing novel concepts or distinctions]"
+
+**Justification:** [2-3 sentences evaluating originality, introduction of new frameworks, or creative synthesis of existing ideas]
+
+**Additional Evidence:**
+"[Second supporting quote]"
+[Further analysis of innovative thinking]
+
+### 6. Epistemic Resistance Assessment: [X.X]/10
+**Quote Analysis:**
+"[Direct quote showing non-obvious or challenging ideas]"
+
+**Justification:** [2-3 sentences analyzing the cognitive friction required to understand the author's points, resistance to easy categorization]
+
+**Additional Evidence:**
+"[Second supporting quote]"
+[Further analysis of epistemic difficulty]
+
+## Comparative Intelligence Placement
+**Evidence-Based Positioning:** [Detailed comparison with specific quotes showing how the author's thinking compares to undergraduate, graduate, journal-level, and canonical thinkers]
+
+## Final Verdict
+[Comprehensive 4-6 sentence assessment of the author's cognitive architecture, intelligence type, and overall intellectual capacity, anchored in the textual evidence presented above]
+
+CRITICAL REQUIREMENTS:
+- Every dimension score MUST be supported by at least 2 direct quotes
+- Every quote MUST have detailed justification explaining its relevance
+- Report should be 2000+ words with extensive evidence
+- NO unjustified statements - everything must be anchored in text
+- Doctoral-level theoretical work MUST score 96-98/100
+
+REMEMBER: This is a comprehensive intelligence assessment report, not a summary. Provide extensive evidence and detailed analysis.`;
 
 /**
  * Split text into chunks for large document processing
