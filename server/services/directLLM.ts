@@ -378,11 +378,9 @@ export async function directOpenAIAnalyze(textInput: string): Promise<any> {
         temperature: 0.2
       });
       
-      // Store the raw text result
-      const result = { 
-        formattedReport: response.choices[0].message.content || "",
-        provider: "OpenAI (GPT-4o)"
-      };
+      // Parse with clean response parser (no statistical proxies)
+      const rawContent = response.choices[0].message.content || "";
+      const result = parseCleanIntelligenceResponse(rawContent, "OpenAI (GPT-4o)");
       results.push(result);
       console.log(`Successfully processed chunk ${i+1}`);
       
@@ -411,10 +409,8 @@ export async function directOpenAIAnalyze(textInput: string): Promise<any> {
             temperature: 0.2
           });
           
-          const result = {
-            formattedReport: response.choices[0].message.content || "",
-            provider: "OpenAI (GPT-4o)"
-          };
+          const rawContent = response.choices[0].message.content || "";
+          const result = parseCleanIntelligenceResponse(rawContent, "OpenAI (GPT-4o)");
           results.push(result);
           console.log(`Successfully processed chunk ${i+1} on retry`);
         } catch (retryError) {
@@ -512,12 +508,10 @@ export async function directAnthropicAnalyze(textInput: string): Promise<any> {
         ]
       });
       
-      // Extract the text from the response
+      // Extract the text from the response and parse cleanly
       if (response.content && response.content[0] && 'text' in response.content[0]) {
-        const result = { 
-          formattedReport: response.content[0].text,
-          provider: "Anthropic (Claude 3 Sonnet)"
-        };
+        const rawContent = response.content[0].text;
+        const result = parseCleanIntelligenceResponse(rawContent, "Anthropic (Claude 3 Sonnet)");
         results.push(result);
         console.log(`Successfully processed chunk ${i+1}`);
       } else {
@@ -626,17 +620,13 @@ export async function directPerplexityAnalyze(textInput: string): Promise<any> {
       
       const data: any = await response.json();
       
-      return {
-        provider: "Perplexity (LLaMA 3.1)",
-        formattedReport: data.choices?.[0]?.message?.content || "No response received from Perplexity"
-      };
+      const rawContent = data.choices?.[0]?.message?.content || "No response received from Perplexity";
+      return parseCleanIntelligenceResponse(rawContent, "Perplexity (LLaMA 3.1)");
     } catch (error: any) {
       console.error(`Error in direct passthrough to Perplexity:`, error);
       
-      return {
-        provider: "Perplexity (LLaMA 3.1) - Error",
-        formattedReport: `Error: ${error.message || "Unknown error occurred"}`
-      };
+      const errorContent = `Error: ${error.message || "Unknown error occurred"}`;
+      return parseCleanIntelligenceResponse(errorContent, "Perplexity (LLaMA 3.1) - Error");
     }
   }
   
