@@ -146,6 +146,14 @@ Build process:
   - Enhanced dimension scoring for high-scoring texts to properly reflect cognitive capacity
   - System now correctly identifies that only 2-4 people out of 100 can produce doctoral-level theoretical work
   - Fixed Kuczynski epistemological text calibration from incorrect 85/100 to proper 96-98/100 range
+- June 22, 2025. Complete Evaluation Engine Restructure Around Actual Intelligence Markers:
+  - Rebuilt evaluation system to focus on cognitive markers instead of surface-level heuristics
+  - Implemented six core intelligence dimensions: Semantic Compression, Inferential Continuity, Semantic Topology, Cognitive Asymmetry, Epistemic Resistance, Metacognitive Awareness
+  - Added tiered evaluation system (rapid, standard, comprehensive) with manual override capabilities
+  - Created cognitive evaluation API endpoint (/api/cognitive-evaluate) with real variance scoring
+  - Replaced generic 80-90% clustering with actual cognitive diversity measurements
+  - Enhanced all LLM analysis pipelines to include cognitive marker assessment as primary score
+  - System now measures information density, conceptual connectivity, and epistemic friction rather than vocabulary complexity or paragraph count
 
 ## User Preferences
 
