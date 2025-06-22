@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import Anthropic from '@anthropic-ai/sdk';
 import fetch from 'node-fetch';
 import cognitiveProfiler from './cognitiveProfiler';
-import { StructuralEvaluator } from './structuralEvaluator';
+import { parseCleanIntelligenceResponse } from './cleanResponseParser';
 
 // Initialize the API clients
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -202,39 +202,24 @@ IF ANY OF THESE ARE PRESENT, MINIMUM SCORE = 96/100
 
 REQUIRED REPORT STRUCTURE:
 
-🧠 COMPREHENSIVE INTELLIGENCE REPORT
-Subject: Inferred Intelligence Profile of Author
-Estimated Intelligence Score: [0-100]/100 (Percentile: Author outperforms [X]% of comparable writers)
+🧠 Final Intelligence Score: [0-100]/100
 
-1. Summary Diagnosis (3-4 sentences)
-Brief executive summary of the author's intellectual caliber and how the percentile was derived.
+Summary: [2-3 sentence executive summary of the author's intellectual caliber]
 
-2. Cognitive Profile Breakdown
-Assess each dimension with a paragraph and subscore (0-10):
+KEY DIMENSIONS:
+- Semantic Compression: [X.X]/10
+- Inferential Control: [X.X]/10  
+- Cognitive Risk: [X.X]/10
+- Meta-Theoretical Awareness: [X.X]/10
+- Conceptual Innovation: [X.X]/10
+- Epistemic Resistance: [X.X]/10
 
-a. Semantic Compression & Density (X/10)
-How much meaning is packed into each sentence? Novel or layered term usage?
+Highlights:
+✓ [Key strength or achievement 1]
+✓ [Key strength or achievement 2] 
+✓ [Key strength or achievement 3]
 
-b. Inferential Control (X/10) 
-Non-obvious inferences? Fluent movement between abstract/concrete domains?
-
-c. Conceptual Innovation (X/10)
-New concepts introduced? Original distinctions or hybrid ideas?
-
-d. Cognitive Risk & Expansion (X/10)
-Bold claims? Navigation of uncertainty and difficult problems?
-
-e. Theoretical Integration (X/10)
-Synthesis of different domains? Meaningful comparison and blending?
-
-f. Meta-Cognition (X/10)
-Awareness of limitations? Anticipation of objections? Self-correction?
-
-3. Comparative Placement
-Position relative to: Average undergraduate, Top 10% grad students, Journal authors, Canonical thinkers
-
-4. Final Assessment
-8-12 sentence narrative describing intelligence flavor, psychological tone, ceiling potential, and how failures/successes reveal cognitive capacity.
+Verdict: [Final 1-2 sentence assessment of cognitive architecture and intelligence type]
 
 REMEMBER: Doctoral-level theoretical work MUST score 96-98/100. Only 2-4 people out of 100 can produce this level of sophistication.`;
 
@@ -312,34 +297,16 @@ async function combineAnalysisResults(results: any[], fullText: string): Promise
     return results[0]; // Return pure LLM analysis without any statistical overlays
   }
   
-  // For multiple chunks, use cognitive evaluation as authoritative score
-  const enhancedReport = `# Enhanced Intelligence Analysis
-
-## Cognitive Assessment (Primary Score)
-**Intelligence Score: ${cognitiveResult.overallScore}/100** - Based on actual cognitive markers
-
-### Key Intelligence Indicators (Structural Evaluation)
-- **Semantic Compression**: ${cognitiveResult.markers.semanticCompression}/100 (high-impact sentences with multiple consequences)
-- **Inferential Continuity**: ${cognitiveResult.markers.inferentialContinuity}/100 (necessary logical building)
-- **Epistemic Resistance**: ${cognitiveResult.markers.epistemicResistance}/100 (non-obviousness and cognitive friction)
-- **Metacognitive Awareness**: ${cognitiveResult.markers.metacognitiveAwareness}/100 (reframing and recursive definitions)
-- **Semantic Topology**: ${cognitiveResult.markers.semanticTopology}/100 (node density and recursion mapping)
-
-### Cognitive Profile
-${cognitiveResult.analysis}
-
-**Variance Score: ${cognitiveResult.variance.toFixed(1)}** - This avoids the generic 80-90% clustering by measuring actual cognitive diversity.
-
-## Supporting LLM Analysis
-${results[0].formattedReport}`;
+  // For multiple chunks, combine pure LLM results without statistical overlays
+  const averageScore = results.reduce((sum, result) => sum + (result.overallScore || 0), 0) / results.length;
+  
+  const combinedReport = results[0].formattedReport; // Use first chunk as primary report
 
   return {
-    provider: `${results[0].provider} (Enhanced with Structural Evaluation)`,
-    formattedReport: enhancedReport,
-    overallScore: cognitiveResult.overallScore,
-    structuralMarkers: cognitiveResult.markers,
-    cognitiveVariance: cognitiveResult.variance,
-    enhancedAnalysis: cognitiveResult.analysis
+    provider: results[0].provider,
+    formattedReport: combinedReport,
+    overallScore: averageScore,
+    analysisResults: results
   };
 }
 

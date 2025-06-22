@@ -1,0 +1,122 @@
+/**
+ * Clean response parser - ONLY extracts from LLM narrative, NO statistical proxies
+ */
+
+export interface CleanAnalysis {
+  overallScore: number;
+  formattedReport: string;
+  provider: string;
+  summary?: string;
+  dimensions?: Record<string, number>;
+  highlights?: string[];
+  verdict?: string;
+}
+
+/**
+ * Extract intelligence score from structured LLM output only
+ */
+export function extractIntelligenceScore(text: string): number | null {
+  const patterns = [
+    /🧠\s*Final Intelligence Score:\s*(\d+)\/100/i,
+    /Final Intelligence Score:\s*(\d+)\/100/i,
+    /Intelligence Score:\s*(\d+)\/100/i,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match && match[1]) {
+      return parseInt(match[1], 10);
+    }
+  }
+  return null;
+}
+
+/**
+ * Extract summary from LLM structured output
+ */
+export function extractSummary(text: string): string {
+  const summaryMatch = text.match(/Summary:\s*([^✓\n]+)/i);
+  return summaryMatch ? summaryMatch[1].trim() : '';
+}
+
+/**
+ * Extract dimension scores from LLM structured output
+ */
+export function extractDimensions(text: string): Record<string, number> {
+  const dimensions: Record<string, number> = {};
+  const dimensionPatterns = [
+    { name: 'Semantic Compression', pattern: /Semantic Compression:\s*([\d.]+)\/10/i },
+    { name: 'Inferential Control', pattern: /Inferential Control:\s*([\d.]+)\/10/i },
+    { name: 'Cognitive Risk', pattern: /Cognitive Risk:\s*([\d.]+)\/10/i },
+    { name: 'Meta-Theoretical Awareness', pattern: /Meta-Theoretical Awareness:\s*([\d.]+)\/10/i },
+    { name: 'Conceptual Innovation', pattern: /Conceptual Innovation:\s*([\d.]+)\/10/i },
+    { name: 'Epistemic Resistance', pattern: /Epistemic Resistance:\s*([\d.]+)\/10/i }
+  ];
+  
+  for (const dim of dimensionPatterns) {
+    const match = text.match(dim.pattern);
+    if (match && match[1]) {
+      dimensions[dim.name] = parseFloat(match[1]);
+    }
+  }
+  
+  return dimensions;
+}
+
+/**
+ * Extract highlights from LLM structured output
+ */
+export function extractHighlights(text: string): string[] {
+  const highlights = [];
+  const lines = text.split('\n');
+  for (const line of lines) {
+    if (line.trim().startsWith('✓')) {
+      highlights.push(line.trim().substring(1).trim());
+    }
+  }
+  return highlights;
+}
+
+/**
+ * Extract verdict from LLM structured output
+ */
+export function extractVerdict(text: string): string {
+  const verdictMatch = text.match(/Verdict:\s*([^\n]+)/i);
+  return verdictMatch ? verdictMatch[1].trim() : '';
+}
+
+/**
+ * Clean markup from AI response
+ */
+export function cleanAIResponse(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/#{1,6}\s*/g, '')
+    .replace(/^\s*[-*+]\s*/gm, '• ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/**
+ * Main parsing function - ONLY extracts from LLM narrative
+ */
+export function parseCleanIntelligenceResponse(rawResponse: string, provider: string): CleanAnalysis {
+  const cleanedResponse = cleanAIResponse(rawResponse);
+  
+  const overallScore = extractIntelligenceScore(cleanedResponse) || 0;
+  const summary = extractSummary(cleanedResponse);
+  const dimensions = extractDimensions(cleanedResponse);
+  const highlights = extractHighlights(cleanedResponse);
+  const verdict = extractVerdict(cleanedResponse);
+  
+  return {
+    overallScore,
+    formattedReport: cleanedResponse,
+    provider,
+    summary,
+    dimensions,
+    highlights,
+    verdict
+  };
+}

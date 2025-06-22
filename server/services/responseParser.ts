@@ -40,14 +40,12 @@ export interface ParsedAnalysis {
  * Parse intelligence score from AI response text
  */
 export function extractIntelligenceScore(text: string): number | null {
-  // Multiple patterns to catch various score formats
+  // Extract only from the new structured format
   const patterns = [
-    /Estimated Intelligence Score:\s*(\d+)\/100/i,
+    /🧠\s*Final Intelligence Score:\s*(\d+)\/100/i,
+    /Final Intelligence Score:\s*(\d+)\/100/i,
     /Intelligence Score:\s*(\d+)\/100/i,
-    /(?:Overall\s+)?Score:\s*(\d+)\/100/i,
-    /(?:Final\s+)?(?:Assessment|Score):\s*(\d+)\/100/i,
-    /(\d+)\/100(?:\s*-\s*Intelligence)/i,
-    /Assessment:\s*(\d+)\s*(?:out of|\/)\s*100/i,
+    /Overall Score:\s*(\d+)\/100/i,
     /Intelligence Level:\s*(\d+)/i,
     /Cognitive Score:\s*(\d+)/i,
     /Percentile:\s*Author outperforms\s*(\d+)%/i
