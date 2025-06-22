@@ -677,10 +677,8 @@ export async function directPerplexityAnalyze(textInput: string): Promise<any> {
       
       const data: any = await response.json();
       
-      const result = { 
-        formattedReport: data.choices?.[0]?.message?.content || "No response received",
-        provider: "Perplexity (LLaMA 3.1)"
-      };
+      const rawContent = data.choices?.[0]?.message?.content || "No response received";
+      const result = parseCleanIntelligenceResponse(rawContent, "Perplexity (LLaMA 3.1)");
       results.push(result);
       console.log(`Successfully processed chunk ${i+1} with Perplexity`);
       
@@ -728,10 +726,8 @@ export async function directPerplexityAnalyze(textInput: string): Promise<any> {
           
           const data: any = await response.json();
           
-          const result = { 
-            formattedReport: data.choices?.[0]?.message?.content || "No response received",
-            provider: "Perplexity (LLaMA 3.1)"
-          };
+          const rawContent = data.choices?.[0]?.message?.content || "No response received";
+          const result = parseCleanIntelligenceResponse(rawContent, "Perplexity (LLaMA 3.1)");
           results.push(result);
           console.log(`Successfully processed chunk ${i+1} with Perplexity on retry`);
         } catch (retryError) {
@@ -802,17 +798,13 @@ export async function directDeepSeekAnalyze(textInput: string): Promise<any> {
       
       const data: any = await response.json();
       
-      return {
-        provider: "DeepSeek",
-        formattedReport: data.choices?.[0]?.message?.content || "No response received from DeepSeek"
-      };
+      const rawContent = data.choices?.[0]?.message?.content || "No response received from DeepSeek";
+      return parseCleanIntelligenceResponse(rawContent, "DeepSeek");
     } catch (error: any) {
       console.error(`Error in direct passthrough to DeepSeek:`, error);
       
-      return {
-        provider: "DeepSeek - Error",
-        formattedReport: `Error: ${error.message || "Unknown error occurred"}`
-      };
+      const errorContent = `Error: ${error.message || "Unknown error occurred"}`;
+      return parseCleanIntelligenceResponse(errorContent, "DeepSeek - Error");
     }
   }
   
@@ -865,10 +857,8 @@ export async function directDeepSeekAnalyze(textInput: string): Promise<any> {
       const data: any = await response.json();
       
       // Store the raw text result
-      const result = { 
-        formattedReport: data.choices?.[0]?.message?.content || "No response received",
-        provider: "DeepSeek"
-      };
+      const rawContent = data.choices?.[0]?.message?.content || "No response received";
+      const result = parseCleanIntelligenceResponse(rawContent, "DeepSeek");
       results.push(result);
       console.log(`Successfully processed chunk ${i+1}`);
       
@@ -916,10 +906,8 @@ export async function directDeepSeekAnalyze(textInput: string): Promise<any> {
           
           const data: any = await response.json();
           
-          const result = { 
-            formattedReport: data.choices?.[0]?.message?.content || "No response received",
-            provider: "DeepSeek"
-          };
+          const rawContent = data.choices?.[0]?.message?.content || "No response received";
+          const result = parseCleanIntelligenceResponse(rawContent, "DeepSeek");
           results.push(result);
           console.log(`Successfully processed chunk ${i+1} with DeepSeek on retry`);
         } catch (retryError) {
