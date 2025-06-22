@@ -62,6 +62,63 @@ export async function registerRoutes(app: Express): Promise<Express> {
       mathpix: (mathpix_app_id && mathpix_app_key) ? "✓" : "✗"
     });
   });
+
+  // Cognitive evaluation endpoint with tiered analysis
+  app.post("/api/cognitive-evaluate", async (req: Request, res: Response) => {
+    try {
+      const { content, tier = 'standard', overrides = {} } = req.body;
+
+      if (!content || typeof content !== 'string') {
+        return res.status(400).json({ 
+          error: "Content is required and must be a string" 
+        });
+      }
+
+      // Validate tier
+      if (!EVALUATION_TIERS[tier]) {
+        return res.status(400).json({ 
+          error: `Invalid tier. Available tiers: ${Object.keys(EVALUATION_TIERS).join(', ')}` 
+        });
+      }
+
+      // Create evaluator with specified tier
+      const evaluator = new CognitiveEvaluator(tier);
+
+      // Apply manual overrides if provided
+      if (overrides && typeof overrides === 'object') {
+        Object.entries(overrides).forEach(([marker, score]) => {
+          if (typeof score === 'number') {
+            evaluator.setOverride(marker, score);
+          }
+        });
+      }
+
+      console.log(`COGNITIVE EVALUATION: Analyzing ${content.length} characters with ${tier} tier`);
+      
+      const evaluation = await evaluator.evaluate(content);
+
+      res.json({
+        success: true,
+        evaluation: {
+          ...evaluation,
+          metadata: {
+            contentLength: content.length,
+            tier: tier,
+            overridesApplied: Object.keys(overrides).length,
+            timestamp: new Date().toISOString()
+          }
+        }
+      });
+
+    } catch (error: any) {
+      console.error("Error in cognitive evaluation:", error);
+      res.status(500).json({
+        success: false,
+        error: "Cognitive evaluation failed",
+        details: error.message
+      });
+    }
+  });
   
   // Extract text from uploaded document
   app.post("/api/extract-text", upload.single("file"), async (req: Request, res: Response) => {

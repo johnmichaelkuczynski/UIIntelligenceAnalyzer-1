@@ -408,9 +408,10 @@ export class CognitiveEvaluator {
     const connectors = ['therefore', 'thus', 'consequently', 'moreover', 'furthermore', 'however', 'nevertheless'];
     const hasConnector = connectors.some(conn => curr.toLowerCase().includes(conn));
     
-    const prevWords = new Set(prev.toLowerCase().split(/\W+/));
-    const currWords = new Set(curr.toLowerCase().split(/\W+/));
-    const prevWordsArray = Array.from(prevWords);
+    const prevWordsArray = prev.toLowerCase().split(/\W+/);
+    const currWordsArray = curr.toLowerCase().split(/\W+/);
+    const prevWords = new Set(prevWordsArray);
+    const currWords = new Set(currWordsArray);
     const sharedWords = new Set(prevWordsArray.filter(word => currWords.has(word)));
     
     const continuity = (sharedWords.size / Math.max(prevWords.size, currWords.size)) + (hasConnector ? 0.3 : 0);
@@ -449,11 +450,12 @@ export class CognitiveEvaluator {
 
   private areConceptsRelated(concept1: string, concept2: string): boolean {
     // Simple relatedness check based on word overlap
-    const words1 = new Set(concept1.toLowerCase().split(/\W+/));
-    const words2 = new Set(concept2.toLowerCase().split(/\W+/));
-    const overlap = new Set([...words1].filter(x => words2.has(x)));
+    const words1Array = concept1.toLowerCase().split(/\W+/);
+    const words2Array = concept2.toLowerCase().split(/\W+/);
+    const words2 = new Set(words2Array);
+    const overlapArray = words1Array.filter(x => words2.has(x));
     
-    return overlap.size > 0;
+    return overlapArray.length > 0;
   }
 
   private measureSentenceComplexity(sentence: string): number {

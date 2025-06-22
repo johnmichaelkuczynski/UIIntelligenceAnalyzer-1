@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import Anthropic from '@anthropic-ai/sdk';
 import fetch from 'node-fetch';
 import cognitiveProfiler from './cognitiveProfiler';
+import { CognitiveEvaluator } from './cognitiveEvaluator';
 
 // Initialize the API clients
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
