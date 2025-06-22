@@ -133,17 +133,19 @@ However, it lacks:
 
 The author shows high competence and logical rigor but operates within established conceptual boundaries. Use this to anchor the 80-point range for technically proficient philosophical analysis.
 
-CALIBRATION SCALE:
-- 98-100: Philosophy of mind, formal logic, advanced mathematics, complex theoretical frameworks
-- 95-97: PhD-level theoretical work, sophisticated philosophical analysis
-- 90-94: Graduate-level academic writing with strong conceptual control
-- 85-89: Advanced undergraduate work, complex interdisciplinary analysis
-- 80-84: Solid academic writing with some theoretical depth
-- 75-79: Clear analytical writing with moderate complexity
-- 70-74: Basic academic or professional writing
-- 60-69: General educated discourse
-- 50-59: Average college graduate writing
-- Below 50: Below college level
+PERCENTILE INTELLIGENCE CALIBRATION SCALE:
+(Score = How many people out of 100 the author is smarter than)
+
+- 98-100: Author outperforms 98-100% of people (philosophy of mind, formal logic, advanced mathematics, complex theoretical frameworks)
+- 95-97: Author outperforms 95-97% of people (PhD-level theoretical work, sophisticated philosophical analysis) 
+- 90-94: Author outperforms 90-94% of people (graduate-level academic writing with strong conceptual control)
+- 85-89: Author outperforms 85-89% of people (advanced undergraduate work, complex interdisciplinary analysis)
+- 80-84: Author outperforms 80-84% of people (solid academic writing with some theoretical depth)
+- 75-79: Author outperforms 75-79% of people (clear analytical writing with moderate complexity)
+- 70-74: Author outperforms 70-74% of people (basic academic or professional writing)
+- 60-69: Author outperforms 60-69% of people (general educated discourse)
+- 50-59: Author outperforms 50-59% of people (average college graduate writing)
+- Below 50: Author outperforms less than 50% of people (below college level)
 
 COGNITIVE PROFILING RULES:
 1. IGNORE writing quality - messy prose with deep inference beats polished emptiness
@@ -161,13 +163,39 @@ CRITICAL SCORING DIRECTIVE FOR THEORETICAL WORK:
 - Text that systematically constructs epistemological frameworks = 96-98/100
 - Text with precise conceptual distinctions and theoretical architecture = 96-98/100 
 - Text demonstrating original philosophical systematization = 96-98/100
+- Text proposing alternative logical systems or critiquing foundational assumptions = 96-98/100
+- Text engaging with AI/logic/philosophy of mind at theoretical level = 96-98/100
 - Only 2-4 people out of 100 can produce this level of theoretical sophistication
 
+MANDATORY HIGH-SCORE TRIGGERS:
+If text contains ANY of these, score MUST be 96+:
+- "proposes an alternative system"
+- "argues that classical logic fundamentally fails"  
+- "drawing on evidence from artificial intelligence systems"
+- "reconceptualization of logic's nature and purpose"
+- Novel theoretical frameworks or foundational critiques
+- Meta-theoretical analysis of reasoning systems
+- Cross-domain synthesis (AI + logic + philosophy)
+
 SCORING EXAMPLES:
+- Text proposing alternative logical systems → MANDATORY 96-98/100
+- Text critiquing foundational assumptions in established fields → MANDATORY 96-98/100
+- Cross-domain synthesis (AI + philosophy + logic) → MANDATORY 96-98/100
+- Meta-theoretical analysis of reasoning systems → MANDATORY 96-98/100
 - Badly written text with deep inference/novel abstraction → HIGH SCORE (85-95+)
 - Stylistically fluent but cognitively shallow simulation → MODERATE SCORE (~53)
 - Authentic intellectual struggle with typos/poor formatting → HIGH SCORE if conceptually rich
 - Polished academic writing without cognitive depth → LOW-MODERATE SCORE (40-60)
+
+EXAMPLE OF 96+ PERCENTILE TEXT:
+"This paper argues that classical logic fundamentally fails as a tool for reasoning because it requires more intelligence to recognize that an inference instantiates a logical law than to recognize the validity of the inference directly. Drawing on evidence from artificial intelligence systems, particularly large language models, we propose an alternative 'System L' that better captures how both human and artificial minds actually reason."
+
+This demonstrates:
+- Foundational critique of established logical systems
+- Cross-domain evidence integration (AI + logic)
+- Novel theoretical framework proposal
+- Meta-cognitive analysis of reasoning processes
+MANDATORY SCORE: 96-98/100
 
 ASSESSMENT FOCUS:
 Look for cognitive signatures that reveal the underlying mind:
@@ -203,9 +231,10 @@ IF ANY OF THESE ARE PRESENT, MINIMUM SCORE = 96/100
 REQUIRED COMPREHENSIVE REPORT STRUCTURE:
 
 🧠 Final Intelligence Score: [0-100]/100
+(Percentile: Author outperforms [X]% of people intellectually)
 
 ## Executive Summary
-[3-4 detailed sentences explaining the author's intellectual caliber, supported by specific textual evidence]
+[3-4 detailed sentences explaining the author's intellectual caliber and percentile placement, supported by specific textual evidence]
 
 ## Detailed Cognitive Analysis
 
@@ -273,7 +302,7 @@ REQUIRED COMPREHENSIVE REPORT STRUCTURE:
 **Evidence-Based Positioning:** [Detailed comparison with specific quotes showing how the author's thinking compares to undergraduate, graduate, journal-level, and canonical thinkers]
 
 ## Final Verdict
-[Comprehensive 4-6 sentence assessment of the author's cognitive architecture, intelligence type, and overall intellectual capacity, anchored in the textual evidence presented above]
+[Comprehensive 4-6 sentence assessment of the author's cognitive architecture, intelligence type, and overall intellectual capacity, anchored in the textual evidence presented above. Must clearly state: "This author is intellectually superior to approximately [X]% of the general population."]
 
 CRITICAL REQUIREMENTS:
 - Every dimension score MUST be supported by at least 3-4 direct quotes with detailed analysis

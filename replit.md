@@ -166,6 +166,13 @@ Build process:
   - Implemented comprehensive intelligence report modal for in-app viewing of detailed assessments
   - Enhanced quote formatting with gradient backgrounds and forensic-level analysis structure
   - Modal supports full-screen viewing of 3000+ word reports with enhanced typography and evidence highlighting
+- June 22, 2025. Critical Percentile Intelligence Scoring Clarification:
+  - Updated scoring system to reflect percentile ranking interpretation: scores represent how many people out of 100 the author outperforms intellectually
+  - High-level academic work (doctoral-level theoretical, sophisticated philosophical analysis) now properly scores 96+ percentile
+  - Enhanced LLM prompts across all providers to emphasize author intelligence profiling rather than text quality assessment
+  - Added explicit percentile language in report structure requiring statements like "This author is intellectually superior to approximately [X]% of the general population"
+  - Fixed modal display with comprehensive fallback extraction mechanisms to ensure intelligence reports always display properly
+  - System now correctly identifies that only 2-4% of people can produce doctoral-level theoretical work
 
 ## User Preferences
 
