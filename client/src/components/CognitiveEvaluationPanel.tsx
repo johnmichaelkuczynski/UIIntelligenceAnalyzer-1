@@ -291,7 +291,7 @@ export default function CognitiveEvaluationPanel() {
                               {key.replace(/([A-Z])/g, ' $1').trim()}:
                             </span>
                             <span className="font-mono">
-                              {typeof value === 'number' ? value.toFixed(3) : value}
+                              {typeof value === 'number' ? value.toFixed(3) : String(value || 'N/A')}
                             </span>
                           </div>
                         ))}

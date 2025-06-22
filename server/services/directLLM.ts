@@ -304,13 +304,52 @@ function delay(ms: number): Promise<void> {
  * Combine multiple analysis results into a single result
  * Used when a document is split into chunks
  */
-function combineAnalysisResults(results: any[]): any {
+async function combineAnalysisResults(results: any[], fullText: string): Promise<any> {
   if (results.length === 0) return null;
-  if (results.length === 1) return results[0];
   
-  // For the improved implementation, just take the first result instead of creating artificial sections
-  // This prevents the confusion with multiple sections for small documents
-  return results[0];
+  // Enhanced analysis with cognitive markers for any text length
+  const cognitiveEvaluator = new CognitiveEvaluator('comprehensive');
+  const cognitiveResult = await cognitiveEvaluator.evaluate(fullText);
+  
+  if (results.length === 1) {
+    return {
+      ...results[0],
+      overallScore: cognitiveResult.overallScore, // Use cognitive score as primary
+      cognitiveMarkers: cognitiveResult.markers,
+      cognitiveVariance: cognitiveResult.variance,
+      enhancedAnalysis: cognitiveResult.analysis
+    };
+  }
+  
+  // For multiple chunks, use cognitive evaluation as authoritative score
+  const enhancedReport = `# Enhanced Intelligence Analysis
+
+## Cognitive Assessment (Primary Score)
+**Intelligence Score: ${cognitiveResult.overallScore}/100** - Based on actual cognitive markers
+
+### Key Intelligence Indicators
+- **Semantic Compression**: ${cognitiveResult.markers.semanticCompression.score}/100 (${cognitiveResult.markers.semanticCompression.density.toFixed(3)} concepts/word)
+- **Inferential Continuity**: ${cognitiveResult.markers.inferentialContinuity.score}/100 (coherence: ${cognitiveResult.markers.inferentialContinuity.coherenceIndex.toFixed(2)})
+- **Cognitive Asymmetry**: ${cognitiveResult.markers.cognitiveAsymmetry.score}/100 (complexity variance: ${cognitiveResult.markers.cognitiveAsymmetry.weightDistribution.toFixed(2)})
+- **Epistemic Resistance**: ${cognitiveResult.markers.epistemicResistance.score}/100 (non-obviousness)
+- **Metacognitive Awareness**: ${cognitiveResult.markers.metacognitiveAwareness.score}/100 (self-reflection)
+
+### Cognitive Profile
+${cognitiveResult.analysis}
+
+**Variance Score: ${cognitiveResult.variance.toFixed(1)}** - This avoids the generic 80-90% clustering by measuring actual cognitive diversity.
+
+## Supporting LLM Analysis
+${results[0].formattedReport}`;
+
+  return {
+    provider: `${results[0].provider} (Enhanced with Cognitive Markers)`,
+    formattedReport: enhancedReport,
+    overallScore: cognitiveResult.overallScore,
+    cognitiveMarkers: cognitiveResult.markers,
+    cognitiveVariance: cognitiveResult.variance,
+    enhancedAnalysis: cognitiveResult.analysis
+  };
 }
 
 /**
@@ -438,9 +477,9 @@ export async function directOpenAIAnalyze(textInput: string): Promise<any> {
     throw new Error("Failed to process any chunks of the document. The document may be too large or processed too quickly. Please try again later.");
   }
   
-  // Combine the results from all chunks
-  console.log(`Combining results from ${results.length} chunks...`);
-  const combinedResult = combineAnalysisResults(results);
+  // Combine the results from all chunks with cognitive enhancement
+  console.log(`Combining results from ${results.length} chunks with cognitive evaluation...`);
+  const combinedResult = await combineAnalysisResults(results, textInput);
   return combinedResult;
 }
 
@@ -579,9 +618,9 @@ export async function directAnthropicAnalyze(textInput: string): Promise<any> {
     throw new Error("Failed to process any chunks of the document. The document may be too large or processed too quickly. Please try again later.");
   }
   
-  // Combine the results from all chunks
-  console.log(`Combining results from ${results.length} chunks processed by Anthropic...`);
-  const combinedResult = combineAnalysisResults(results);
+  // Combine the results from all chunks with cognitive enhancement
+  console.log(`Combining results from ${results.length} chunks processed by Anthropic with cognitive evaluation...`);
+  const combinedResult = await combineAnalysisResults(results, textInput);
   return combinedResult;
 }
 
@@ -765,9 +804,9 @@ export async function directPerplexityAnalyze(textInput: string): Promise<any> {
     return fallbackResponse;
   }
   
-  // Combine the results from all chunks
-  console.log(`Combining results from ${results.length} chunks processed by Perplexity...`);
-  const combinedResult = combineAnalysisResults(results);
+  // Combine the results from all chunks with cognitive enhancement
+  console.log(`Combining results from ${results.length} chunks processed by Perplexity with cognitive evaluation...`);
+  const combinedResult = await combineAnalysisResults(results, textInput);
   return combinedResult;
 }
 
@@ -953,8 +992,8 @@ export async function directDeepSeekAnalyze(textInput: string): Promise<any> {
     return fallbackResponse;
   }
   
-  // Combine the results from all chunks
-  console.log(`Combining results from ${results.length} chunks processed by DeepSeek...`);
-  const combinedResult = combineAnalysisResults(results);
+  // Combine the results from all chunks with cognitive enhancement
+  console.log(`Combining results from ${results.length} chunks processed by DeepSeek with cognitive evaluation...`);
+  const combinedResult = await combineAnalysisResults(results, textInput);
   return combinedResult;
 }
