@@ -5,7 +5,7 @@ import path from "path";
 import { extractTextFromFile } from "./api/documentParser";
 import { sendSimpleEmail } from "./api/simpleEmailService";
 import { upload as speechUpload, processSpeechToText } from "./api/simpleSpeechToText";
-import { CognitiveEvaluator, EVALUATION_TIERS } from "./services/cognitiveEvaluator";
+import { StructuralEvaluator } from "./services/structuralEvaluator";
 
 // Configure multer for file uploads
 const upload = multer({ 
@@ -74,26 +74,10 @@ export async function registerRoutes(app: Express): Promise<Express> {
         });
       }
 
-      // Validate tier
-      if (!EVALUATION_TIERS[tier]) {
-        return res.status(400).json({ 
-          error: `Invalid tier. Available tiers: ${Object.keys(EVALUATION_TIERS).join(', ')}` 
-        });
-      }
+      // Use structural evaluator instead of broken statistical proxies
+      const evaluator = new StructuralEvaluator();
 
-      // Create evaluator with specified tier
-      const evaluator = new CognitiveEvaluator(tier);
-
-      // Apply manual overrides if provided
-      if (overrides && typeof overrides === 'object') {
-        Object.entries(overrides).forEach(([marker, score]) => {
-          if (typeof score === 'number') {
-            evaluator.setOverride(marker, score);
-          }
-        });
-      }
-
-      console.log(`COGNITIVE EVALUATION: Analyzing ${content.length} characters with ${tier} tier`);
+      console.log(`STRUCTURAL EVALUATION: Analyzing ${content.length} characters with structural logic (not statistical proxies)`);
       
       const evaluation = await evaluator.evaluate(content);
 
@@ -103,8 +87,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
           ...evaluation,
           metadata: {
             contentLength: content.length,
-            tier: tier,
-            overridesApplied: Object.keys(overrides).length,
+            evaluationType: 'structural',
             timestamp: new Date().toISOString()
           }
         }

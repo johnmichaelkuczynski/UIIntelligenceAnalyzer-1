@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import Anthropic from '@anthropic-ai/sdk';
 import fetch from 'node-fetch';
 import cognitiveProfiler from './cognitiveProfiler';
-import { CognitiveEvaluator } from './cognitiveEvaluator';
+import { StructuralEvaluator } from './structuralEvaluator';
 
 // Initialize the API clients
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -307,15 +307,15 @@ function delay(ms: number): Promise<void> {
 async function combineAnalysisResults(results: any[], fullText: string): Promise<any> {
   if (results.length === 0) return null;
   
-  // Enhanced analysis with cognitive markers for any text length
-  const cognitiveEvaluator = new CognitiveEvaluator('comprehensive');
-  const cognitiveResult = await cognitiveEvaluator.evaluate(fullText);
+  // Enhanced analysis with structural evaluation (fixes broken statistical proxies)
+  const structuralEvaluator = new StructuralEvaluator();
+  const cognitiveResult = await structuralEvaluator.evaluate(fullText);
   
   if (results.length === 1) {
     return {
       ...results[0],
-      overallScore: cognitiveResult.overallScore, // Use cognitive score as primary
-      cognitiveMarkers: cognitiveResult.markers,
+      overallScore: cognitiveResult.overallScore, // Use structural score as primary
+      structuralMarkers: cognitiveResult.markers,
       cognitiveVariance: cognitiveResult.variance,
       enhancedAnalysis: cognitiveResult.analysis
     };
@@ -327,12 +327,12 @@ async function combineAnalysisResults(results: any[], fullText: string): Promise
 ## Cognitive Assessment (Primary Score)
 **Intelligence Score: ${cognitiveResult.overallScore}/100** - Based on actual cognitive markers
 
-### Key Intelligence Indicators
-- **Semantic Compression**: ${cognitiveResult.markers.semanticCompression.score}/100 (${cognitiveResult.markers.semanticCompression.density.toFixed(3)} concepts/word)
-- **Inferential Continuity**: ${cognitiveResult.markers.inferentialContinuity.score}/100 (coherence: ${cognitiveResult.markers.inferentialContinuity.coherenceIndex.toFixed(2)})
-- **Cognitive Asymmetry**: ${cognitiveResult.markers.cognitiveAsymmetry.score}/100 (complexity variance: ${cognitiveResult.markers.cognitiveAsymmetry.weightDistribution.toFixed(2)})
-- **Epistemic Resistance**: ${cognitiveResult.markers.epistemicResistance.score}/100 (non-obviousness)
-- **Metacognitive Awareness**: ${cognitiveResult.markers.metacognitiveAwareness.score}/100 (self-reflection)
+### Key Intelligence Indicators (Structural Evaluation)
+- **Semantic Compression**: ${cognitiveResult.markers.semanticCompression}/100 (high-impact sentences with multiple consequences)
+- **Inferential Continuity**: ${cognitiveResult.markers.inferentialContinuity}/100 (necessary logical building)
+- **Epistemic Resistance**: ${cognitiveResult.markers.epistemicResistance}/100 (non-obviousness and cognitive friction)
+- **Metacognitive Awareness**: ${cognitiveResult.markers.metacognitiveAwareness}/100 (reframing and recursive definitions)
+- **Semantic Topology**: ${cognitiveResult.markers.semanticTopology}/100 (node density and recursion mapping)
 
 ### Cognitive Profile
 ${cognitiveResult.analysis}
@@ -343,10 +343,10 @@ ${cognitiveResult.analysis}
 ${results[0].formattedReport}`;
 
   return {
-    provider: `${results[0].provider} (Enhanced with Cognitive Markers)`,
+    provider: `${results[0].provider} (Enhanced with Structural Evaluation)`,
     formattedReport: enhancedReport,
     overallScore: cognitiveResult.overallScore,
-    cognitiveMarkers: cognitiveResult.markers,
+    structuralMarkers: cognitiveResult.markers,
     cognitiveVariance: cognitiveResult.variance,
     enhancedAnalysis: cognitiveResult.analysis
   };
