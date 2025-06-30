@@ -177,7 +177,7 @@ export async function compareDocuments(
   comparison: DocumentComparison;
 }> {
   try {
-    const response = await apiRequest("POST", "/api/compare", {
+    const response = await apiRequest("POST", "/api/intelligence-compare", {
       documentA,
       documentB,
       provider

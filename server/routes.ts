@@ -270,7 +270,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
     }
   });
   
-  // Compare two documents
+  // Compare two documents (case assessment style)
   app.post("/api/compare", async (req: Request, res: Response) => {
     try {
       const { documentA, documentB, provider = "openai" } = req.body;
@@ -291,6 +291,31 @@ export async function registerRoutes(app: Express): Promise<Express> {
       return res.status(500).json({ 
         error: true, 
         message: error.message || "Failed to compare documents" 
+      });
+    }
+  });
+
+  // Intelligence comparison for two documents
+  app.post("/api/intelligence-compare", async (req: Request, res: Response) => {
+    try {
+      const { documentA, documentB, provider = "openai" } = req.body;
+      
+      if (!documentA || !documentB) {
+        return res.status(400).json({ error: "Both documents are required for intelligence comparison" });
+      }
+      
+      // Import the intelligence comparison service
+      const { performIntelligenceComparison } = await import('./services/intelligenceComparison');
+      
+      // Compare intelligence levels using the selected provider
+      console.log(`COMPARING INTELLIGENCE WITH ${provider.toUpperCase()}`);
+      const result = await performIntelligenceComparison(documentA.content || documentA, documentB.content || documentB, provider);
+      return res.json(result);
+    } catch (error: any) {
+      console.error("Error comparing intelligence:", error);
+      return res.status(500).json({ 
+        error: true, 
+        message: error.message || "Failed to compare intelligence" 
       });
     }
   });
