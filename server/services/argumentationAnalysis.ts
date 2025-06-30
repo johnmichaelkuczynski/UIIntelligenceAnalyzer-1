@@ -133,27 +133,58 @@ Provide extensive quotations to support your analysis. Be rigorous and precise i
 }
 
 function parseArgumentationResponse(response: string, isComparative: boolean = false): ArgumentationAnalysis {
+  console.log("PARSING ARGUMENTATION RESPONSE - First 500 chars:", response.substring(0, 500));
+  
   const parseDimension = (dimensionName: string, text: string): ArgumentationDimension => {
-    const pattern = new RegExp(`\\*\\*${dimensionName}:\\s*(\\d+)/100\\s*-\\s*([^*]+)\\*\\*([^*]+?)(?=Evidence:|\\*\\*|$)`, 'i');
-    const match = text.match(pattern);
+    // Multiple patterns to handle different response formats
+    const patterns = [
+      new RegExp(`\\*\\*${dimensionName}:\\s*(\\d+)/100\\s*-\\s*([^*]+?)\\*\\*([^*]+?)(?=Evidence:|\\*\\*|$)`, 'is'),
+      new RegExp(`\\*\\*${dimensionName}:\\s*(\\d+)/100\\s*-\\s*([^\\n]+)\\n([^*]+?)(?=Evidence:|\\*\\*|$)`, 'is'),
+      new RegExp(`${dimensionName}:\\s*(\\d+)/100\\s*-\\s*([^\\n]+)\\n([^*]+?)(?=Evidence:|\\*\\*|$)`, 'is'),
+      new RegExp(`${dimensionName}.*?(\\d+)/100.*?([^\\n]+)\\n([^*]+?)(?=Evidence:|\\*\\*|$)`, 'is')
+    ];
+    
+    let match = null;
+    for (const pattern of patterns) {
+      match = text.match(pattern);
+      if (match) break;
+    }
     
     if (!match) {
+      console.log(`No match found for dimension: ${dimensionName}`);
       return {
         score: 0,
         rating: 'Not Found',
-        description: 'Analysis not found',
+        description: 'Analysis not found - check response format',
         evidence: []
       };
     }
 
     const score = parseInt(match[1]) || 0;
-    const rating = match[2].trim();
-    const description = match[3].trim();
+    const rating = match[2] ? match[2].trim() : 'Unknown';
+    const description = match[3] ? match[3].trim() : 'No description available';
     
-    // Extract evidence quotes
-    const evidencePattern = /Evidence:\s*"([^"]+)"\s*\|\s*"([^"]+)"\s*\|\s*"([^"]+)"/i;
-    const evidenceMatch = text.match(evidencePattern);
-    const evidence = evidenceMatch ? [evidenceMatch[1], evidenceMatch[2], evidenceMatch[3]] : [];
+    console.log(`Parsed ${dimensionName}: Score=${score}, Rating=${rating}`);
+    
+    // Extract evidence quotes with flexible patterns
+    const evidencePatterns = [
+      /Evidence:\s*"([^"]+)"\s*\|\s*"([^"]+)"\s*\|\s*"([^"]+)"/i,
+      /Evidence:\s*"([^"]+)"/i,
+      /"([^"]{20,}?)"/g
+    ];
+    
+    let evidence: string[] = [];
+    for (const pattern of evidencePatterns) {
+      const evidenceMatch = text.match(pattern);
+      if (evidenceMatch) {
+        if (pattern.global) {
+          evidence = Array.from(text.matchAll(pattern)).slice(0, 3).map(m => m[1]);
+        } else {
+          evidence = evidenceMatch.slice(1, 4).filter(Boolean);
+        }
+        break;
+      }
+    }
     
     return { score, rating, description, evidence };
   };
@@ -171,9 +202,22 @@ function parseArgumentationResponse(response: string, isComparative: boolean = f
     verdict: ''
   };
 
-  // Extract overall cogency
-  const cogencyMatch = response.match(/\*\*OVERALL COGENCY:\s*(\d+)\/100\*\*/i);
-  result.overallCogency = cogencyMatch ? parseInt(cogencyMatch[1]) : 0;
+  // Extract overall cogency with multiple patterns
+  const cogencyPatterns = [
+    /\*\*OVERALL COGENCY:\s*(\d+)\/100\*\*/i,
+    /Overall Cogency.*?(\d+)\/100/i,
+    /COGENCY.*?(\d+)\/100/i
+  ];
+  
+  let cogencyScore = 0;
+  for (const pattern of cogencyPatterns) {
+    const match = response.match(pattern);
+    if (match) {
+      cogencyScore = parseInt(match[1]);
+      break;
+    }
+  }
+  result.overallCogency = cogencyScore;
 
   // Extract summary - use simple string methods instead of complex regex
   const summaryStart = response.indexOf('**Summary:**');
