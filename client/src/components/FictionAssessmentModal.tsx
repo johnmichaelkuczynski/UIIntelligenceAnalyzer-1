@@ -32,7 +32,7 @@ export function FictionAssessmentModal({ isOpen, onClose, documentContent, docum
   const handleAssessment = async () => {
     setIsLoading(true);
     try {
-      const response = await apiRequest('/api/fiction-assessment', {
+      const response = await fetch('/api/fiction-assessment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -41,7 +41,8 @@ export function FictionAssessmentModal({ isOpen, onClose, documentContent, docum
         })
       });
       
-      setResult(response.result);
+      const data = await response.json();
+      setResult(data.result);
     } catch (error) {
       console.error('Error performing fiction assessment:', error);
     } finally {
