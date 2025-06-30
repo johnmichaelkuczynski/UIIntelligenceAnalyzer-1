@@ -89,6 +89,33 @@ export const insertComparisonSchema = createInsertSchema(comparisons).pick({
   improvementSuggestions: true,
 });
 
+// Case assessment model for evaluating how well documents make their case
+export const caseAssessments = pgTable("case_assessments", {
+  id: serial("id").primaryKey(),
+  documentId: integer("document_id").references(() => documents.id).notNull(),
+  userEmail: text("user_email").references(() => users.email),
+  proofEffectiveness: integer("proof_effectiveness").notNull(), // 0-100 score
+  claimCredibility: integer("claim_credibility").notNull(), // 0-100 score  
+  nonTriviality: integer("non_triviality").notNull(), // 0-100 score
+  proofQuality: integer("proof_quality").notNull(), // 0-100 score
+  functionalWriting: integer("functional_writing").notNull(), // 0-100 score
+  overallCaseScore: integer("overall_case_score").notNull(), // 0-100 score
+  detailedAssessment: text("detailed_assessment").notNull(), // Full LLM-generated report
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCaseAssessmentSchema = createInsertSchema(caseAssessments).pick({
+  documentId: true,
+  userEmail: true,
+  proofEffectiveness: true,
+  claimCredibility: true,
+  nonTriviality: true,
+  proofQuality: true,
+  functionalWriting: true,
+  overallCaseScore: true,
+  detailedAssessment: true,
+});
+
 // User activity tracking for cognitive pattern analysis
 export const userActivities = pgTable("user_activities", {
   id: serial("id").primaryKey(),
@@ -205,3 +232,6 @@ export type CognitiveProfile = typeof cognitiveProfiles.$inferSelect;
 
 export type InsertRewriteHistory = z.infer<typeof insertRewriteHistorySchema>;
 export type RewriteHistory = typeof rewriteHistory.$inferSelect;
+
+export type InsertCaseAssessment = z.infer<typeof insertCaseAssessmentSchema>;
+export type CaseAssessment = typeof caseAssessments.$inferSelect;
