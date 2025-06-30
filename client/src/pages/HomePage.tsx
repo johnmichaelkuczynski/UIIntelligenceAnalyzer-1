@@ -3,6 +3,7 @@ import ModeToggle from "@/components/ModeToggle";
 import DocumentInput from "@/components/DocumentInput";
 import DocumentResults from "@/components/DocumentResults";
 import ComparativeResults from "@/components/ComparativeResults";
+import ArgumentationResults from "@/components/ArgumentationResults";
 import AIDetectionModal from "@/components/AIDetectionModal";
 import ProviderSelector, { LLMProvider } from "@/components/ProviderSelector";
 import UnifiedRewriteSection from "@/components/UnifiedRewriteSection";
@@ -278,8 +279,8 @@ const HomePage: React.FC = () => {
           onCheckAI={() => handleCheckAI("A")}
         />
 
-        {/* Document B (shown only in compare mode) */}
-        {mode === "compare" && (
+        {/* Document B (shown in compare and argumentation modes) */}
+        {(mode === "compare" || mode === "argumentation") && (
           <DocumentInput
             id="B"
             document={documentB}
@@ -364,6 +365,14 @@ const HomePage: React.FC = () => {
                   analysisA={analysisA}
                   analysisB={analysisB}
                   comparison={comparison}
+                />
+              )}
+              
+              {/* Argumentation Results (only in argumentation mode) */}
+              {mode === "argumentation" && analysisA && analysisA.argumentationAnalysis && (
+                <ArgumentationResults
+                  analysis={analysisA}
+                  isComparative={!!documentB.content.trim()}
                 />
               )}
               
