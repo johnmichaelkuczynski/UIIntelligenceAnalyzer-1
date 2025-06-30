@@ -143,15 +143,29 @@ function parseCaseAssessmentResponse(response: string): CaseAssessmentResult {
 
   const extractScore = (section: string): number => {
     const patterns = [
+      // Handle ranges like "Score: 90-94"
+      new RegExp(`${section}[:\\s]*Score:\\s*(\\d+)-(\\d+)`, 'i'),
+      // Handle direct scores like "PROOF EFFECTIVENESS: 85/100"
       new RegExp(`${section}:\\s*(\\d+)/100`, 'i'),
-      new RegExp(`${section}:\\s*(\\d+)`, 'i')
+      // Handle direct scores without /100
+      new RegExp(`${section}:\\s*(\\d+)`, 'i'),
+      // Handle "Score: X" format
+      new RegExp(`Score:\\s*(\\d+)(?:/100)?`, 'i')
     ];
     
     for (const pattern of patterns) {
       const match = cleanResponse.match(pattern);
       if (match) {
-        const score = parseInt(match[1]);
-        return Math.min(Math.max(score, 0), 100);
+        if (match[2]) {
+          // Range format - take the middle value
+          const low = parseInt(match[1]);
+          const high = parseInt(match[2]);
+          const score = Math.round((low + high) / 2);
+          return Math.min(Math.max(score, 0), 100);
+        } else {
+          const score = parseInt(match[1]);
+          return Math.min(Math.max(score, 0), 100);
+        }
       }
     }
     
@@ -181,7 +195,25 @@ function parseCaseAssessmentResponse(response: string): CaseAssessmentResult {
   const nonTriviality = extractScore('NON-TRIVIALITY');
   const proofQuality = extractScore('PROOF QUALITY');
   const functionalWriting = extractScore('FUNCTIONAL WRITING QUALITY');
-  const overallCaseScore = extractScore('OVERALL CASE SCORE');
+  let overallCaseScore = extractScore('OVERALL CASE SCORE');
+
+  console.log('Parsed scores:', {
+    proofEffectiveness,
+    claimCredibility,
+    nonTriviality,
+    proofQuality,
+    functionalWriting,
+    overallCaseScore
+  });
+
+  // For Perplexity specifically, if overall score is inconsistent with dimension scores, recalculate
+  const averageDimensionScore = Math.round((proofEffectiveness + claimCredibility + nonTriviality + proofQuality + functionalWriting) / 5);
+  
+  // If overall score is more than 10 points below average dimension score, use the average
+  if (overallCaseScore < averageDimensionScore - 10) {
+    console.log(`Inconsistent overall score detected: ${overallCaseScore} vs average dimensions: ${averageDimensionScore}. Using average.`);
+    overallCaseScore = averageDimensionScore;
+  }
 
   return {
     proofEffectiveness,

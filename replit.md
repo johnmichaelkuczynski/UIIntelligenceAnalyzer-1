@@ -212,6 +212,8 @@ Build process:
   - Implemented genre-specific evaluation criteria: conceptual precision for philosophy, mathematical rigor for proofs, statistical validity for empirical work
   - Enhanced both single document assessment and document comparison with genre-appropriate weighting
   - System now properly scores philosophical semantics papers at 90-92/100 instead of incorrectly deflating to 86/100 for "lacking empirical proof"
+  - Fixed Perplexity LLM parsing inconsistency: enhanced score extraction to handle range formats (90-94) and added consistency checks
+  - Added automatic correction for inconsistent overall scores that don't match dimension averages
 
 ## User Preferences
 
