@@ -1,181 +1,131 @@
-import OpenAI from "openai";
-import Anthropic from '@anthropic-ai/sdk';
-import fetch from 'node-fetch';
+type LLMProvider = "openai" | "anthropic" | "perplexity" | "deepseek";
 
-// Initialize API clients
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-interface ComparisonResult {
-  provider: string;
-  report: string;
-  timestamp: Date;
+export interface DocumentComparisonResult {
+  winnerDocument: 'A' | 'B';
+  documentAScore: number;
+  documentBScore: number;
+  comparisonAnalysis: string;
+  detailedBreakdown: string;
 }
 
-/**
- * Compare two documents using AI analysis
- * @param documentA First document to compare
- * @param documentB Second document to compare 
- * @param provider AI provider to use (openai, anthropic, perplexity)
- * @returns Comparison analysis result
- */
-export async function compareDocuments(documentA: any, documentB: any, provider: string): Promise<ComparisonResult> {
-  const textA = documentA.content || '';
-  const textB = documentB.content || '';
-  
-  const comparisonPrompt = `
-    I need you to compare two documents and provide a detailed comparative analysis.
-    
-    Please analyze:
-    1. Cognitive complexity differences
-    2. Structural differences in reasoning
-    3. Semantic depth comparison
-    4. Logical rigor comparison
-    5. Overall intelligence level comparison
+const COMPARISON_PROMPT = `DOCUMENT COMPARISON: WHICH MAKES ITS CASE BETTER?
 
-    DOCUMENT A:
-    ${textA.substring(0, 5000)}
-    
-    DOCUMENT B:
-    ${textB.substring(0, 5000)}
-    
-    Provide a structured comparison focusing on differences in cognitive patterns, inferential structure, and logical control.
-    
-    Start with "Intelligence Comparison Report" and include a rough estimate of the relative cognitive capacities demonstrated in each document.
-  `;
+You are comparing two documents to determine which one makes its case more effectively.
+
+COMPARISON CRITERIA:
+1. Argument Strength: Which document has stronger logical arguments?
+2. Evidence Quality: Which provides better evidence for its claims?
+3. Persuasiveness: Which is more convincing overall?
+4. Clarity of Case: Which presents its argument more clearly?
+5. Completeness: Which covers its topic more thoroughly?
+
+SCORING SYSTEM:
+- Document A Score: 0-100 (how well Document A makes its case)
+- Document B Score: 0-100 (how well Document B makes its case)
+- Winner: The document with the higher score
+
+RESPONSE FORMAT (NO MARKDOWN):
+
+WINNER: Document [A or B]
+
+DOCUMENT A SCORE: [Score]/100
+DOCUMENT B SCORE: [Score]/100
+
+COMPARISON ANALYSIS:
+[Brief explanation of which document makes its case better and why]
+
+DETAILED BREAKDOWN:
+Argument Strength: [Compare the logical strength of arguments]
+Evidence Quality: [Compare the quality and relevance of evidence]
+Persuasiveness: [Compare overall persuasive power]
+Clarity of Case: [Compare how clearly each presents its argument]
+Completeness: [Compare thoroughness of coverage]
+
+FINAL VERDICT:
+[Conclusive statement about which document makes its case better with key reasons]
+
+DOCUMENT A:
+`;
+
+export async function compareDocuments(
+  documentA: string,
+  documentB: string,
+  provider: LLMProvider = 'openai'
+): Promise<DocumentComparisonResult> {
+  const prompt = COMPARISON_PROMPT + documentA + "\n\nDOCUMENT B:\n" + documentB;
   
-  let result: ComparisonResult;
-  
-  switch (provider.toLowerCase()) {
-    case 'anthropic':
-      result = await compareWithAnthropic(comparisonPrompt);
-      break;
-      
-    case 'perplexity':
-      result = await compareWithPerplexity(comparisonPrompt);
-      break;
-      
-    case 'openai':
-    default:
-      result = await compareWithOpenAI(comparisonPrompt);
-      break;
+  // Call the appropriate LLM service
+  let response: string;
+  if (provider === 'openai') {
+    const { directOpenAIAnalyze } = await import('./directLLM');
+    const result = await directOpenAIAnalyze(prompt);
+    response = result.formattedReport || "No response available";
+  } else if (provider === 'anthropic') {
+    const { directAnthropicAnalyze } = await import('./directLLM');
+    const result = await directAnthropicAnalyze(prompt);
+    response = result.formattedReport || "No response available";
+  } else if (provider === 'perplexity') {
+    const { directPerplexityAnalyze } = await import('./directLLM');
+    const result = await directPerplexityAnalyze(prompt);
+    response = result.formattedReport || "No response available";
+  } else if (provider === 'deepseek') {
+    const { directDeepSeekAnalyze } = await import('./directLLM');
+    const result = await directDeepSeekAnalyze(prompt);
+    response = result.formattedReport || "No response available";
+  } else {
+    throw new Error(`Unsupported provider: ${provider}`);
   }
   
-  return result;
+  return parseComparisonResponse(response);
 }
 
-/**
- * Compare documents using OpenAI
- */
-async function compareWithOpenAI(prompt: string): Promise<ComparisonResult> {
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        { role: "system", content: "You are a document comparison expert focusing on cognitive patterns." },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.2
-    });
-    
-    return {
-      provider: "OpenAI (GPT-4o)",
-      report: response.choices[0].message.content || "Unable to generate comparison report",
-      timestamp: new Date()
-    };
-  } catch (error: any) {
-    console.error("Error comparing with OpenAI:", error);
-    return {
-      provider: "OpenAI (Error)",
-      report: `Error comparing documents: ${error.message}`,
-      timestamp: new Date()
-    };
+function parseComparisonResponse(response: string): DocumentComparisonResult {
+  const cleanResponse = response.replace(/\*\*/g, '').replace(/\*/g, '').replace(/```/g, '');
+  
+  // Extract winner
+  let winnerDocument: 'A' | 'B' = 'A';
+  const winnerMatch = cleanResponse.match(/WINNER:\s*Document\s*([AB])/i);
+  if (winnerMatch) {
+    winnerDocument = winnerMatch[1].toUpperCase() as 'A' | 'B';
   }
-}
-
-/**
- * Compare documents using Anthropic Claude
- */
-async function compareWithAnthropic(prompt: string): Promise<ComparisonResult> {
-  try {
-    const response = await anthropic.messages.create({
-      model: "claude-3-7-sonnet-20250219",
-      max_tokens: 4000,
-      temperature: 0.2,
-      system: "You are a document comparison expert focusing on cognitive patterns and intelligence levels.",
-      messages: [
-        { role: "user", content: prompt }
-      ]
-    });
-    
-    const content = response.content[0].type === 'text' ? response.content[0].text : '';
-    
-    return {
-      provider: "Anthropic (Claude)",
-      report: content || "Unable to generate comparison report",
-      timestamp: new Date()
-    };
-  } catch (error: any) {
-    console.error("Error comparing with Anthropic:", error);
-    return {
-      provider: "Anthropic (Error)",
-      report: `Error comparing documents: ${error.message}`,
-      timestamp: new Date()
-    };
+  
+  // Extract scores
+  let documentAScore = 85;
+  let documentBScore = 85;
+  
+  const scoreAMatch = cleanResponse.match(/DOCUMENT A SCORE:\s*(\d+)/i);
+  if (scoreAMatch) {
+    documentAScore = Math.min(Math.max(parseInt(scoreAMatch[1]), 0), 100);
   }
-}
-
-/**
- * Compare documents using Perplexity
- */
-async function compareWithPerplexity(prompt: string): Promise<ComparisonResult> {
-  try {
-    const apiKey = process.env.PERPLEXITY_API_KEY;
-    if (!apiKey) {
-      throw new Error("PERPLEXITY_API_KEY not found in environment variables");
-    }
-    
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: "llama-3.1-sonar-small-128k-online",
-        messages: [
-          { 
-            role: "system", 
-            content: "You are a document comparison expert focusing on cognitive patterns and intelligence levels." 
-          },
-          { role: "user", content: prompt }
-        ],
-        temperature: 0.2,
-        max_tokens: 3000
-      })
-    });
-    
-    const data = await response.json() as any;
-    
-    if (!response.ok) {
-      throw new Error(data?.error?.message || "Perplexity API error");
-    }
-    
-    return {
-      provider: "Perplexity (Llama 3.1)",
-      report: data.choices[0].message.content || "Unable to generate comparison report",
-      timestamp: new Date()
-    };
-  } catch (error: any) {
-    console.error("Error comparing with Perplexity:", error);
-    return {
-      provider: "Perplexity (Error)",
-      report: `Error comparing documents: ${error.message}`,
-      timestamp: new Date()
-    };
+  
+  const scoreBMatch = cleanResponse.match(/DOCUMENT B SCORE:\s*(\d+)/i);
+  if (scoreBMatch) {
+    documentBScore = Math.min(Math.max(parseInt(scoreBMatch[1]), 0), 100);
   }
+  
+  // Extract analysis sections
+  let comparisonAnalysis = '';
+  const analysisMatch = cleanResponse.match(/COMPARISON ANALYSIS:\s*(.*?)(?=DETAILED BREAKDOWN:|$)/g);
+  if (analysisMatch) {
+    comparisonAnalysis = analysisMatch[0].replace(/COMPARISON ANALYSIS:\s*/g, '').trim();
+  }
+  
+  let detailedBreakdown = '';
+  const breakdownMatch = cleanResponse.match(/DETAILED BREAKDOWN:\s*(.*?)(?=FINAL VERDICT:|$)/g);
+  if (breakdownMatch) {
+    detailedBreakdown = breakdownMatch[0].replace(/DETAILED BREAKDOWN:\s*/g, '').trim();
+  }
+  
+  const verdictMatch = cleanResponse.match(/FINAL VERDICT:\s*(.*?)$/g);
+  if (verdictMatch) {
+    detailedBreakdown += '\n\nFinal Verdict: ' + verdictMatch[1].trim();
+  }
+  
+  return {
+    winnerDocument,
+    documentAScore,
+    documentBScore,
+    comparisonAnalysis,
+    detailedBreakdown
+  };
 }
-
-export default {
-  compareDocuments
-};

@@ -352,6 +352,21 @@ const HomePage: React.FC = () => {
             </Button>
           )}
           
+          {/* Comparison Button - only for compare mode */}
+          {mode === "compare" && (
+            <Button
+              onClick={() => {
+                // TODO: Implement comparison functionality
+                console.log("Comparison button clicked");
+              }}
+              className="px-6 py-3 bg-purple-600 text-white rounded-md font-semibold hover:bg-purple-700 flex items-center"
+              disabled={!documentA.content.trim() || !documentB.content.trim()}
+            >
+              <FileEdit className="h-5 w-5 mr-2" />
+              <span>Which One Makes Its Case Better?</span>
+            </Button>
+          )}
+          
           <div className="flex items-center space-x-2">
             <select
               value={rewriteMode}
