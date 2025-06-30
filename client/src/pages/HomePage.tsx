@@ -480,7 +480,6 @@ const HomePage: React.FC = () => {
         onClose={() => setAIDetectionModalOpen(false)}
         result={aiDetectionResult}
         isLoading={isAICheckLoading}
-        documentId={currentAICheckDocument}
       />
 
       {/* Chat Dialog - Always visible below everything */}
