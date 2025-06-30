@@ -294,6 +294,39 @@ export async function registerRoutes(app: Express): Promise<Express> {
       });
     }
   });
+
+  // Argumentation analysis - "which one makes its case better?"
+  app.post("/api/argumentation-analyze", async (req: Request, res: Response) => {
+    try {
+      const { documentA, documentB, provider = "openai" } = req.body;
+      
+      if (!documentA) {
+        return res.status(400).json({ error: "At least one document is required for argumentation analysis" });
+      }
+      
+      // Import the argumentation analysis service
+      const { analyzeArgumentation } = await import('./services/argumentationAnalysis');
+      
+      // Analyze argumentation using the selected provider
+      console.log(`ARGUMENTATION ANALYSIS WITH ${provider.toUpperCase()}`);
+      const result = await analyzeArgumentation(documentA, provider, documentB);
+      
+      return res.json({
+        id: 0,
+        documentId: 0,
+        provider: provider,
+        argumentationAnalysis: result.analysis,
+        formattedReport: result.formattedReport,
+        report: result.formattedReport
+      });
+    } catch (error: any) {
+      console.error("Error in argumentation analysis:", error);
+      return res.status(500).json({ 
+        error: true, 
+        message: error.message || "Failed to analyze argumentation" 
+      });
+    }
+  });
   
   // Share analysis via email
   app.post("/api/share-via-email", async (req: Request, res: Response) => {
