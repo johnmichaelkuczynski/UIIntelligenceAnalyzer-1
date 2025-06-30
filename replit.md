@@ -200,7 +200,7 @@ Build process:
   - Fixed comparison system routing through direct LLM API calls instead of intelligence analysis pipeline
   - Enhanced response parsing with multiple pattern matching for winner detection and score extraction
   - Added comprehensive debugging logging to identify parsing failures
-  - Enhanced comparison reports to include for each document: (i) argument summary and (ii) improved reconstruction addressing original problems
+  - Enhanced comparison reports to include for each document: (i) argument summary and (ii) improved reconstruction presenting the actual strengthened argument in outline form
   - Updated prompt structure to require detailed analysis of each document's case-making effectiveness
   - System now provides comprehensive comparison with document-specific summaries and improvement suggestions
 

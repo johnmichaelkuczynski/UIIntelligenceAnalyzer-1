@@ -14,7 +14,7 @@ You are comparing two documents to determine which one makes its case more effec
 
 For each document, you must provide:
 1. ARGUMENT SUMMARY: What is the document's main argument and key claims?
-2. IMPROVED RECONSTRUCTION: How could this argument be strengthened to address its weaknesses while preserving its core insights?
+2. IMPROVED RECONSTRUCTION: Present the argument in improved form - restructure and strengthen the actual argument itself while preserving its core insights. Provide this as an outline of the enhanced argument, not suggestions for improvement.
 
 COMPARISON CRITERIA:
 1. Argument Strength: Which document has stronger logical arguments?
@@ -38,12 +38,12 @@ DOCUMENT B SCORE: [Score]/100
 DOCUMENT A ANALYSIS:
 ARGUMENT SUMMARY: [Summarize the main argument and key claims of Document A]
 
-IMPROVED RECONSTRUCTION: [Explain how Document A's argument could be strengthened, addressing its specific weaknesses while preserving its core insights]
+IMPROVED RECONSTRUCTION: [Present Document A's argument in strengthened form as an outline - the actual improved argument structure, not tips for improvement]
 
 DOCUMENT B ANALYSIS:
 ARGUMENT SUMMARY: [Summarize the main argument and key claims of Document B]
 
-IMPROVED RECONSTRUCTION: [Explain how Document B's argument could be strengthened, addressing its specific weaknesses while preserving its core insights]
+IMPROVED RECONSTRUCTION: [Present Document B's argument in strengthened form as an outline - the actual improved argument structure, not tips for improvement]
 
 COMPARISON ANALYSIS:
 [Brief explanation of which document makes its case better and why]
