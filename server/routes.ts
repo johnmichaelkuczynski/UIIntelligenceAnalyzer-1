@@ -741,5 +741,57 @@ export async function registerRoutes(app: Express): Promise<Express> {
     }
   });
 
+  // Fiction Assessment API endpoint
+  app.post('/api/fiction-assessment', async (req, res) => {
+    try {
+      const { text, provider, documentId } = req.body;
+      
+      if (!text || !provider) {
+        return res.status(400).json({ error: "Text and provider are required" });
+      }
+      
+      const { performFictionAssessment } = await import('./services/fictionAssessment');
+      const result = await performFictionAssessment(text, provider);
+      
+      console.log(`Fiction assessment complete - Overall score: ${result.overallFictionScore}/100`);
+      
+      return res.json({
+        success: true,
+        provider,
+        result
+      });
+    } catch (error: any) {
+      console.error("Error in fiction assessment:", error);
+      return res.status(500).json({ 
+        error: "Failed to perform fiction assessment",
+        message: error.message 
+      });
+    }
+  });
+
+  // Fiction Comparison API endpoint  
+  app.post('/api/fiction-compare', async (req, res) => {
+    try {
+      const { documentA, documentB, provider } = req.body;
+      
+      if (!documentA || !documentB || !provider) {
+        return res.status(400).json({ error: "Both documents and provider are required" });
+      }
+      
+      const { performFictionComparison } = await import('./services/fictionComparison');
+      const result = await performFictionComparison(documentA, documentB, provider);
+      
+      console.log(`Fiction comparison complete - Winner: Document ${result.winnerDocument}`);
+      
+      return res.json(result);
+    } catch (error: any) {
+      console.error("Error in fiction comparison:", error);
+      return res.status(500).json({ 
+        error: "Failed to perform fiction comparison",
+        message: error.message 
+      });
+    }
+  });
+
   return app;
 }
