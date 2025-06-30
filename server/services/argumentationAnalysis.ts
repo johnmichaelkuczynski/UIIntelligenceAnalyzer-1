@@ -175,21 +175,33 @@ function parseArgumentationResponse(response: string, isComparative: boolean = f
   const cogencyMatch = response.match(/\*\*OVERALL COGENCY:\s*(\d+)\/100\*\*/i);
   result.overallCogency = cogencyMatch ? parseInt(cogencyMatch[1]) : 0;
 
-  // Extract summary
-  const summaryMatch = response.match(/\*\*Summary:\*\*\s*([^*]+?)(?=\*\*|$)/i);
-  result.summary = summaryMatch ? summaryMatch[1].trim() : '';
+  // Extract summary - use simple string methods instead of complex regex
+  const summaryStart = response.indexOf('**Summary:**');
+  if (summaryStart !== -1) {
+    const summaryContent = response.substring(summaryStart + 12);
+    const summaryEnd = summaryContent.indexOf('**');
+    result.summary = summaryEnd !== -1 ? summaryContent.substring(0, summaryEnd).trim() : summaryContent.trim();
+  }
 
   // Extract verdict
-  const verdictMatch = response.match(/\*\*Final Verdict:\*\*\s*([^*]+?)(?=\*\*|$)/i);
-  result.verdict = verdictMatch ? verdictMatch[1].trim() : '';
+  const verdictStart = response.indexOf('**Final Verdict:**');
+  if (verdictStart !== -1) {
+    const verdictContent = response.substring(verdictStart + 18);
+    const verdictEnd = verdictContent.indexOf('**');
+    result.verdict = verdictEnd !== -1 ? verdictContent.substring(0, verdictEnd).trim() : verdictContent.trim();
+  }
 
   // For comparative analysis
   if (isComparative) {
     const winnerMatch = response.match(/Winner:\s*([ABTie]+)/i);
     result.comparisonWinner = winnerMatch ? winnerMatch[1] as 'A' | 'B' | 'Tie' : undefined;
     
-    const comparativeMatch = response.match(/\*\*COMPARATIVE VERDICT\*\*([^*]+?)(?=\*\*Summary:|$)/i);
-    result.comparativeAnalysis = comparativeMatch ? comparativeMatch[1].trim() : '';
+    const comparativeStart = response.indexOf('**COMPARATIVE VERDICT**');
+    if (comparativeStart !== -1) {
+      const comparativeContent = response.substring(comparativeStart + 23);
+      const comparativeEnd = comparativeContent.indexOf('**Summary:');
+      result.comparativeAnalysis = comparativeEnd !== -1 ? comparativeContent.substring(0, comparativeEnd).trim() : comparativeContent.trim();
+    }
   }
 
   return result;

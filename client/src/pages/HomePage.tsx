@@ -14,7 +14,7 @@ import SemanticDensityAnalyzer from "@/components/SemanticDensityAnalyzer";
 
 import { Button } from "@/components/ui/button";
 import { Brain, Trash2, FileEdit } from "lucide-react";
-import { analyzeDocument, compareDocuments, checkForAI } from "@/lib/analysis";
+import { analyzeDocument, compareDocuments, checkForAI, analyzeArgumentation } from "@/lib/analysis";
 import { AnalysisMode, DocumentInput as DocumentInputType, AIDetectionResult, DocumentAnalysis, DocumentComparison } from "@/lib/types";
 
 const HomePage: React.FC = () => {
@@ -137,6 +137,11 @@ const HomePage: React.FC = () => {
       alert("Please enter some text in Document B for comparison.");
       return;
     }
+
+    if (mode === "argumentation" && !documentB.content.trim()) {
+      // For argumentation mode, Document B is optional
+      // If only Document A is provided, analyze single document argumentation
+    }
     
     // Check if the selected provider is available
     if (selectedProvider !== "all" && !apiStatus[selectedProvider as keyof typeof apiStatus]) {
@@ -155,13 +160,24 @@ const HomePage: React.FC = () => {
         setAnalysisA(result);
         setAnalysisB(null);
         setComparison(null);
-      } else {
+      } else if (mode === "compare") {
         // Use the selected provider for comparison
         console.log(`Comparing with ${selectedProvider}...`);
         const results = await compareDocuments(documentA, documentB, selectedProvider);
         setAnalysisA(results.analysisA);
         setAnalysisB(results.analysisB);
         setComparison(results.comparison);
+      } else if (mode === "argumentation") {
+        // Use the selected provider for argumentation analysis
+        console.log(`Argumentation analysis with ${selectedProvider}...`);
+        const result = await analyzeArgumentation(
+          documentA, 
+          selectedProvider,
+          documentB.content.trim() ? documentB : undefined
+        );
+        setAnalysisA(result);
+        setAnalysisB(null);
+        setComparison(null);
       }
     } catch (error) {
       console.error("Error analyzing documents:", error);
