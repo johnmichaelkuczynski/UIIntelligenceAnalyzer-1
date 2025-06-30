@@ -21,10 +21,10 @@ type RewriteMode = "rewrite_existing" | "add_new" | "hybrid";
 type LLMProvider = "openai" | "anthropic" | "perplexity" | "deepseek";
 
 const AI_PROVIDERS = [
+  { value: "deepseek", label: "DeepSeek" },
   { value: "openai", label: "OpenAI (GPT-4)" },
   { value: "anthropic", label: "Anthropic (Claude)" },
-  { value: "perplexity", label: "Perplexity AI" },
-  { value: "deepseek", label: "DeepSeek" }
+  { value: "perplexity", label: "Perplexity AI" }
 ] as const;
 
 const REWRITE_MODES = [
@@ -44,7 +44,7 @@ const EnhancedRewriteModal: React.FC<EnhancedRewriteModalProps> = ({
   
   // Core state
   const [rewriteMode, setRewriteMode] = useState<RewriteMode>("hybrid");
-  const [selectedProvider, setSelectedProvider] = useState<LLMProvider>("openai");
+  const [selectedProvider, setSelectedProvider] = useState<LLMProvider>("deepseek");
   const [customInstructions, setCustomInstructions] = useState<string>("ADD MORE APPLICATIONS TO FINANCE AND GEOMETRY\nINCLUDE LOTS OF MATH FORMULAS FROM STATISTICS AND CALCULUS AND GEOMETRY");
   const [isRewriting, setIsRewriting] = useState<boolean>(false);
   const [rewriteProgress, setRewriteProgress] = useState<number>(0);

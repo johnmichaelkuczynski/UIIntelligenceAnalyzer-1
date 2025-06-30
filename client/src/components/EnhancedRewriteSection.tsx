@@ -68,7 +68,7 @@ const EnhancedRewriteSection: React.FC<EnhancedRewriteSectionProps> = ({
   const [customInstruction, setCustomInstruction] = useState<string>("");
   const [selectedPreset, setSelectedPreset] = useState<string>("");
   const [searchInstructions, setSearchInstructions] = useState<string>("");
-  const [selectedProvider, setSelectedProvider] = useState<string>("openai");
+  const [selectedProvider, setSelectedProvider] = useState<string>("deepseek");
   
   // State for search functionality
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -409,6 +409,7 @@ const EnhancedRewriteSection: React.FC<EnhancedRewriteSectionProps> = ({
                 <SelectValue placeholder="Choose AI provider" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="deepseek">DeepSeek</SelectItem>
                 <SelectItem value="openai">OpenAI (GPT-4o)</SelectItem>
                 <SelectItem value="anthropic">Anthropic (Claude 3)</SelectItem>
                 <SelectItem value="perplexity">Perplexity (Llama 3.1)</SelectItem>
