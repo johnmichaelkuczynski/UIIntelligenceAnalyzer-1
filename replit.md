@@ -196,6 +196,12 @@ Build process:
   - Fixed initial implementation issues: removed markdown artifacts, improved scoring calibration for academic documents
   - Redesigned prompt to focus on argument reconstruction and assessment without suggesting "improvements"
   - System now properly evaluates how well documents establish their claims with appropriate scoring for academic/professional writing
+- June 30, 2025. Document Comparison System Issues and Fixes:
+  - Initial comparison system was incorrectly routing through intelligence analysis pipeline instead of using dedicated comparison logic
+  - Fixed by implementing direct LLM API calls for comparison instead of using analysis functions
+  - Enhanced response parsing with multiple pattern matching for winner detection and score extraction
+  - Added comprehensive debugging logging to identify parsing failures
+  - Issue: Comparison modal displaying 0/100 scores due to parsing problems with LLM response format variations
 
 ## User Preferences
 
