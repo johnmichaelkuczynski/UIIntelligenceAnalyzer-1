@@ -12,6 +12,10 @@ const COMPARISON_PROMPT = `DOCUMENT COMPARISON: WHICH MAKES ITS CASE BETTER?
 
 You are comparing two documents to determine which one makes its case more effectively.
 
+For each document, you must provide:
+1. ARGUMENT SUMMARY: What is the document's main argument and key claims?
+2. IMPROVED RECONSTRUCTION: How could this argument be strengthened to address its weaknesses while preserving its core insights?
+
 COMPARISON CRITERIA:
 1. Argument Strength: Which document has stronger logical arguments?
 2. Evidence Quality: Which provides better evidence for its claims?
@@ -31,15 +35,18 @@ WINNER: Document [A or B]
 DOCUMENT A SCORE: [Score]/100
 DOCUMENT B SCORE: [Score]/100
 
+DOCUMENT A ANALYSIS:
+ARGUMENT SUMMARY: [Summarize the main argument and key claims of Document A]
+
+IMPROVED RECONSTRUCTION: [Explain how Document A's argument could be strengthened, addressing its specific weaknesses while preserving its core insights]
+
+DOCUMENT B ANALYSIS:
+ARGUMENT SUMMARY: [Summarize the main argument and key claims of Document B]
+
+IMPROVED RECONSTRUCTION: [Explain how Document B's argument could be strengthened, addressing its specific weaknesses while preserving its core insights]
+
 COMPARISON ANALYSIS:
 [Brief explanation of which document makes its case better and why]
-
-DETAILED BREAKDOWN:
-Argument Strength: [Compare the logical strength of arguments]
-Evidence Quality: [Compare the quality and relevance of evidence]
-Persuasiveness: [Compare overall persuasive power]
-Clarity of Case: [Compare how clearly each presents its argument]
-Completeness: [Compare thoroughness of coverage]
 
 FINAL VERDICT:
 [Conclusive statement about which document makes its case better with key reasons]
@@ -194,40 +201,42 @@ function parseComparisonResponse(response: string): DocumentComparisonResult {
     }
   }
   
-  // Extract analysis sections
+  // Extract document analyses
+  let documentAAnalysis = '';
+  let documentBAnalysis = '';
   let comparisonAnalysis = '';
-  const analysisKeywords = ['COMPARISON ANALYSIS:', 'Analysis:', 'Comparison:'];
-  const breakdownKeywords = ['DETAILED BREAKDOWN:', 'Breakdown:', 'Detailed Analysis:'];
   
-  let analysisStart = -1;
-  let breakdownStart = -1;
+  const docAStart = cleanResponse.indexOf('DOCUMENT A ANALYSIS:');
+  const docBStart = cleanResponse.indexOf('DOCUMENT B ANALYSIS:');
+  const comparisonStart = cleanResponse.indexOf('COMPARISON ANALYSIS:');
+  const verdictStart = cleanResponse.indexOf('FINAL VERDICT:');
   
-  for (const keyword of analysisKeywords) {
-    const pos = cleanResponse.indexOf(keyword);
-    if (pos !== -1) {
-      analysisStart = pos + keyword.length;
-      break;
-    }
+  if (docAStart !== -1) {
+    const endPos = docBStart !== -1 ? docBStart : (comparisonStart !== -1 ? comparisonStart : cleanResponse.length);
+    documentAAnalysis = cleanResponse.substring(docAStart + 20, endPos).trim();
   }
   
-  for (const keyword of breakdownKeywords) {
-    const pos = cleanResponse.indexOf(keyword);
-    if (pos !== -1) {
-      breakdownStart = pos;
-      break;
-    }
+  if (docBStart !== -1) {
+    const endPos = comparisonStart !== -1 ? comparisonStart : (verdictStart !== -1 ? verdictStart : cleanResponse.length);
+    documentBAnalysis = cleanResponse.substring(docBStart + 20, endPos).trim();
   }
   
-  if (analysisStart !== -1) {
-    const endPos = breakdownStart !== -1 ? breakdownStart : cleanResponse.length;
-    comparisonAnalysis = cleanResponse.substring(analysisStart, endPos).trim();
-  }
-  
-  let detailedBreakdown = '';
-  if (breakdownStart !== -1) {
-    const verdictStart = cleanResponse.indexOf('FINAL VERDICT:');
+  if (comparisonStart !== -1) {
     const endPos = verdictStart !== -1 ? verdictStart : cleanResponse.length;
-    detailedBreakdown = cleanResponse.substring(breakdownStart + 19, endPos).trim();
+    comparisonAnalysis = cleanResponse.substring(comparisonStart + 19, endPos).trim();
+  }
+  
+  // Combine all analyses into detailed breakdown
+  let detailedBreakdown = '';
+  if (documentAAnalysis) {
+    detailedBreakdown += 'DOCUMENT A ANALYSIS:\n' + documentAAnalysis + '\n\n';
+  }
+  if (documentBAnalysis) {
+    detailedBreakdown += 'DOCUMENT B ANALYSIS:\n' + documentBAnalysis + '\n\n';
+  }
+  if (verdictStart !== -1) {
+    const verdict = cleanResponse.substring(verdictStart).trim();
+    detailedBreakdown += verdict;
   }
   
   // If we still don't have analysis, use the entire response
