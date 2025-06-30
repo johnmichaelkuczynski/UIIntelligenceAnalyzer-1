@@ -16,53 +16,76 @@ export interface CaseAssessmentResult {
   detailedAssessment: string;
 }
 
-const CASE_ASSESSMENT_PROMPT = `CASE ASSESSMENT DIRECTIVE: Evaluate how effectively this document makes its case.
+const CASE_ASSESSMENT_PROMPT = `ARGUMENT RECONSTRUCTION AND ASSESSMENT
 
-CRITICAL SCORING GUIDELINES:
-- This is academic/professional writing assessment, not creative writing critique
-- Well-structured arguments with evidence = HIGH SCORES (80-100)
-- Clear thesis development with supporting data = HIGH SCORES
-- Professional organization and systematic reasoning = HIGH SCORES
-- Comprehensive coverage of topic with citations = HIGH SCORES
+Your task: First reconstruct the argument, then assess how well it makes its case.
 
-SCORING DIMENSIONS (0-100 scale):
+STEP 1: ARGUMENT RECONSTRUCTION
+Identify and state:
+- What is the main thesis/claim?
+- What are the key supporting arguments?
+- What evidence is provided?
+- How does the logical structure work?
 
-1. PROOF EFFECTIVENESS: Does the document prove what it claims to prove?
-2. CLAIM CREDIBILITY: Are the claims reasonable, important, and worth establishing?
-3. NON-TRIVIALITY: How significant are the conclusions and insights?
-4. PROOF QUALITY: How rigorous is the argumentation and evidence?
-5. FUNCTIONAL WRITING QUALITY: How effectively does the writing serve its purpose?
-6. OVERALL CASE SCORE: Comprehensive assessment of argumentative effectiveness
+STEP 2: CASE ASSESSMENT (0-100 scale)
+For each dimension, ONLY assess what is actually there - do not suggest improvements.
 
-RESPONSE FORMAT (NO MARKDOWN, PLAIN TEXT ONLY):
+PROOF EFFECTIVENESS: Does the document successfully establish what it claims to establish?
+- Look at: Does the evidence actually support the conclusions drawn?
+- Score 90-100: Thesis fully proven with comprehensive evidence
+- Score 80-89: Thesis well-supported with strong evidence  
+- Score 70-79: Thesis adequately supported
+- Score below 70: Significant gaps in proof
+
+CLAIM CREDIBILITY: Are the claims worth making and credible?
+- Look at: Importance of the topic, reasonableness of claims
+- Score 90-100: Highly important claims that are entirely credible
+- Score 80-89: Important and credible claims
+- Score 70-79: Moderately important and credible
+
+NON-TRIVIALITY: How significant are the insights/conclusions?
+- Look at: Does this add meaningful knowledge or understanding?
+- Score 90-100: Major insights with broad implications
+- Score 80-89: Valuable insights with clear importance
+- Score 70-79: Useful but limited insights
+
+PROOF QUALITY: How rigorous is the argumentation and evidence?
+- Look at: Logical structure, quality of evidence, reasoning soundness
+- Score 90-100: Rigorous logic with excellent evidence
+- Score 80-89: Strong logic with good evidence
+- Score 70-79: Adequate logic and evidence
+
+FUNCTIONAL WRITING QUALITY: How effectively does the writing accomplish its purpose?
+- Look at: Clarity, organization, appropriate style for audience/purpose
+- Score 90-100: Exceptionally clear and well-organized
+- Score 80-89: Clear and well-organized
+- Score 70-79: Generally clear with good organization
+
+RESPONSE FORMAT (NO MARKDOWN):
+
+ARGUMENT RECONSTRUCTION:
+Main Thesis: [State the primary claim/argument]
+Key Supporting Arguments: [List 3-4 main supporting points]
+Evidence Provided: [Summarize types and quality of evidence]
+Logical Structure: [How the argument flows from evidence to conclusion]
 
 PROOF EFFECTIVENESS: [Score]/100
-Evidence: [Quote supporting assessment]
-Reasoning: [Why this score - focus on how well claims are established]
+Assessment: [Does the evidence actually prove the thesis? Be specific about strengths.]
 
-CLAIM CREDIBILITY: [Score]/100
-Evidence: [Quote supporting assessment]  
-Reasoning: [Why this score - focus on importance and validity of claims]
+CLAIM CREDIBILITY: [Score]/100  
+Assessment: [Are these claims important and reasonable? Why?]
 
 NON-TRIVIALITY: [Score]/100
-Evidence: [Quote supporting assessment]
-Reasoning: [Why this score - focus on significance of conclusions]
+Assessment: [What new insights does this provide? How significant?]
 
 PROOF QUALITY: [Score]/100
-Evidence: [Quote supporting assessment]
-Reasoning: [Why this score - focus on logical structure and evidence]
+Assessment: [How rigorous is the logic and evidence? Be specific.]
 
 FUNCTIONAL WRITING QUALITY: [Score]/100
-Evidence: [Quote supporting assessment]
-Reasoning: [Why this score - focus on clarity, organization, effectiveness]
+Assessment: [How well does the writing serve its argumentative purpose?]
 
 OVERALL CASE SCORE: [Score]/100
-Summary: [Comprehensive assessment of how well the document makes its case]
-
-EXAMPLES OF HIGH SCORES:
-- Systematic historical analysis with citations (like the financial regulation document) = 85-95/100
-- Well-organized academic papers with clear thesis = 80-90/100  
-- Professional writing that effectively conveys complex information = 85-95/100
+Summary: [How effectively does this document make its case overall?]
 
 Document to assess:`;
 
