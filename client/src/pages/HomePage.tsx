@@ -610,6 +610,28 @@ const HomePage: React.FC = () => {
         isLoading={isAICheckLoading}
       />
 
+      {/* Fiction Assessment Modal */}
+      <FictionAssessmentModal
+        isOpen={fictionAssessmentModalOpen}
+        onClose={() => setFictionAssessmentModalOpen(false)}
+        documentContent={currentFictionDocument === "A" ? documentA.content : documentB.content}
+        documentTitle={currentFictionDocument === "A" ? (documentA.filename || "Document A") : (documentB.filename || "Document B")}
+      />
+
+      {/* Fiction Comparison Modal */}
+      <FictionComparisonModal
+        isOpen={fictionComparisonModalOpen}
+        onClose={() => setFictionComparisonModalOpen(false)}
+        documentA={{
+          content: documentA.content,
+          title: documentA.filename || "Document A"
+        }}
+        documentB={{
+          content: documentB.content,
+          title: documentB.filename || "Document B"
+        }}
+      />
+
       {/* Chat Dialog - Always visible below everything */}
       <ChatDialog 
         currentDocument={documentA.content}
