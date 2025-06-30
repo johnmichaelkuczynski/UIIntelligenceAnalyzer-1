@@ -12,6 +12,8 @@ const COMPARISON_PROMPT = `DOCUMENT COMPARISON: WHICH MAKES ITS CASE BETTER?
 
 You are comparing two documents to determine which one makes its case more effectively.
 
+CRITICAL: Use consistent scoring standards. A document that would score 93/100 in single assessment should score similarly in comparison unless directly outperformed by a superior document.
+
 For each document, you must provide:
 1. ARGUMENT SUMMARY: What is the document's main argument and key claims?
 2. IMPROVED RECONSTRUCTION: Present the argument in improved form - restructure and strengthen the actual argument itself while preserving its core insights. Provide this as an outline of the enhanced argument, not suggestions for improvement.
@@ -23,10 +25,19 @@ COMPARISON CRITERIA:
 4. Clarity of Case: Which presents its argument more clearly?
 5. Completeness: Which covers its topic more thoroughly?
 
-SCORING SYSTEM:
+SCORING SYSTEM (Use same standards as single document assessment):
 - Document A Score: 0-100 (how well Document A makes its case)
 - Document B Score: 0-100 (how well Document B makes its case)
-- Winner: The document with the higher score
+
+CALIBRATION ANCHORS:
+- Score 95-100: Comprehensive historical/systematic analysis (e.g., financial regulation with citations, formal logic proofs)
+- Score 90-94: Strong academic work with solid evidence and important claims
+- Score 80-89: Well-supported academic arguments with good evidence
+- Score 70-79: Competent but with some gaps or limitations
+- Score below 70: Significant weaknesses in case-making
+
+CRITICAL: If a document would score 93/100 in isolation, it should score 90+ in comparison unless clearly outperformed.
+Winner: The document with the higher score
 
 RESPONSE FORMAT (NO MARKDOWN):
 

@@ -202,7 +202,8 @@ Build process:
   - Added comprehensive debugging logging to identify parsing failures
   - Enhanced comparison reports to include for each document: (i) argument summary and (ii) improved reconstruction presenting the actual strengthened argument in outline form
   - Updated prompt structure to require detailed analysis of each document's case-making effectiveness
-  - System now provides comprehensive comparison with document-specific summaries and improvement suggestions
+  - System now provides comprehensive comparison with document-specific summaries and actual improved argument reconstructions
+  - Fixed scoring inconsistency: comparison system now uses same calibration standards as single document assessment to prevent artificial score deflation
 
 ## User Preferences
 
