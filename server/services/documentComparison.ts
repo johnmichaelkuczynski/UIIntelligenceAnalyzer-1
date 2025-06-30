@@ -8,11 +8,21 @@ export interface DocumentComparisonResult {
   detailedBreakdown: string;
 }
 
-const COMPARISON_PROMPT = `DOCUMENT COMPARISON: WHICH MAKES ITS CASE BETTER?
+const COMPARISON_PROMPT = `GENRE-AWARE DOCUMENT COMPARISON: WHICH MAKES ITS CASE BETTER?
 
-You are comparing two documents to determine which one makes its case more effectively.
+You are comparing two documents to determine which one makes its case more effectively using genre-appropriate criteria.
 
 CRITICAL: Use consistent scoring standards. A document that would score 93/100 in single assessment should score similarly in comparison unless directly outperformed by a superior document.
+
+GENRE-AWARE EVALUATION:
+First identify each document's genre (PHILOSOPHICAL ARGUMENT, FORMAL PROOF, EMPIRICAL RESEARCH, HISTORICAL ANALYSIS, TECHNICAL ESSAY, THEORETICAL FRAMEWORK), then apply appropriate criteria:
+
+PHILOSOPHICAL ARGUMENTS: Emphasize conceptual precision, logical coherence, inferential control over empirical proof
+FORMAL PROOFS: Prioritize mathematical rigor, logical completeness, formal validity
+EMPIRICAL RESEARCH: Focus on data quality, statistical validity, methodological soundness
+HISTORICAL ANALYSIS: Value archival evidence, chronological coherence, historical methodology
+TECHNICAL ESSAYS: Assess practical applicability, technical accuracy, solution effectiveness
+THEORETICAL FRAMEWORKS: Evaluate systematic construction, explanatory power, theoretical coherence
 
 For each document, you must provide:
 1. ARGUMENT SUMMARY: What is the document's main argument and key claims?
@@ -47,11 +57,15 @@ DOCUMENT A SCORE: [Score]/100
 DOCUMENT B SCORE: [Score]/100
 
 DOCUMENT A ANALYSIS:
+GENRE: [Identify as PHILOSOPHICAL ARGUMENT, FORMAL PROOF, EMPIRICAL RESEARCH, HISTORICAL ANALYSIS, TECHNICAL ESSAY, or THEORETICAL FRAMEWORK]
+
 ARGUMENT SUMMARY: [Summarize the main argument and key claims of Document A]
 
 IMPROVED RECONSTRUCTION: [Present Document A's argument in strengthened form as an outline - the actual improved argument structure, not tips for improvement]
 
 DOCUMENT B ANALYSIS:
+GENRE: [Identify as PHILOSOPHICAL ARGUMENT, FORMAL PROOF, EMPIRICAL RESEARCH, HISTORICAL ANALYSIS, TECHNICAL ESSAY, or THEORETICAL FRAMEWORK]
+
 ARGUMENT SUMMARY: [Summarize the main argument and key claims of Document B]
 
 IMPROVED RECONSTRUCTION: [Present Document B's argument in strengthened form as an outline - the actual improved argument structure, not tips for improvement]

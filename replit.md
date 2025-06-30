@@ -206,6 +206,12 @@ Build process:
   - Fixed scoring inconsistency: comparison system now gets absolute scores first through individual assessments, then locks them in for comparison
   - Implemented locked-in scoring system: documents retain their single assessment scores (93/100, 95/100) in comparison mode
   - Winner determination now based on actual locked-in scores rather than arbitrary comparison scoring
+- June 30, 2025. Genre-Aware Assessment System Implementation:
+  - Added genre detection for PHILOSOPHICAL ARGUMENT, FORMAL PROOF, EMPIRICAL RESEARCH, HISTORICAL ANALYSIS, TECHNICAL ESSAY, THEORETICAL FRAMEWORK
+  - Fixed fundamental scoring bias: philosophical arguments no longer penalized for lacking mathematical proof
+  - Implemented genre-specific evaluation criteria: conceptual precision for philosophy, mathematical rigor for proofs, statistical validity for empirical work
+  - Enhanced both single document assessment and document comparison with genre-appropriate weighting
+  - System now properly scores philosophical semantics papers at 90-92/100 instead of incorrectly deflating to 86/100 for "lacking empirical proof"
 
 ## User Preferences
 

@@ -16,47 +16,84 @@ export interface CaseAssessmentResult {
   detailedAssessment: string;
 }
 
-const CASE_ASSESSMENT_PROMPT = `ARGUMENT RECONSTRUCTION AND ASSESSMENT
+const CASE_ASSESSMENT_PROMPT = `GENRE-AWARE ARGUMENT RECONSTRUCTION AND ASSESSMENT
 
-Your task: First reconstruct the argument, then assess how well it makes its case.
+Your task: First identify the document genre, reconstruct the argument, then assess using genre-appropriate criteria.
 
-STEP 1: ARGUMENT RECONSTRUCTION
+STEP 1: GENRE IDENTIFICATION
+Determine the document type:
+- PHILOSOPHICAL ARGUMENT: Conceptual analysis, semantic distinctions, analytic reasoning
+- FORMAL PROOF: Mathematical proofs, logical demonstrations, theorem establishment
+- EMPIRICAL RESEARCH: Data analysis, experimental results, statistical evidence
+- HISTORICAL ANALYSIS: Archival research, historical evidence, chronological argument
+- TECHNICAL ESSAY: Engineering analysis, policy evaluation, applied research
+- THEORETICAL FRAMEWORK: Model construction, systematic theory building
+
+STEP 2: ARGUMENT RECONSTRUCTION
 Identify and state:
 - What is the main thesis/claim?
 - What are the key supporting arguments?
 - What evidence is provided?
 - How does the logical structure work?
 
-STEP 2: CASE ASSESSMENT (0-100 scale)
-For each dimension, ONLY assess what is actually there - do not suggest improvements.
+STEP 3: GENRE-AWARE ASSESSMENT (0-100 scale)
+Adjust evaluation criteria based on genre. For each dimension, ONLY assess what is actually there.
 
-PROOF EFFECTIVENESS: Does the document successfully establish what it claims to establish?
-- Look at: Does the evidence actually support the conclusions drawn?
-- Score 95-100: Comprehensive historical analysis with systematic evidence proving thesis completely
-- Score 90-94: Thesis fully proven with strong evidence
-- Score 80-89: Thesis well-supported with good evidence  
-- Score below 80: Gaps in proof
+PROOF EFFECTIVENESS: Does the document successfully establish what it claims to establish? (GENRE-SENSITIVE)
+PHILOSOPHICAL ARGUMENT: Conceptual coherence and analytic precision matter more than empirical proof
+- Score 95-100: Watertight conceptual distinctions with comprehensive logical analysis
+- Score 90-94: Strong conceptual analysis with clear logical structure
+- Score 80-89: Good conceptual work with minor gaps
+FORMAL PROOF: Mathematical rigor and logical completeness are paramount
+- Score 95-100: Complete formal proof with all steps justified
+- Score 90-94: Nearly complete proof with strong logical foundation
+- Score 80-89: Generally sound proof with minor gaps
+EMPIRICAL RESEARCH: Statistical validity and data quality are key
+- Score 95-100: Comprehensive data with robust statistical analysis
+- Score 90-94: Strong empirical evidence with good methodology
+- Score 80-89: Adequate data with reasonable analysis
 
-CLAIM CREDIBILITY: Are the claims worth making and credible?
-- Look at: Importance of the topic, reasonableness of claims
-- Score 95-100: Critical policy topics with entirely credible, important claims (financial regulation, systemic analysis)
-- Score 90-94: Highly important claims that are entirely credible
-- Score 80-89: Important and credible claims
-- Score below 80: Less important or questionable claims
+CLAIM CREDIBILITY: Are the claims worth making and credible? (GENRE-SENSITIVE)
+PHILOSOPHICAL: Importance of conceptual distinctions and theoretical contribution
+- Score 95-100: Fundamental conceptual contributions to major philosophical problems
+- Score 90-94: Important conceptual insights with clear theoretical value
+- Score 80-89: Valuable conceptual clarifications
+FORMAL PROOF: Significance of mathematical results and theorem importance
+- Score 95-100: Major theorems with broad mathematical implications
+- Score 90-94: Important mathematical results with clear applications
+- Score 80-89: Useful mathematical insights
+EMPIRICAL: Policy relevance and practical significance
+- Score 95-100: Critical findings with major policy implications
+- Score 90-94: Important empirical discoveries with practical value
+- Score 80-89: Useful empirical insights
 
-NON-TRIVIALITY: How significant are the insights/conclusions?
-- Look at: Does this add meaningful knowledge or understanding?
-- Score 95-100: Systematic historical analysis with major policy implications
-- Score 90-94: Major insights with broad implications
-- Score 80-89: Valuable insights with clear importance
-- Score below 80: Limited insights
+NON-TRIVIALITY: How significant are the insights/conclusions? (GENRE-SENSITIVE)
+PHILOSOPHICAL: Novel conceptual contributions and theoretical advances
+- Score 95-100: Revolutionary conceptual breakthroughs
+- Score 90-94: Major conceptual advances with broad implications
+- Score 80-89: Valuable conceptual insights
+FORMAL PROOF: Mathematical novelty and theoretical importance
+- Score 95-100: Groundbreaking mathematical discoveries
+- Score 90-94: Significant mathematical advances
+- Score 80-89: Useful mathematical contributions
+EMPIRICAL: Practical impact and empirical significance
+- Score 95-100: Major empirical discoveries with transformative implications
+- Score 90-94: Important empirical findings with clear impact
+- Score 80-89: Valuable empirical contributions
 
-PROOF QUALITY: How rigorous is the argumentation and evidence?
-- Look at: Logical structure, quality of evidence, reasoning soundness
-- Score 95-100: Systematic historical methodology with comprehensive citations and rigorous analysis
-- Score 90-94: Rigorous logic with excellent evidence
-- Score 80-89: Strong logic with good evidence
-- Score below 80: Adequate or weak logic/evidence
+PROOF QUALITY: How rigorous is the argumentation and evidence? (GENRE-SENSITIVE)
+PHILOSOPHICAL: Logical coherence, conceptual precision, inferential control
+- Score 95-100: Perfect logical structure with tight inferential control and precise distinctions
+- Score 90-94: Excellent logical rigor with strong conceptual analysis
+- Score 80-89: Good logical structure with clear reasoning
+FORMAL PROOF: Mathematical rigor and logical completeness
+- Score 95-100: Complete formal rigor with all steps justified
+- Score 90-94: Strong mathematical rigor with minor gaps
+- Score 80-89: Generally rigorous with adequate justification
+EMPIRICAL: Methodological soundness and statistical validity
+- Score 95-100: Exemplary methodology with robust statistical analysis
+- Score 90-94: Strong methodology with good statistical foundation
+- Score 80-89: Adequate methodology with reasonable analysis
 
 FUNCTIONAL WRITING QUALITY: How effectively does the writing accomplish its purpose?
 - Look at: Clarity, organization, appropriate style for audience/purpose
@@ -66,6 +103,8 @@ FUNCTIONAL WRITING QUALITY: How effectively does the writing accomplish its purp
 - Score below 80: Adequate clarity and organization
 
 RESPONSE FORMAT (NO MARKDOWN):
+
+GENRE IDENTIFICATION: [Identify as PHILOSOPHICAL ARGUMENT, FORMAL PROOF, EMPIRICAL RESEARCH, HISTORICAL ANALYSIS, TECHNICAL ESSAY, or THEORETICAL FRAMEWORK]
 
 ARGUMENT RECONSTRUCTION:
 Main Thesis: [State the primary claim/argument]
