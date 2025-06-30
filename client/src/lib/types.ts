@@ -10,7 +10,7 @@ export interface DocumentInput {
   };
 }
 
-export type AnalysisMode = 'single' | 'compare' | 'argumentation';
+export type AnalysisMode = 'single' | 'compare';
 
 // Rewrite related types
 export interface RewriteOptions {
@@ -51,39 +51,6 @@ export interface AnalysisDimension {
   quote: string;
 }
 
-export interface ArgumentationDimension {
-  score: number;
-  rating: string;
-  description: string;
-  evidence: string[];
-}
-
-export interface ArgumentationAnalysis {
-  id?: number;
-  documentId?: number;
-  provider?: string;
-  
-  // Core argumentation evaluation criteria
-  proofAdequacy: ArgumentationDimension;
-  claimCredibility: ArgumentationDimension;
-  nonTriviality: ArgumentationDimension;
-  proofQuality: ArgumentationDimension;
-  functionalWriting: ArgumentationDimension;
-  additionalParameters: ArgumentationDimension;
-  
-  // Overall assessment
-  overallCogency: number; // 0-100 scale
-  summary: string;
-  verdict: string;
-  
-  // For comparative analysis
-  comparisonWinner?: 'A' | 'B' | 'Tie';
-  comparativeAnalysis?: string;
-  
-  formattedReport?: string;
-  report?: string;
-}
-
 export interface DocumentAnalysis {
   id?: number;
   documentId?: number;
@@ -108,9 +75,6 @@ export interface DocumentAnalysis {
     rating?: string;
     description?: string;
   }>;
-  
-  // Argumentation analysis data
-  argumentationAnalysis?: ArgumentationAnalysis;
   
   // Surface and deep analysis metrics
   surface?: {

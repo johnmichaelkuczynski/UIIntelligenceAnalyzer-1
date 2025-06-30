@@ -8,8 +8,7 @@ import {
   TranslationResult,
   RewriteOptions,
   RewriteResult,
-  RewriteRequest,
-  ArgumentationAnalysis
+  RewriteRequest
 } from "./types";
 
 // Function to analyze a single document with progress tracking
@@ -245,28 +244,6 @@ export async function translateDocument(
     return await response.json();
   } catch (error) {
     console.error("Error translating document:", error);
-    throw error;
-  }
-}
-
-// Function to analyze argumentation - "which one makes its case better?"
-export async function analyzeArgumentation(
-  documentA: DocumentInput,
-  provider: string = "openai",
-  documentB?: DocumentInput
-): Promise<DocumentAnalysis> {
-  try {
-    console.log(`Argumentation analysis with ${provider}...`);
-    
-    const response = await apiRequest("POST", "/api/argumentation-analyze", {
-      documentA: documentA.content,
-      documentB: documentB?.content,
-      provider,
-    });
-    
-    return await response.json();
-  } catch (error) {
-    console.error("Error analyzing argumentation:", error);
     throw error;
   }
 }

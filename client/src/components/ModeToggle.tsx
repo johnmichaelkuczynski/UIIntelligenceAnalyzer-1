@@ -29,16 +29,6 @@ const ModeToggle: React.FC<ModeToggleProps> = ({ mode, setMode }) => {
       >
         Compare Two Documents
       </button>
-      <button
-        className={`px-4 py-2 rounded-md font-medium ${
-          mode === "argumentation"
-            ? "bg-blue-600 text-white"
-            : "text-gray-700 hover:bg-gray-200"
-        }`}
-        onClick={() => setMode("argumentation")}
-      >
-        Which Makes Its Case Better?
-      </button>
     </div>
   );
 };

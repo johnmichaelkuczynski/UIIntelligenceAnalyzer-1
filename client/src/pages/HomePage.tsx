@@ -3,7 +3,6 @@ import ModeToggle from "@/components/ModeToggle";
 import DocumentInput from "@/components/DocumentInput";
 import DocumentResults from "@/components/DocumentResults";
 import ComparativeResults from "@/components/ComparativeResults";
-import ArgumentationResults from "@/components/ArgumentationResults";
 import AIDetectionModal from "@/components/AIDetectionModal";
 import ProviderSelector, { LLMProvider } from "@/components/ProviderSelector";
 import UnifiedRewriteSection from "@/components/UnifiedRewriteSection";
@@ -15,7 +14,7 @@ import SemanticDensityAnalyzer from "@/components/SemanticDensityAnalyzer";
 
 import { Button } from "@/components/ui/button";
 import { Brain, Trash2, FileEdit } from "lucide-react";
-import { analyzeDocument, compareDocuments, checkForAI, analyzeArgumentation } from "@/lib/analysis";
+import { analyzeDocument, compareDocuments, checkForAI } from "@/lib/analysis";
 import { AnalysisMode, DocumentInput as DocumentInputType, AIDetectionResult, DocumentAnalysis, DocumentComparison } from "@/lib/types";
 
 const HomePage: React.FC = () => {
@@ -138,11 +137,6 @@ const HomePage: React.FC = () => {
       alert("Please enter some text in Document B for comparison.");
       return;
     }
-
-    if (mode === "argumentation" && !documentB.content.trim()) {
-      // For argumentation mode, Document B is optional
-      // If only Document A is provided, analyze single document argumentation
-    }
     
     // Check if the selected provider is available
     if (selectedProvider !== "all" && !apiStatus[selectedProvider as keyof typeof apiStatus]) {
@@ -161,24 +155,13 @@ const HomePage: React.FC = () => {
         setAnalysisA(result);
         setAnalysisB(null);
         setComparison(null);
-      } else if (mode === "compare") {
+      } else {
         // Use the selected provider for comparison
         console.log(`Comparing with ${selectedProvider}...`);
         const results = await compareDocuments(documentA, documentB, selectedProvider);
         setAnalysisA(results.analysisA);
         setAnalysisB(results.analysisB);
         setComparison(results.comparison);
-      } else if (mode === "argumentation") {
-        // Use the selected provider for argumentation analysis
-        console.log(`Argumentation analysis with ${selectedProvider}...`);
-        const result = await analyzeArgumentation(
-          documentA, 
-          selectedProvider,
-          documentB.content.trim() ? documentB : undefined
-        );
-        setAnalysisA(result);
-        setAnalysisB(null);
-        setComparison(null);
       }
     } catch (error) {
       console.error("Error analyzing documents:", error);
@@ -279,8 +262,8 @@ const HomePage: React.FC = () => {
           onCheckAI={() => handleCheckAI("A")}
         />
 
-        {/* Document B (shown in compare and argumentation modes) */}
-        {(mode === "compare" || mode === "argumentation") && (
+        {/* Document B (shown only in compare mode) */}
+        {mode === "compare" && (
           <DocumentInput
             id="B"
             document={documentB}
@@ -365,14 +348,6 @@ const HomePage: React.FC = () => {
                   analysisA={analysisA}
                   analysisB={analysisB}
                   comparison={comparison}
-                />
-              )}
-              
-              {/* Argumentation Results (only in argumentation mode) */}
-              {mode === "argumentation" && analysisA && analysisA.argumentationAnalysis && (
-                <ArgumentationResults
-                  analysis={analysisA}
-                  isComparative={!!documentB.content.trim()}
                 />
               )}
               
