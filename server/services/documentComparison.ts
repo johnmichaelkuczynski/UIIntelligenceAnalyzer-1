@@ -70,7 +70,20 @@ export async function compareDocuments(
   documentB: string,
   provider: LLMProvider = 'openai'
 ): Promise<DocumentComparisonResult> {
-  const prompt = COMPARISON_PROMPT + documentA + "\n\nDOCUMENT B:\n" + documentB;
+  // First, get absolute scores for each document individually
+  const { performCaseAssessment } = await import('./caseAssessment');
+  
+  console.log('Getting absolute scores for both documents...');
+  const scoreA = await performCaseAssessment(documentA, provider);
+  const scoreB = await performCaseAssessment(documentB, provider);
+  
+  console.log(`Document A absolute score: ${scoreA.overallCaseScore}`);
+  console.log(`Document B absolute score: ${scoreB.overallCaseScore}`);
+  
+  // Now perform comparison with locked-in scores
+  const prompt = COMPARISON_PROMPT + 
+    `\n\nIMPORTANT: Document A has been independently assessed at ${scoreA.overallCaseScore}/100 and Document B at ${scoreB.overallCaseScore}/100. Use these exact scores in your comparison - do not deviate from them.\n\n` +
+    "DOCUMENT A:\n" + documentA + "\n\nDOCUMENT B:\n" + documentB;
   
   // Call the LLM directly without using the analysis functions
   let response: string;
@@ -148,69 +161,24 @@ export async function compareDocuments(
   }
   
   console.log('Raw comparison response:', response.substring(0, 500) + '...');
-  return parseComparisonResponse(response);
+  return parseComparisonResponse(response, scoreA.overallCaseScore, scoreB.overallCaseScore);
 }
 
-function parseComparisonResponse(response: string): DocumentComparisonResult {
+function parseComparisonResponse(response: string, lockedScoreA: number, lockedScoreB: number): DocumentComparisonResult {
   const cleanResponse = response.replace(/\*\*/g, '').replace(/\*/g, '').replace(/```/g, '');
   
   console.log('Parsing comparison response. Response length:', cleanResponse.length);
   console.log('First 1000 chars:', cleanResponse.substring(0, 1000));
   
-  // Extract winner with multiple patterns
-  let winnerDocument: 'A' | 'B' = 'A';
-  const winnerPatterns = [
-    /WINNER:\s*Document\s*([AB])/i,
-    /Winner:\s*Document\s*([AB])/i,
-    /The winner is:\s*Document\s*([AB])/i,
-    /Document\s*([AB])\s*wins/i,
-    /Document\s*([AB])\s*is the winner/i
-  ];
+  // Use locked-in scores from individual assessments
+  const documentAScore = lockedScoreA;
+  const documentBScore = lockedScoreB;
   
-  for (const pattern of winnerPatterns) {
-    const match = cleanResponse.match(pattern);
-    if (match) {
-      winnerDocument = match[1].toUpperCase() as 'A' | 'B';
-      console.log('Found winner:', winnerDocument, 'using pattern:', pattern);
-      break;
-    }
-  }
+  console.log('Using locked scores - Document A:', documentAScore, 'Document B:', documentBScore);
   
-  // Extract scores with multiple patterns
-  let documentAScore = 90; // Default high score
-  let documentBScore = 90; // Default high score
-  
-  const scorePatterns = [
-    /DOCUMENT A SCORE:\s*(\d+)/i,
-    /Document A:\s*(\d+)\/100/i,
-    /Document A Score:\s*(\d+)/i,
-    /A:\s*(\d+)\/100/i
-  ];
-  
-  for (const pattern of scorePatterns) {
-    const match = cleanResponse.match(pattern);
-    if (match) {
-      documentAScore = Math.min(Math.max(parseInt(match[1]), 0), 100);
-      console.log('Found Document A score:', documentAScore);
-      break;
-    }
-  }
-  
-  const scoreBPatterns = [
-    /DOCUMENT B SCORE:\s*(\d+)/i,
-    /Document B:\s*(\d+)\/100/i,
-    /Document B Score:\s*(\d+)/i,
-    /B:\s*(\d+)\/100/i
-  ];
-  
-  for (const pattern of scoreBPatterns) {
-    const match = cleanResponse.match(pattern);
-    if (match) {
-      documentBScore = Math.min(Math.max(parseInt(match[1]), 0), 100);
-      console.log('Found Document B score:', documentBScore);
-      break;
-    }
-  }
+  // Determine winner based on locked-in scores
+  const winnerDocument: 'A' | 'B' = documentAScore >= documentBScore ? 'A' : 'B';
+  console.log('Winner determined by scores:', winnerDocument, `(A: ${documentAScore} vs B: ${documentBScore})`);
   
   // Extract document analyses
   let documentAAnalysis = '';
