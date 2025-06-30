@@ -222,6 +222,14 @@ Build process:
   - Built FictionAssessmentModal and FictionComparisonModal components with progress bars, detailed breakdowns, and PDF export
   - Integrated fiction assessment buttons into main interface alongside existing essay evaluation tools
   - Fiction evaluation uses specialized prompts focusing on world-building, character authenticity, and narrative craft rather than argumentative logic
+- June 30, 2025. Two-Document Intelligence Assessment Fix and DeepSeek Rewrite Integration:
+  - Fixed critical issue where two-document intelligence assessment wasn't outputting results
+  - Created dedicated /api/intelligence-compare endpoint separate from case comparison
+  - Built comprehensive intelligence comparison service with proper data structure conversion
+  - Updated frontend analysis.ts to use correct intelligence comparison API
+  - Added DeepSeek as primary option in all document rewrite LLM dropdowns
+  - Made DeepSeek the default provider for document rewriting in EnhancedRewriteSection and EnhancedRewriteModal
+  - Updated all rewrite component provider lists to prioritize DeepSeek first
 
 ## User Preferences
 
