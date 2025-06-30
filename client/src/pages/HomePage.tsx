@@ -132,6 +132,53 @@ const HomePage: React.FC = () => {
     }
   };
 
+  // Handler for case assessment
+  const handleCaseAssessment = async () => {
+    if (!documentA.content.trim()) {
+      alert("Please enter some text to assess how well it makes its case.");
+      return;
+    }
+
+    // Check if the selected provider is available
+    if (selectedProvider !== "all" && !apiStatus[selectedProvider as keyof typeof apiStatus]) {
+      alert(`The ${selectedProvider} API key is not configured or is invalid. Please select a different provider or ensure the API key is properly set.`);
+      return;
+    }
+
+    setIsCaseAssessmentLoading(true);
+    setCaseAssessmentResult(null);
+
+    try {
+      const provider = selectedProvider === "all" ? "openai" : selectedProvider;
+      
+      const response = await fetch('/api/case-assessment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: documentA.content,
+          provider: provider,
+          documentId: analysisA?.id || null
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Case assessment failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setCaseAssessmentResult(data.result);
+      setCaseAssessmentModalOpen(true);
+      
+    } catch (error) {
+      console.error("Error performing case assessment:", error);
+      alert("Failed to assess document case. Please try again.");
+    } finally {
+      setIsCaseAssessmentLoading(false);
+    }
+  };
+
   // Handler for analyzing documents
   const handleAnalyze = async () => {
     if (!documentA.content.trim()) {
@@ -291,6 +338,20 @@ const HomePage: React.FC = () => {
             </span>
           </Button>
           
+          {/* Case Assessment Button - only for single document mode */}
+          {mode === "single" && (
+            <Button
+              onClick={handleCaseAssessment}
+              className="px-6 py-3 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700 flex items-center"
+              disabled={isCaseAssessmentLoading}
+            >
+              <FileEdit className="h-5 w-5 mr-2" />
+              <span>
+                {isCaseAssessmentLoading ? "Assessing..." : "How Well Does It Make Its Case?"}
+              </span>
+            </Button>
+          )}
+          
           <div className="flex items-center space-x-2">
             <select
               value={rewriteMode}
@@ -403,6 +464,24 @@ const HomePage: React.FC = () => {
           }}
         />
       )}
+
+      {/* Case Assessment Modal */}
+      <CaseAssessmentModal
+        isOpen={caseAssessmentModalOpen}
+        onClose={() => setCaseAssessmentModalOpen(false)}
+        result={caseAssessmentResult}
+        provider={selectedProvider === "all" ? "OpenAI" : selectedProvider}
+        documentTitle={documentA.filename || "Document"}
+      />
+
+      {/* AI Detection Modal */}
+      <AIDetectionModal
+        isOpen={aiDetectionModalOpen}
+        onClose={() => setAIDetectionModalOpen(false)}
+        result={aiDetectionResult}
+        isLoading={isAICheckLoading}
+        documentId={currentAICheckDocument}
+      />
 
       {/* Chat Dialog - Always visible below everything */}
       <ChatDialog 
