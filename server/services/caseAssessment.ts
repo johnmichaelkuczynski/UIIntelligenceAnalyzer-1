@@ -1,7 +1,10 @@
-import { directOpenAIRequest } from './directLLM';
-import { directAnthropicRequest } from './directLLM';
-import { directPerplexityRequest } from './directLLM';
-import { directDeepSeekRequest } from './directLLM';
+import OpenAI from "openai";
+import Anthropic from '@anthropic-ai/sdk';
+import fetch from 'node-fetch';
+
+// Initialize the API clients
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export interface CaseAssessmentResult {
   proofEffectiveness: number;
@@ -96,6 +99,80 @@ function parseCaseAssessmentResponse(response: string): CaseAssessmentResult {
   };
 }
 
+async function makeOpenAIRequest(prompt: string): Promise<string> {
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+      { role: "system", content: "You are an expert academic evaluator." },
+      { role: "user", content: prompt }
+    ],
+    temperature: 0.2
+  });
+  
+  return response.choices[0].message.content || "";
+}
+
+async function makeAnthropicRequest(prompt: string): Promise<string> {
+  const response = await anthropic.messages.create({
+    model: "claude-3-5-sonnet-20241022",
+    max_tokens: 4000,
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0.2
+  });
+  
+  return response.content[0].type === 'text' ? response.content[0].text : "";
+}
+
+async function makePerplexityRequest(prompt: string): Promise<string> {
+  const response = await fetch('https://api.perplexity.ai/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: "llama-3.1-sonar-small-128k-online",
+      messages: [
+        { role: "system", content: "You are an expert academic evaluator." },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.2
+    })
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Perplexity API error: ${response.status}`);
+  }
+  
+  const data: any = await response.json();
+  return data.choices?.[0]?.message?.content || "";
+}
+
+async function makeDeepSeekRequest(prompt: string): Promise<string> {
+  const response = await fetch('https://api.deepseek.com/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: "deepseek-chat",
+      messages: [
+        { role: "system", content: "You are an expert academic evaluator." },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.2
+    })
+  });
+  
+  if (!response.ok) {
+    throw new Error(`DeepSeek API error: ${response.status}`);
+  }
+  
+  const data: any = await response.json();
+  return data.choices?.[0]?.message?.content || "";
+}
+
 export async function performCaseAssessment(
   text: string,
   provider: 'openai' | 'anthropic' | 'perplexity' | 'deepseek'
@@ -107,16 +184,16 @@ export async function performCaseAssessment(
   try {
     switch (provider) {
       case 'openai':
-        response = await directOpenAIRequest(prompt);
+        response = await makeOpenAIRequest(prompt);
         break;
       case 'anthropic':
-        response = await directAnthropicRequest(prompt);
+        response = await makeAnthropicRequest(prompt);
         break;
       case 'perplexity':
-        response = await directPerplexityRequest(prompt);
+        response = await makePerplexityRequest(prompt);
         break;
       case 'deepseek':
-        response = await directDeepSeekRequest(prompt);
+        response = await makeDeepSeekRequest(prompt);
         break;
       default:
         throw new Error(`Unsupported provider: ${provider}`);

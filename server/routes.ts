@@ -682,5 +682,64 @@ export async function registerRoutes(app: Express): Promise<Express> {
     }
   });
 
+  // Case assessment endpoint
+  app.post("/api/case-assessment", async (req: Request, res: Response) => {
+    try {
+      const { text, provider = "openai", documentId } = req.body;
+      
+      if (!text || typeof text !== 'string') {
+        return res.status(400).json({ error: "Text content is required for case assessment" });
+      }
+      
+      const validProviders = ['openai', 'anthropic', 'perplexity', 'deepseek'];
+      if (!validProviders.includes(provider)) {
+        return res.status(400).json({ error: `Provider must be one of: ${validProviders.join(', ')}` });
+      }
+      
+      console.log(`Starting case assessment with ${provider} for text of length: ${text.length}`);
+      
+      const { performCaseAssessment } = await import('./services/caseAssessment');
+      const result = await performCaseAssessment(text, provider);
+      
+      // Store the case assessment in the database if documentId is provided
+      if (documentId) {
+        try {
+          const { db } = await import('./db');
+          const { caseAssessments } = await import('@shared/schema');
+          
+          await db.insert(caseAssessments).values({
+            documentId: parseInt(documentId),
+            proofEffectiveness: result.proofEffectiveness,
+            claimCredibility: result.claimCredibility,
+            nonTriviality: result.nonTriviality,
+            proofQuality: result.proofQuality,
+            functionalWriting: result.functionalWriting,
+            overallCaseScore: result.overallCaseScore,
+            detailedAssessment: result.detailedAssessment,
+          });
+          
+          console.log(`Case assessment saved to database for document ${documentId}`);
+        } catch (dbError) {
+          console.error("Failed to save case assessment to database:", dbError);
+          // Continue with response even if DB save fails
+        }
+      }
+      
+      console.log(`Case assessment complete - Overall score: ${result.overallCaseScore}/100`);
+      
+      return res.json({
+        success: true,
+        provider,
+        result
+      });
+    } catch (error: any) {
+      console.error("Error in case assessment:", error);
+      return res.status(500).json({ 
+        error: "Failed to perform case assessment",
+        message: error.message 
+      });
+    }
+  });
+
   return app;
 }

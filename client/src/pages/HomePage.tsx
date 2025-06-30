@@ -11,6 +11,7 @@ import SimpleRewriteModal from "@/components/SimpleRewriteModal";
 import SelectiveChunkRewriter from "@/components/SelectiveChunkRewriter";
 import ChatDialog from "@/components/ChatDialog";
 import SemanticDensityAnalyzer from "@/components/SemanticDensityAnalyzer";
+import CaseAssessmentModal from "@/components/CaseAssessmentModal";
 
 import { Button } from "@/components/ui/button";
 import { Brain, Trash2, FileEdit } from "lucide-react";
@@ -49,6 +50,11 @@ const HomePage: React.FC = () => {
   // State for immediate rewrite dialog
   const [showRewriteDialog, setShowRewriteDialog] = useState(false);
   const [rewriteMode, setRewriteMode] = useState<"simple" | "chunk">("chunk");
+  
+  // State for case assessment
+  const [caseAssessmentModalOpen, setCaseAssessmentModalOpen] = useState(false);
+  const [caseAssessmentResult, setCaseAssessmentResult] = useState<any>(null);
+  const [isCaseAssessmentLoading, setIsCaseAssessmentLoading] = useState(false);
   
   // State for LLM provider
   const [selectedProvider, setSelectedProvider] = useState<LLMProvider>("openai");
