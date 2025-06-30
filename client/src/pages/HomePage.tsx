@@ -12,6 +12,7 @@ import SelectiveChunkRewriter from "@/components/SelectiveChunkRewriter";
 import ChatDialog from "@/components/ChatDialog";
 import SemanticDensityAnalyzer from "@/components/SemanticDensityAnalyzer";
 import CaseAssessmentModal from "@/components/CaseAssessmentModal";
+import { DocumentComparisonModal } from "@/components/DocumentComparisonModal";
 
 import { Button } from "@/components/ui/button";
 import { Brain, Trash2, FileEdit } from "lucide-react";
@@ -55,6 +56,11 @@ const HomePage: React.FC = () => {
   const [caseAssessmentModalOpen, setCaseAssessmentModalOpen] = useState(false);
   const [caseAssessmentResult, setCaseAssessmentResult] = useState<any>(null);
   const [isCaseAssessmentLoading, setIsCaseAssessmentLoading] = useState(false);
+  
+  // State for document comparison
+  const [comparisonModalOpen, setComparisonModalOpen] = useState(false);
+  const [comparisonResult, setComparisonResult] = useState<any>(null);
+  const [isComparisonLoading, setIsComparisonLoading] = useState(false);
   
   // State for LLM provider
   const [selectedProvider, setSelectedProvider] = useState<LLMProvider>("openai");
@@ -176,6 +182,53 @@ const HomePage: React.FC = () => {
       alert("Failed to assess document case. Please try again.");
     } finally {
       setIsCaseAssessmentLoading(false);
+    }
+  };
+
+  // Handler for document comparison
+  const handleDocumentComparison = async () => {
+    if (!documentA.content.trim() || !documentB.content.trim()) {
+      alert("Please enter text in both documents to compare them.");
+      return;
+    }
+
+    // Check if the selected provider is available
+    if (selectedProvider !== "all" && !apiStatus[selectedProvider as keyof typeof apiStatus]) {
+      alert(`The ${selectedProvider} API key is not configured or is invalid. Please select a different provider or ensure the API key is properly set.`);
+      return;
+    }
+
+    setIsComparisonLoading(true);
+    setComparisonResult(null);
+
+    try {
+      const provider = selectedProvider === "all" ? "openai" : selectedProvider;
+      
+      const response = await fetch('/api/compare', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          documentA: documentA.content,
+          documentB: documentB.content,
+          provider: provider
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Document comparison failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setComparisonResult(data);
+      setComparisonModalOpen(true);
+      
+    } catch (error) {
+      console.error("Error comparing documents:", error);
+      alert(`Document comparison failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } finally {
+      setIsComparisonLoading(false);
     }
   };
 
@@ -355,15 +408,14 @@ const HomePage: React.FC = () => {
           {/* Comparison Button - only for compare mode */}
           {mode === "compare" && (
             <Button
-              onClick={() => {
-                // TODO: Implement comparison functionality
-                console.log("Comparison button clicked");
-              }}
+              onClick={handleDocumentComparison}
               className="px-6 py-3 bg-purple-600 text-white rounded-md font-semibold hover:bg-purple-700 flex items-center"
-              disabled={!documentA.content.trim() || !documentB.content.trim()}
+              disabled={!documentA.content.trim() || !documentB.content.trim() || isComparisonLoading}
             >
               <FileEdit className="h-5 w-5 mr-2" />
-              <span>Which One Makes Its Case Better?</span>
+              <span>
+                {isComparisonLoading ? "Comparing..." : "Which One Makes Its Case Better?"}
+              </span>
             </Button>
           )}
           
@@ -487,6 +539,14 @@ const HomePage: React.FC = () => {
         result={caseAssessmentResult}
         provider={selectedProvider === "all" ? "OpenAI" : selectedProvider}
         documentTitle={documentA.filename || "Document"}
+      />
+
+      {/* Document Comparison Modal */}
+      <DocumentComparisonModal
+        isOpen={comparisonModalOpen}
+        onClose={() => setComparisonModalOpen(false)}
+        result={comparisonResult}
+        isLoading={isComparisonLoading}
       />
 
       {/* AI Detection Modal */}

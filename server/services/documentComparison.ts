@@ -103,22 +103,29 @@ function parseComparisonResponse(response: string): DocumentComparisonResult {
     documentBScore = Math.min(Math.max(parseInt(scoreBMatch[1]), 0), 100);
   }
   
-  // Extract analysis sections
+  // Extract analysis sections using simpler regex
   let comparisonAnalysis = '';
-  const analysisMatch = cleanResponse.match(/COMPARISON ANALYSIS:\s*(.*?)(?=DETAILED BREAKDOWN:|$)/g);
-  if (analysisMatch) {
-    comparisonAnalysis = analysisMatch[0].replace(/COMPARISON ANALYSIS:\s*/g, '').trim();
+  const analysisStart = cleanResponse.indexOf('COMPARISON ANALYSIS:');
+  const breakdownStart = cleanResponse.indexOf('DETAILED BREAKDOWN:');
+  
+  if (analysisStart !== -1 && breakdownStart !== -1) {
+    comparisonAnalysis = cleanResponse.substring(analysisStart + 20, breakdownStart).trim();
+  } else if (analysisStart !== -1) {
+    comparisonAnalysis = cleanResponse.substring(analysisStart + 20).trim();
   }
   
   let detailedBreakdown = '';
-  const breakdownMatch = cleanResponse.match(/DETAILED BREAKDOWN:\s*(.*?)(?=FINAL VERDICT:|$)/g);
-  if (breakdownMatch) {
-    detailedBreakdown = breakdownMatch[0].replace(/DETAILED BREAKDOWN:\s*/g, '').trim();
+  const verdictStart = cleanResponse.indexOf('FINAL VERDICT:');
+  
+  if (breakdownStart !== -1 && verdictStart !== -1) {
+    detailedBreakdown = cleanResponse.substring(breakdownStart + 19, verdictStart).trim();
+  } else if (breakdownStart !== -1) {
+    detailedBreakdown = cleanResponse.substring(breakdownStart + 19).trim();
   }
   
-  const verdictMatch = cleanResponse.match(/FINAL VERDICT:\s*(.*?)$/g);
-  if (verdictMatch) {
-    detailedBreakdown += '\n\nFinal Verdict: ' + verdictMatch[1].trim();
+  if (verdictStart !== -1) {
+    const verdict = cleanResponse.substring(verdictStart + 14).trim();
+    detailedBreakdown += '\n\nFinal Verdict: ' + verdict;
   }
   
   return {
