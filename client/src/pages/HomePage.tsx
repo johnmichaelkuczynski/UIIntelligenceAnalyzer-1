@@ -13,6 +13,8 @@ import ChatDialog from "@/components/ChatDialog";
 import SemanticDensityAnalyzer from "@/components/SemanticDensityAnalyzer";
 import CaseAssessmentModal from "@/components/CaseAssessmentModal";
 import { DocumentComparisonModal } from "@/components/DocumentComparisonModal";
+import { FictionAssessmentModal } from "@/components/FictionAssessmentModal";
+import { FictionComparisonModal } from "@/components/FictionComparisonModal";
 
 import { Button } from "@/components/ui/button";
 import { Brain, Trash2, FileEdit } from "lucide-react";
@@ -61,6 +63,11 @@ const HomePage: React.FC = () => {
   const [comparisonModalOpen, setComparisonModalOpen] = useState(false);
   const [comparisonResult, setComparisonResult] = useState<any>(null);
   const [isComparisonLoading, setIsComparisonLoading] = useState(false);
+  
+  // State for fiction assessment
+  const [fictionAssessmentModalOpen, setFictionAssessmentModalOpen] = useState(false);
+  const [fictionComparisonModalOpen, setFictionComparisonModalOpen] = useState(false);
+  const [currentFictionDocument, setCurrentFictionDocument] = useState<"A" | "B">("A");
   
   // State for LLM provider
   const [selectedProvider, setSelectedProvider] = useState<LLMProvider>("openai");
@@ -230,6 +237,28 @@ const HomePage: React.FC = () => {
     } finally {
       setIsComparisonLoading(false);
     }
+  };
+
+  // Handler for fiction assessment
+  const handleFictionAssessment = (documentId: "A" | "B") => {
+    const document = documentId === "A" ? documentA : documentB;
+    if (!document.content.trim()) {
+      alert(`Please enter some text in Document ${documentId}.`);
+      return;
+    }
+
+    setCurrentFictionDocument(documentId);
+    setFictionAssessmentModalOpen(true);
+  };
+
+  // Handler for fiction comparison
+  const handleFictionComparison = () => {
+    if (!documentA.content.trim() || !documentB.content.trim()) {
+      alert("Please enter text in both documents to compare them.");
+      return;
+    }
+
+    setFictionComparisonModalOpen(true);
   };
 
   // Handler for analyzing documents
@@ -405,6 +434,18 @@ const HomePage: React.FC = () => {
             </Button>
           )}
           
+          {/* Fiction Assessment Button - only for single document mode */}
+          {mode === "single" && (
+            <Button
+              onClick={() => handleFictionAssessment("A")}
+              className="px-6 py-3 bg-orange-600 text-white rounded-md font-semibold hover:bg-orange-700 flex items-center"
+              disabled={!documentA.content.trim()}
+            >
+              <FileEdit className="h-5 w-5 mr-2" />
+              <span>Assess Fiction</span>
+            </Button>
+          )}
+          
           {/* Comparison Button - only for compare mode */}
           {mode === "compare" && (
             <Button
@@ -416,6 +457,18 @@ const HomePage: React.FC = () => {
               <span>
                 {isComparisonLoading ? "Comparing..." : "Which One Makes Its Case Better?"}
               </span>
+            </Button>
+          )}
+          
+          {/* Fiction Comparison Button - only for compare mode */}
+          {mode === "compare" && (
+            <Button
+              onClick={handleFictionComparison}
+              className="px-6 py-3 bg-amber-600 text-white rounded-md font-semibold hover:bg-amber-700 flex items-center"
+              disabled={!documentA.content.trim() || !documentB.content.trim()}
+            >
+              <FileEdit className="h-5 w-5 mr-2" />
+              <span>Compare Fiction</span>
             </Button>
           )}
           

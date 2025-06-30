@@ -30,7 +30,7 @@ export function FictionComparisonModal({ isOpen, onClose, documentA, documentB }
   const handleComparison = async () => {
     setIsLoading(true);
     try {
-      const response = await apiRequest('/api/fiction-compare', {
+      const response = await fetch('/api/fiction-compare', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -40,7 +40,8 @@ export function FictionComparisonModal({ isOpen, onClose, documentA, documentB }
         })
       });
       
-      setResult(response);
+      const data = await response.json();
+      setResult(data);
     } catch (error) {
       console.error('Error performing fiction comparison:', error);
     } finally {
