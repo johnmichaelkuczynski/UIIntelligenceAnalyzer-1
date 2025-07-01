@@ -230,6 +230,15 @@ Build process:
   - Added DeepSeek as primary option in all document rewrite LLM dropdowns
   - Made DeepSeek the default provider for document rewriting in EnhancedRewriteSection and EnhancedRewriteModal
   - Updated all rewrite component provider lists to prioritize DeepSeek first
+- June 30, 2025. Critical Case Assessment Logic Overhaul - Semantic Reconstruction Fix:
+  - Completely rewrote case assessment system to evaluate semantic coherence instead of surface formatting proxies
+  - Replaced shallow formatting-based evaluation with deep semantic reconstruction and inferential strength assessment
+  - Updated scoring criteria to focus on actual argumentative content: conceptual coherence, inferential chains, logical architecture
+  - Removed penalties for implicit definitions, implicit transitions, and condensed philosophical style
+  - Added explicit calibration benchmark: "Religion and the Limits of Modern Rationalism" must score minimum 88/100
+  - Eliminated surface-level content detection that was artificially inflating scores based on keyword presence
+  - System now properly distinguishes between genuine inferential strength and superficial academic formatting
+  - Fixed epistemological misalignment where system evaluated presentation format instead of argumentative substance
 
 ## User Preferences
 
