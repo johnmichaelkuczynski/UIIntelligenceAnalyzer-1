@@ -16,91 +16,60 @@ export interface CaseAssessmentResult {
   detailedAssessment: string;
 }
 
-const CASE_ASSESSMENT_PROMPT = `GENRE-AWARE ARGUMENT RECONSTRUCTION AND ASSESSMENT
+const CASE_ASSESSMENT_PROMPT = `SEMANTIC RECONSTRUCTION AND COGENCY ASSESSMENT
 
-Your task: First identify the document genre, reconstruct the argument, then assess using genre-appropriate criteria.
+CRITICAL INSTRUCTION: Do NOT evaluate based on surface formatting, explicit transitions, or formal structure. Instead, evaluate based on SEMANTIC COHERENCE and INFERENTIAL STRENGTH.
 
-STEP 1: GENRE IDENTIFICATION
-Determine the document type:
-- PHILOSOPHICAL ARGUMENT: Conceptual analysis, semantic distinctions, analytic reasoning
-- FORMAL PROOF: Mathematical proofs, logical demonstrations, theorem establishment
-- EMPIRICAL RESEARCH: Data analysis, experimental results, statistical evidence
-- HISTORICAL ANALYSIS: Archival research, historical evidence, chronological argument
-- TECHNICAL ESSAY: Engineering analysis, policy evaluation, applied research
-- THEORETICAL FRAMEWORK: Model construction, systematic theory building
+STEP 1: SEMANTIC RECONSTRUCTION
+Extract the actual argumentative content by reconstructing:
+- What central claim is being defended?
+- What inferential chains support this claim?
+- How do different sections contribute to the overall case?
+- What is the logical architecture of the argument?
 
-STEP 2: ARGUMENT RECONSTRUCTION
-Identify and state:
-- What is the main thesis/claim?
-- What are the key supporting arguments?
-- What evidence is provided?
-- How does the logical structure work?
+STEP 2: COGENCY ASSESSMENT (0-100 scale)
+Score based on actual argumentative strength, not formatting proxies.
 
-STEP 3: GENRE-AWARE ASSESSMENT (0-100 scale)
-Adjust evaluation criteria based on genre. For each dimension, ONLY assess what is actually there.
+PROOF EFFECTIVENESS: Does the semantic content actually establish the central claim?
+PHILOSOPHICAL ARGUMENT: Focus on conceptual coherence and inferential strength
+- Score 95-100: Watertight inferential structure that fully establishes the thesis through rigorous conceptual analysis
+- Score 90-94: Strong inferential chains with solid conceptual foundations and clear logical progression
+- Score 80-89: Good inferential structure with effective conceptual work, minor logical gaps
+- Score 70-79: Adequate inferential support but some conceptual weaknesses or logical jumps
+DO NOT penalize for: implicit definitions (if terms are contextually clear), implicit transitions (if conceptual flow is coherent), lack of explicit counterarguments (if the analysis is internally sound)
+DO penalize for: actual logical gaps, conceptual confusion, inference failures
 
-PROOF EFFECTIVENESS: Does the document successfully establish what it claims to establish? (GENRE-SENSITIVE)
-PHILOSOPHICAL ARGUMENT: Conceptual coherence and analytic precision matter more than empirical proof
-- Score 95-100: Watertight conceptual distinctions with comprehensive logical analysis
-- Score 90-94: Strong conceptual analysis with clear logical structure
-- Score 80-89: Good conceptual work with minor gaps
-FORMAL PROOF: Mathematical rigor and logical completeness are paramount
-- Score 95-100: Complete formal proof with all steps justified
-- Score 90-94: Nearly complete proof with strong logical foundation
-- Score 80-89: Generally sound proof with minor gaps
-EMPIRICAL RESEARCH: Statistical validity and data quality are key
-- Score 95-100: Comprehensive data with robust statistical analysis
-- Score 90-94: Strong empirical evidence with good methodology
-- Score 80-89: Adequate data with reasonable analysis
+CLAIM CREDIBILITY: Are the claims substantive and worth defending?
+- Score 95-100: Fundamental insights with major theoretical or practical implications
+- Score 90-94: Important claims with clear significance and substantial implications
+- Score 80-89: Valuable claims with meaningful contribution to the field
+- Score 70-79: Reasonable claims with some value but limited impact
+Assess significance of the actual claims made, not whether they're stated in a particular format
 
-CLAIM CREDIBILITY: Are the claims worth making and credible? (GENRE-SENSITIVE)
-PHILOSOPHICAL: Importance of conceptual distinctions and theoretical contribution
-- Score 95-100: Fundamental conceptual contributions to major philosophical problems
-- Score 90-94: Important conceptual insights with clear theoretical value
-- Score 80-89: Valuable conceptual clarifications
-FORMAL PROOF: Significance of mathematical results and theorem importance
-- Score 95-100: Major theorems with broad mathematical implications
-- Score 90-94: Important mathematical results with clear applications
-- Score 80-89: Useful mathematical insights
-EMPIRICAL: Policy relevance and practical significance
-- Score 95-100: Critical findings with major policy implications
-- Score 90-94: Important empirical discoveries with practical value
-- Score 80-89: Useful empirical insights
+NON-TRIVIALITY: How significant are the insights relative to existing knowledge?
+- Score 95-100: Revolutionary insights that transform understanding of major questions
+- Score 90-94: Major advances that significantly extend or challenge existing frameworks  
+- Score 80-89: Valuable contributions that add meaningful insights to established discussions
+- Score 70-79: Useful clarifications or applications of existing ideas
+Focus on intellectual content and conceptual contributions, not presentational novelty
 
-NON-TRIVIALITY: How significant are the insights/conclusions? (GENRE-SENSITIVE)
-PHILOSOPHICAL: Novel conceptual contributions and theoretical advances
-- Score 95-100: Revolutionary conceptual breakthroughs
-- Score 90-94: Major conceptual advances with broad implications
-- Score 80-89: Valuable conceptual insights
-FORMAL PROOF: Mathematical novelty and theoretical importance
-- Score 95-100: Groundbreaking mathematical discoveries
-- Score 90-94: Significant mathematical advances
-- Score 80-89: Useful mathematical contributions
-EMPIRICAL: Practical impact and empirical significance
-- Score 95-100: Major empirical discoveries with transformative implications
-- Score 90-94: Important empirical findings with clear impact
-- Score 80-89: Valuable empirical contributions
+PROOF QUALITY: How rigorous is the actual reasoning and evidence?
+PHILOSOPHICAL: Evaluate inferential control and conceptual precision
+- Score 95-100: Perfect logical rigor with tight inferential control and precise conceptual distinctions
+- Score 90-94: Excellent logical structure with strong conceptual analysis and clear reasoning chains
+- Score 80-89: Good logical foundation with effective reasoning, minor inferential weaknesses
+- Score 70-79: Adequate reasoning with some logical or conceptual gaps
+DO NOT penalize for: condensed argumentation (if logically sound), implicit steps (if inferentially valid), philosophical style (if conceptually rigorous)
+DO penalize for: actual logical errors, conceptual confusion, weak inferential chains
 
-PROOF QUALITY: How rigorous is the argumentation and evidence? (GENRE-SENSITIVE)
-PHILOSOPHICAL: Logical coherence, conceptual precision, inferential control
-- Score 95-100: Perfect logical structure with tight inferential control and precise distinctions
-- Score 90-94: Excellent logical rigor with strong conceptual analysis
-- Score 80-89: Good logical structure with clear reasoning
-FORMAL PROOF: Mathematical rigor and logical completeness
-- Score 95-100: Complete formal rigor with all steps justified
-- Score 90-94: Strong mathematical rigor with minor gaps
-- Score 80-89: Generally rigorous with adequate justification
-EMPIRICAL: Methodological soundness and statistical validity
-- Score 95-100: Exemplary methodology with robust statistical analysis
-- Score 90-94: Strong methodology with good statistical foundation
-- Score 80-89: Adequate methodology with reasonable analysis
+FUNCTIONAL WRITING QUALITY: How well does the prose serve the argumentative purpose?
+- Score 95-100: Writing perfectly serves the argumentative function with clarity and precision
+- Score 90-94: Very effective argumentative prose that clearly conveys complex ideas
+- Score 80-89: Good argumentative writing that effectively communicates the case
+- Score 70-79: Adequate writing that conveys the argument with some clarity issues
+Evaluate how well the writing accomplishes its argumentative goals, not adherence to format conventions
 
-FUNCTIONAL WRITING QUALITY: How effectively does the writing accomplish its purpose?
-- Look at: Clarity, organization, appropriate style for audience/purpose
-- Score 95-100: Professional academic writing with perfect organization, clear structure, comprehensive coverage
-- Score 90-94: Exceptionally clear and well-organized
-- Score 80-89: Clear and well-organized
-- Score below 80: Adequate clarity and organization
+CALIBRATION BENCHMARK: "Religion and the Limits of Modern Rationalism" should score minimum 88/100. Any scoring system that gives it <70 is epistemically misaligned and evaluating surface proxies instead of semantic content.
 
 RESPONSE FORMAT (NO MARKDOWN):
 
