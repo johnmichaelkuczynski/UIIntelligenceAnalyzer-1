@@ -27,17 +27,26 @@ Extract the actual argumentative content by reconstructing:
 - How do different sections contribute to the overall case?
 - What is the logical architecture of the argument?
 
-STEP 2: COGENCY ASSESSMENT (0-100 scale)
-Score based on actual argumentative strength, not formatting proxies.
+STEP 2: GENRE-APPROPRIATE COGENCY ASSESSMENT (0-100 scale)
+CRITICAL: Apply standards appropriate to the document's genre. DO NOT penalize philosophical arguments for not being mathematical proofs, or historical analyses for not being statistical studies.
 
-PROOF EFFECTIVENESS: Does the semantic content actually establish the central claim?
-PHILOSOPHICAL ARGUMENT: Focus on conceptual coherence and inferential strength
-- Score 95-100: Watertight inferential structure that fully establishes the thesis through rigorous conceptual analysis
-- Score 90-94: Strong inferential chains with solid conceptual foundations and clear logical progression
-- Score 80-89: Good inferential structure with effective conceptual work, minor logical gaps
-- Score 70-79: Adequate inferential support but some conceptual weaknesses or logical jumps
-DO NOT penalize for: implicit definitions (if terms are contextually clear), implicit transitions (if conceptual flow is coherent), lack of explicit counterarguments (if the analysis is internally sound)
-DO penalize for: actual logical gaps, conceptual confusion, inference failures
+PROOF EFFECTIVENESS: Does the semantic content establish the central claim RELATIVE TO GENRE STANDARDS?
+PHILOSOPHICAL ARGUMENT: Evaluate by philosophical standards of conceptual rigor
+- Score 95-100: Watertight conceptual analysis that fully establishes the thesis through rigorous philosophical reasoning
+- Score 90-94: Strong conceptual work with solid philosophical foundations and clear inferential structure
+- Score 80-89: Good philosophical analysis with effective conceptual distinctions and logical development
+- Score 70-79: Adequate philosophical reasoning with some conceptual or inferential weaknesses
+MATHEMATICAL PROOF: Evaluate by mathematical standards of formal rigor
+- Score 95-100: Complete formal proof with all steps justified and logically sound
+- Score 90-94: Strong mathematical proof with clear logical structure and adequate justification
+HISTORICAL ANALYSIS: Evaluate by historical standards of evidence and interpretation
+- Score 95-100: Comprehensive historical analysis with strong evidence and sound interpretation
+- Score 90-94: Good historical work with solid evidence base and reasonable interpretation
+EMPIRICAL RESEARCH: Evaluate by empirical standards of methodology and data
+- Score 95-100: Excellent empirical methodology with robust data analysis
+- Score 90-94: Strong empirical work with good methodology and data quality
+
+CRITICAL PROHIBITION: DO NOT penalize philosophical arguments for lacking mathematical formalization, historical arguments for lacking statistical analysis, or empirical studies for lacking philosophical depth. Each genre has its own standards of rigor.
 
 CLAIM CREDIBILITY: Are the claims substantive and worth defending?
 - Score 95-100: Fundamental insights with major theoretical or practical implications
@@ -53,14 +62,23 @@ NON-TRIVIALITY: How significant are the insights relative to existing knowledge?
 - Score 70-79: Useful clarifications or applications of existing ideas
 Focus on intellectual content and conceptual contributions, not presentational novelty
 
-PROOF QUALITY: How rigorous is the actual reasoning and evidence?
-PHILOSOPHICAL: Evaluate inferential control and conceptual precision
-- Score 95-100: Perfect logical rigor with tight inferential control and precise conceptual distinctions
-- Score 90-94: Excellent logical structure with strong conceptual analysis and clear reasoning chains
-- Score 80-89: Good logical foundation with effective reasoning, minor inferential weaknesses
-- Score 70-79: Adequate reasoning with some logical or conceptual gaps
-DO NOT penalize for: condensed argumentation (if logically sound), implicit steps (if inferentially valid), philosophical style (if conceptually rigorous)
-DO penalize for: actual logical errors, conceptual confusion, weak inferential chains
+PROOF QUALITY: How rigorous is the reasoning ACCORDING TO THE GENRE'S STANDARDS?
+PHILOSOPHICAL ARGUMENT: Evaluate by philosophical standards - conceptual precision and inferential control
+- Score 95-100: Perfect philosophical rigor with tight conceptual distinctions and watertight inferential chains
+- Score 90-94: Excellent philosophical reasoning with strong conceptual analysis and clear logical structure
+- Score 80-89: Good philosophical reasoning with effective conceptual work and solid inference patterns
+- Score 70-79: Adequate philosophical reasoning with some conceptual imprecision or inferential gaps
+MATHEMATICAL PROOF: Evaluate by mathematical standards - formal completeness and logical validity
+- Score 95-100: Complete mathematical rigor with all steps formally justified
+- Score 90-94: Strong mathematical rigor with clear logical progression and adequate justification
+HISTORICAL ANALYSIS: Evaluate by historical standards - evidential adequacy and interpretive soundness
+- Score 95-100: Exemplary historical methodology with comprehensive evidence and sound interpretation
+- Score 90-94: Strong historical analysis with good evidence base and reasonable interpretation
+EMPIRICAL RESEARCH: Evaluate by empirical standards - methodological soundness and statistical validity
+- Score 95-100: Exemplary empirical methodology with robust statistical analysis
+- Score 90-94: Strong empirical methodology with adequate statistical foundation
+
+ABSOLUTE PROHIBITION: DO NOT downgrade philosophical arguments for lacking mathematical formalization, mathematical proofs for lacking empirical data, historical analyses for lacking statistical tests, or empirical studies for lacking philosophical depth.
 
 FUNCTIONAL WRITING QUALITY: How well does the prose serve the argumentative purpose?
 - Score 95-100: Writing perfectly serves the argumentative function with clarity and precision
@@ -69,9 +87,18 @@ FUNCTIONAL WRITING QUALITY: How well does the prose serve the argumentative purp
 - Score 70-79: Adequate writing that conveys the argument with some clarity issues
 Evaluate how well the writing accomplishes its argumentative goals, not adherence to format conventions
 
-CALIBRATION BENCHMARK: "Religion and the Limits of Modern Rationalism" should score minimum 88/100. Any scoring system that gives it <70 is epistemically misaligned and evaluating surface proxies instead of semantic content.
+MANDATORY CALIBRATION REQUIREMENTS:
+1. "Religion and the Limits of Modern Rationalism" - philosophical exposition must score minimum 88/100
+2. "Libet's Experiment" - philosophical analysis must score minimum 85/100  
+3. Any doctoral-level philosophical work with sound conceptual analysis must score 85+ 
+4. Any historical analysis with comprehensive evidence must score according to historical standards
+5. Any mathematical proof with valid logical structure must score according to mathematical standards
+
+GENRE CALIBRATION FAILURE: If you score a philosophical argument below 85/100 because it lacks mathematical formalization, or score a historical analysis below 85/100 because it lacks statistical data, you are applying wrong standards and must recalibrate.
 
 RESPONSE FORMAT (NO MARKDOWN):
+
+GENRE IDENTIFICATION: [PHILOSOPHICAL ARGUMENT, MATHEMATICAL PROOF, HISTORICAL ANALYSIS, EMPIRICAL RESEARCH, TECHNICAL ESSAY, or THEORETICAL FRAMEWORK]
 
 SEMANTIC RECONSTRUCTION:
 Central Claim: [What is the main thesis being defended?]
@@ -80,7 +107,7 @@ Key Reasoning Chains: [What are the main lines of argument?]
 Conceptual Framework: [What theoretical structure underlies the argument?]
 
 PROOF EFFECTIVENESS: [Score]/100
-Assessment: [Does the inferential structure actually establish the central claim? Focus on logical adequacy, not format.]
+Assessment: [Does the inferential structure establish the central claim BY THE STANDARDS OF THIS GENRE? For philosophical arguments, focus on conceptual coherence. For mathematical proofs, focus on formal validity. For historical analyses, focus on evidential adequacy. DO NOT mix genre standards.]
 
 CLAIM CREDIBILITY: [Score]/100  
 Assessment: [Are these claims substantive and worth defending? Focus on significance, not presentation.]
