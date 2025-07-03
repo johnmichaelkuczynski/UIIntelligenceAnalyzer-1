@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, FileText } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { apiRequest } from '@/lib/queryClient';
+import jsPDF from 'jspdf';
 
 interface FictionAssessmentResult {
   worldCoherence: number;
@@ -50,7 +52,7 @@ export function FictionAssessmentModal({ isOpen, onClose, documentContent, docum
     }
   };
 
-  const downloadReport = () => {
+  const downloadReport = (format: 'txt' | 'pdf') => {
     if (!result) return;
     
     const reportContent = `FICTION ASSESSMENT REPORT
@@ -70,15 +72,90 @@ Prose Control: ${result.proseControl}/100 - Mastery of language and writing craf
 DETAILED ASSESSMENT:
 ${result.detailedAssessment}`;
 
-    const blob = new Blob([reportContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `fiction-assessment-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    if (format === 'pdf') {
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 15;
+      let yPosition = 20;
+
+      const ensureSpaceForContent = (neededSpace: number) => {
+        if (yPosition + neededSpace > 280) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+      };
+
+      // Title
+      pdf.setFontSize(18);
+      pdf.text("FICTION ASSESSMENT REPORT", pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 15;
+
+      // Document info
+      pdf.setFontSize(12);
+      pdf.text(`Document: ${documentTitle}`, margin, yPosition);
+      yPosition += 7;
+      pdf.text(`Provider: ${selectedProvider}`, margin, yPosition);
+      yPosition += 7;
+      pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
+      yPosition += 15;
+
+      // Overall score
+      pdf.setFontSize(16);
+      pdf.text(`OVERALL FICTION SCORE: ${result.overallFictionScore}/100`, margin, yPosition);
+      yPosition += 15;
+
+      // Dimension breakdown
+      pdf.setFontSize(14);
+      pdf.text("DIMENSION BREAKDOWN:", margin, yPosition);
+      yPosition += 10;
+
+      const dimensions = [
+        { label: "World Coherence", score: result.worldCoherence, description: "How consistent and believable is the fictional world" },
+        { label: "Emotional Plausibility", score: result.emotionalPlausibility, description: "Authenticity of characters' emotions and responses" },
+        { label: "Thematic Depth", score: result.thematicDepth, description: "Meaningful exploration of underlying themes" },
+        { label: "Narrative Structure", score: result.narrativeStructure, description: "Effectiveness of story construction and pacing" },
+        { label: "Prose Control", score: result.proseControl, description: "Mastery of language and writing craft" }
+      ];
+
+      pdf.setFontSize(11);
+      dimensions.forEach(d => {
+        ensureSpaceForContent(7);
+        pdf.text(`${d.label}: ${d.score}/100`, margin, yPosition);
+        yPosition += 5;
+        const description = pdf.splitTextToSize(`   ${d.description}`, pageWidth - 2 * margin);
+        ensureSpaceForContent(description.length * 4);
+        pdf.text(description, margin, yPosition);
+        yPosition += description.length * 4 + 3;
+      });
+
+      // Detailed assessment
+      yPosition += 5;
+      ensureSpaceForContent(15);
+      pdf.setFontSize(14);
+      pdf.text("DETAILED ASSESSMENT:", margin, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(10);
+      const splitAssessment = pdf.splitTextToSize(result.detailedAssessment, pageWidth - 2 * margin);
+      
+      splitAssessment.forEach((line: string) => {
+        ensureSpaceForContent(5);
+        pdf.text(line, margin, yPosition);
+        yPosition += 5;
+      });
+
+      pdf.save(`fiction-assessment-${Date.now()}.pdf`);
+    } else {
+      const blob = new Blob([reportContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fiction-assessment-${Date.now()}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   };
 
   return (
@@ -112,14 +189,24 @@ ${result.detailedAssessment}`;
             </Button>
             
             {result && (
-              <Button
-                onClick={downloadReport}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Download Report
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Download className="h-4 w-4" />
+                    Download Report
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onSelect={() => downloadReport('pdf')}>
+                    <FileText className="w-4 h-4 mr-2" />
+                    PDF Report
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => downloadReport('txt')}>
+                    <FileText className="w-4 h-4 mr-2" />
+                    Text File
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
 

@@ -5,7 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Download, Mail, X } from "lucide-react";
+import { Download, Mail, X, FileText } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import jsPDF from 'jspdf';
 
 interface CaseAssessmentResult {
   proofEffectiveness: number;
@@ -48,7 +50,7 @@ export default function CaseAssessmentModal({
     { label: "Functional Writing", score: result.functionalWriting, description: "Clarity, organization, and accessibility" },
   ];
 
-  const handleDownload = () => {
+  const handleDownload = (format: 'txt' | 'pdf') => {
     const content = `
 CASE ASSESSMENT REPORT
 Document: ${documentTitle || 'Untitled Document'}
@@ -64,15 +66,84 @@ DETAILED ASSESSMENT:
 ${result.detailedAssessment}
     `.trim();
 
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `case-assessment-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    if (format === 'pdf') {
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 15;
+      let yPosition = 20;
+
+      // Helper function to manage page breaks
+      const ensureSpaceForContent = (neededSpace: number) => {
+        if (yPosition + neededSpace > 280) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+      };
+
+      // Title
+      pdf.setFontSize(18);
+      pdf.text("CASE ASSESSMENT REPORT", pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 15;
+
+      // Document info
+      pdf.setFontSize(12);
+      pdf.text(`Document: ${documentTitle || 'Untitled Document'}`, margin, yPosition);
+      yPosition += 7;
+      pdf.text(`Provider: ${provider}`, margin, yPosition);
+      yPosition += 7;
+      pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
+      yPosition += 15;
+
+      // Overall score
+      pdf.setFontSize(16);
+      pdf.text(`OVERALL CASE SCORE: ${result.overallCaseScore}/100`, margin, yPosition);
+      yPosition += 15;
+
+      // Dimension breakdown
+      pdf.setFontSize(14);
+      pdf.text("DIMENSION BREAKDOWN:", margin, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(11);
+      dimensions.forEach(d => {
+        ensureSpaceForContent(7);
+        pdf.text(`${d.label}: ${d.score}/100`, margin, yPosition);
+        yPosition += 5;
+        const description = pdf.splitTextToSize(`   ${d.description}`, pageWidth - 2 * margin);
+        ensureSpaceForContent(description.length * 4);
+        pdf.text(description, margin, yPosition);
+        yPosition += description.length * 4 + 3;
+      });
+
+      // Detailed assessment
+      yPosition += 5;
+      ensureSpaceForContent(15);
+      pdf.setFontSize(14);
+      pdf.text("DETAILED ASSESSMENT:", margin, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(10);
+      const splitAssessment = pdf.splitTextToSize(result.detailedAssessment, pageWidth - 2 * margin);
+      
+      splitAssessment.forEach((line: string) => {
+        ensureSpaceForContent(5);
+        pdf.text(line, margin, yPosition);
+        yPosition += 5;
+      });
+
+      pdf.save(`case-assessment-${Date.now()}.pdf`);
+    } else {
+      // Text format
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `case-assessment-${Date.now()}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   };
 
   return (
@@ -83,10 +154,24 @@ ${result.detailedAssessment}
             Case Assessment Report
           </DialogTitle>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleDownload}>
-              <Download className="w-4 h-4 mr-2" />
-              Download
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onSelect={() => handleDownload('pdf')}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  PDF Report
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => handleDownload('txt')}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Text File
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="w-4 h-4" />
             </Button>
