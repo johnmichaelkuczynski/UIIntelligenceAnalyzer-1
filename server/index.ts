@@ -9,17 +9,23 @@ app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
 // Add headers to allow iframe embedding
 app.use((req, res, next) => {
-  // Allow embedding in iframes from any origin
+  // Remove X-Frame-Options completely to allow embedding
   res.removeHeader('X-Frame-Options');
-  res.setHeader('X-Frame-Options', 'ALLOWALL');
   
-  // Set Content Security Policy to allow embedding
-  res.setHeader('Content-Security-Policy', "frame-ancestors *;");
+  // Set permissive Content Security Policy for iframe embedding
+  res.setHeader('Content-Security-Policy', "frame-ancestors *; frame-src *; default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline';");
   
-  // Add CORS headers
+  // Add comprehensive CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  res.setHeader('Access-Control-Allow-Credentials', 'false');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
   
   next();
 });

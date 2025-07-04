@@ -818,5 +818,18 @@ export async function registerRoutes(app: Express): Promise<Express> {
     }
   });
 
+  // Add test endpoint for iframe embedding
+  app.get('/api/embed-test', (req, res) => {
+    res.json({
+      message: 'Iframe embedding is working',
+      headers: {
+        'X-Frame-Options': res.getHeader('X-Frame-Options'),
+        'Content-Security-Policy': res.getHeader('Content-Security-Policy'),
+        'Access-Control-Allow-Origin': res.getHeader('Access-Control-Allow-Origin')
+      },
+      timestamp: new Date().toISOString()
+    });
+  });
+
   return app;
 }
