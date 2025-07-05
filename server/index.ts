@@ -7,57 +7,6 @@ const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
-// Enable iframe embedding for sites like Wix - NO SECURITY HEADERS
-app.use((req, res, next) => {
-  // Completely remove X-Frame-Options to allow embedding
-  res.removeHeader('X-Frame-Options');
-  
-  // Remove any Content-Security-Policy that restricts iframe embedding
-  res.removeHeader('Content-Security-Policy');
-  
-  // Add CORS headers for cross-origin requests
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-  res.setHeader('Access-Control-Allow-Credentials', 'false');
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-  
-  next();
-});
-
-// Final middleware to ensure no security headers are added downstream
-app.use((req, res, next) => {
-  // Override any headers that might be set by other middleware
-  const originalSend = res.send;
-  const originalJson = res.json;
-  const originalEnd = res.end;
-  
-  res.send = function(body) {
-    res.removeHeader('X-Frame-Options');
-    res.removeHeader('Content-Security-Policy');
-    return originalSend.call(this, body);
-  };
-  
-  res.json = function(body) {
-    res.removeHeader('X-Frame-Options');
-    res.removeHeader('Content-Security-Policy');
-    return originalJson.call(this, body);
-  };
-  
-  res.end = function(chunk, encoding) {
-    res.removeHeader('X-Frame-Options');
-    res.removeHeader('Content-Security-Policy');
-    return originalEnd.call(this, chunk, encoding);
-  };
-  
-  next();
-});
-
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
