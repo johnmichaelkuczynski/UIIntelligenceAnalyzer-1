@@ -21,6 +21,15 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
   res.setHeader('Access-Control-Allow-Credentials', 'false');
   
+  // Log headers for debugging
+  if (req.path === '/') {
+    console.log('Headers for main page:', {
+      'X-Frame-Options': res.getHeader('X-Frame-Options'),
+      'Content-Security-Policy': res.getHeader('Content-Security-Policy'),
+      'Access-Control-Allow-Origin': res.getHeader('Access-Control-Allow-Origin')
+    });
+  }
+  
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
     res.status(200).end();
