@@ -7,15 +7,15 @@ const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
-// Add headers to allow iframe embedding
+// Enable iframe embedding for sites like Wix
 app.use((req, res, next) => {
-  // Remove X-Frame-Options completely to allow embedding
+  // Completely remove X-Frame-Options to allow embedding
   res.removeHeader('X-Frame-Options');
   
-  // Set permissive Content Security Policy for iframe embedding
-  res.setHeader('Content-Security-Policy', "frame-ancestors *; frame-src *; default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline';");
+  // Remove any Content-Security-Policy that restricts iframe embedding
+  res.removeHeader('Content-Security-Policy');
   
-  // Add comprehensive CORS headers
+  // Add CORS headers for cross-origin requests
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
