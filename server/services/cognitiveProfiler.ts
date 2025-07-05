@@ -240,7 +240,7 @@ ${text.slice(0, 8000)}${text.length > 8000 ? '... [text truncated for length]' :
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "llama-3.1-sonar-small-128k-online", // Using the Perplexity model
+        model: "sonar", // Using the Perplexity model
         messages: [
           {
             role: "system",

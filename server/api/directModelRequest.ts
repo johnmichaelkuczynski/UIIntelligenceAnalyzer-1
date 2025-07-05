@@ -91,7 +91,7 @@ export async function directPerplexityRequest(instructions: string): Promise<any
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: "llama-3.1-sonar-small-128k-online",
+        model: "sonar",
         messages: [
           { role: "system", content: "You are a helpful assistant responding to user instructions. Provide direct, thorough and accurate responses." },
           { role: "user", content: instructions }
@@ -110,7 +110,7 @@ export async function directPerplexityRequest(instructions: string): Promise<any
     if (data && data.choices && data.choices[0] && data.choices[0].message) {
       return {
         content: data.choices[0].message.content,
-        model: "llama-3.1-sonar-small-128k-online",
+        model: "sonar",
         provider: "Perplexity",
         citations: data.citations || []
       };

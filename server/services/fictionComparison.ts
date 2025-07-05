@@ -143,7 +143,7 @@ async function makeFictionComparisonRequest(prompt: string, provider: string): P
           'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
         },
         body: JSON.stringify({
-          model: "llama-3.1-sonar-small-128k-online",
+          model: "sonar",
           messages: [
             { role: "system", content: systemMessage },
             { role: "user", content: prompt }

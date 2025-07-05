@@ -239,7 +239,7 @@ async function makePerplexityRequest(prompt: string): Promise<string> {
       'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
     },
     body: JSON.stringify({
-      model: "llama-3.1-sonar-small-128k-online",
+      model: "sonar",
       messages: [
         { role: "system", content: "You are an expert academic evaluator." },
         { role: "user", content: prompt }
