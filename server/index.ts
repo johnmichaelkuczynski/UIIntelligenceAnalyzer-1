@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import { createServer } from "http";
 
 import { setupVite, serveStatic, log } from "./vite";
 import { registerRoutes } from "./routes";
@@ -6,6 +7,25 @@ import { registerRoutes } from "./routes";
 const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+
+// Headers for iframe embedding (Wix compatibility)
+app.use((req, res, next) => {
+  // Allow the app to be embedded in iframes from any origin
+  res.removeHeader('X-Frame-Options');
+  
+  // Set CORS headers to allow embedding
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+    return;
+  }
+  
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -38,7 +58,7 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  const server = await registerRoutes(app);
+  await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -58,6 +78,9 @@ app.use((req, res, next) => {
     // Log the error but don't throw it to prevent crashing the server
     console.error("Server error:", err);
   });
+
+  // Create HTTP server
+  const server = createServer(app);
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
