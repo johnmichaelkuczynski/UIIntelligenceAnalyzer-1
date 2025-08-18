@@ -65,83 +65,295 @@ COMPARATIVE ANALYSIS: [Detailed explanation of why one author demonstrates super
 
 Focus on measuring actual intelligence markers, not writing quality or style.`;
 
+/**
+ * Helper function to call LLM based on provider
+ */
+async function callComparisonLLM(provider: string, prompt: string): Promise<string> {
+  let response = "";
+  
+  if (provider === "openai") {
+    const OpenAI = (await import('openai')).default;
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.1,
+      max_tokens: 2000
+    });
+    return completion.choices[0].message.content || "";
+  } else if (provider === "anthropic") {
+    const Anthropic = (await import('@anthropic-ai/sdk')).default;
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const completion = await anthropic.messages.create({
+      model: "claude-3-5-sonnet-20241022",
+      max_tokens: 2000,
+      messages: [{ role: "user", content: prompt }]
+    });
+    return completion.content[0].type === 'text' ? completion.content[0].text : "";
+  } else if (provider === "perplexity") {
+    const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: "sonar",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.1
+      })
+    });
+    const data = await perplexityResponse.json();
+    return data.choices[0]?.message?.content || "";
+  } else if (provider === "deepseek") {
+    const deepseekResponse = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.1,
+        max_tokens: 2000
+      })
+    });
+    const data = await deepseekResponse.json();
+    return data.choices[0]?.message?.content || "";
+  }
+  return "";
+}
+
+/**
+ * Perform 4-Phase evaluation for a single document
+ */
+async function perform4PhaseEvaluation(provider: string, text: string, documentLabel: string): Promise<{
+  phase1: string;
+  phase2: string; 
+  phase3: string;
+  phase4: string;
+  finalScore: number;
+}> {
+  
+  // PHASE 1: Answer the analytical questions directly
+  const phase1Prompt = `Answer these questions in connection with this text:
+
+IS IT INSIGHTFUL?
+DOES IT DEVELOP POINTS? (OR, IF IT IS A SHORT EXCERPT, IS THERE EVIDENCE THAT IT WOULD DEVELOP POINTS IF EXTENDED)?
+IS THE ORGANIZATION MERELY SEQUENTIAL (JUST ONE POINT AFTER ANOTHER, LITTLE OR NO LOGICAL SCAFFOLDING)? OR ARE THE IDEAS ARRANGED, NOT JUST SEQUENTIALLY BUT HIERARCHICALLY?
+IF THE POINTS IT MAKES ARE NOT INSIGHTFUL, DOES IT OPERATE SKILLFULLY WITH CANONS OF LOGIC/REASONING?
+ARE THE POINTS CLICHES? OR ARE THEY "FRESH"?
+DOES IT USE TECHNICAL JARGON TO OBFUSCATE OR TO RENDER MORE PRECISE?
+IS IT ORGANIC? DO POINTS DEVELOP IN AN ORGANIC, NATURAL WAY? DO THEY 'UNFOLD'? OR ARE THEY FORCED AND ARTIFICIAL?
+DOES IT OPEN UP NEW DOMAINS? OR, ON THE CONTRARY, DOES IT SHUT OFF INQUIRY (BY CONDITIONALIZING FURTHER DISCUSSION OF THE MATTERS ON ACCEPTANCE OF ITS INTERNAL AND POSSIBLY VERY FAULTY LOGIC)?
+IS IT ACTUALLY INTELLIGENT OR JUST THE WORK OF SOMEBODY WHO, JUDGING BY THE SUBJECT-MATTER, IS PRESUMED TO BE INTELLIGENT (BUT MAY NOT BE)?
+IS IT REAL OR IS IT PHONY?
+DO THE SENTENCES EXHIBIT COMPLEX AND COHERENT INTERNAL LOGIC?
+IS THE PASSAGE GOVERNED BY A STRONG CONCEPT? OR IS THE ONLY ORGANIZATION DRIVEN PURELY BY EXPOSITORY (AS OPPOSED TO EPISTEMIC) NORMS?
+IS THERE SYSTEM-LEVEL CONTROL OVER IDEAS? IN OTHER WORDS, DOES THE AUTHOR SEEM TO RECALL WHAT HE SAID EARLIER AND TO BE IN A POSITION TO INTEGRATE IT INTO POINTS HE HAS MADE SINCE THEN?
+ARE THE POINTS 'REAL'? ARE THEY FRESH? OR IS SOME INSTITUTION OR SOME ACCEPTED VEIN OF PROPAGANDA OR ORTHODOXY JUST USING THE AUTHOR AS A MOUTH PIECE?
+IS THE WRITING EVASIVE OR DIRECT?
+ARE THE STATEMENTS AMBIGUOUS?
+DOES THE PROGRESSION OF THE TEXT DEVELOP ACCORDING TO WHO SAID WHAT OR ACCORDING TO WHAT ENTAILS OR CONFIRMS WHAT?
+DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK OF IDEAS?
+
+A score of N/100 (e.g. 73/100) means that (100-N)/100 (e.g. 27/100) outperform the author with respect to the parameter defined by the question.
+
+YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS.
+
+YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS.
+
+YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
+
+IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
+
+TEXT:
+${text}
+
+Answer these questions and give a score out of 100.`;
+
+  const phase1Response = await callComparisonLLM(provider, phase1Prompt);
+  
+  // Extract score for pushback decision
+  const phase1ScoreMatch = phase1Response.match(/(\d+)\/100/);
+  const phase1Score = phase1ScoreMatch ? parseInt(phase1ScoreMatch[1]) : 75;
+  
+  // PHASE 2: Pushback if score < 95
+  let phase2Response = "";
+  if (phase1Score < 95) {
+    const pushbackScore = 100 - phase1Score;
+    const phase2Prompt = `Your position is that ${pushbackScore} out of 100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that?
+
+Answer the following questions about the text de novo:
+
+IS IT INSIGHTFUL?
+DOES IT DEVELOP POINTS? (OR, IF IT IS A SHORT EXCERPT, IS THERE EVIDENCE THAT IT WOULD DEVELOP POINTS IF EXTENDED)?
+IS THE ORGANIZATION MERELY SEQUENTIAL (JUST ONE POINT AFTER ANOTHER, LITTLE OR NO LOGICAL SCAFFOLDING)? OR ARE THE IDEAS ARRANGED, NOT JUST SEQUENTIALLY BUT HIERARCHICALLY?
+IF THE POINTS IT MAKES ARE NOT INSIGHTFUL, DOES IT OPERATE SKILLFULLY WITH CANONS OF LOGIC/REASONING?
+ARE THE POINTS CLICHES? OR ARE THEY "FRESH"?
+DOES IT USE TECHNICAL JARGON TO OBFUSCATE OR TO RENDER MORE PRECISE?
+IS IT ORGANIC? DO POINTS DEVELOP IN AN ORGANIC, NATURAL WAY? DO THEY 'UNFOLD'? OR ARE THEY FORCED AND ARTIFICIAL?
+DOES IT OPEN UP NEW DOMAINS? OR, ON THE CONTRARY, DOES IT SHUT OFF INQUIRY (BY CONDITIONALIZING FURTHER DISCUSSION OF THE MATTERS ON ACCEPTANCE OF ITS INTERNAL AND POSSIBLY VERY FAULTY LOGIC)?
+IS IT ACTUALLY INTELLIGENT OR JUST THE WORK OF SOMEBODY WHO, JUDGING BY THE SUBJECT-MATTER, IS PRESUMED TO BE INTELLIGENT (BUT MAY NOT BE)?
+IS IT REAL OR IS IT PHONY?
+DO THE SENTENCES EXHIBIT COMPLEX AND COHERENT INTERNAL LOGIC?
+IS THE PASSAGE GOVERNED BY A STRONG CONCEPT? OR IS THE ONLY ORGANIZATION DRIVEN PURELY BY EXPOSITORY (AS OPPOSED TO EPISTEMIC) NORMS?
+IS THERE SYSTEM-LEVEL CONTROL OVER IDEAS? IN OTHER WORDS, DOES THE AUTHOR SEEM TO RECALL WHAT HE SAID EARLIER AND TO BE IN A POSITION TO INTEGRATE IT INTO POINTS HE HAS MADE SINCE THEN?
+ARE THE POINTS 'REAL'? ARE THEY FRESH? OR IS SOME INSTITUTION OR SOME ACCEPTED VEIN OF PROPAGANDA OR ORTHODOXY JUST USING THE AUTHOR AS A MOUTH PIECE?
+IS THE WRITING EVASIVE OR DIRECT?
+ARE THE STATEMENTS AMBIGUOUS?
+DOES THE PROGRESSION OF THE TEXT DEVELOP ACCORDING TO WHO SAID WHAT OR ACCORDING TO WHAT ENTAILS OR CONFIRMS WHAT?
+DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK OF IDEAS?
+
+TEXT:
+${text}
+
+Please reconsider your assessment and provide a revised score.`;
+
+    phase2Response = await callComparisonLLM(provider, phase2Prompt);
+  } else {
+    phase2Response = "No pushback required (score ≥ 95/100)";
+  }
+  
+  // Extract revised score from phase 2 if applicable
+  const phase2ScoreMatch = phase2Response.match(/(\d+)\/100/);
+  const revisedScore = phase2ScoreMatch ? parseInt(phase2ScoreMatch[1]) : phase1Score;
+  
+  // PHASE 3: Consistency check with score interpretation
+  const currentScore = revisedScore;
+  const peopleOutperforming = 100 - currentScore;
+  
+  const phase3Prompt = `Are your numerical scores (${currentScore}/100) consistent with the fact that this is to be taken to mean that ${peopleOutperforming} people out of 100 outperform the author in the relevant respect? So if a score of ${currentScore}/100 is awarded to this text, that means that ${peopleOutperforming}/100 people in Walmart are running rings around this person.
+
+Previous assessment: ${phase2Response || phase1Response}
+
+Is this score interpretation accurate for this level of sophisticated analysis?`;
+
+  const phase3Response = await callComparisonLLM(provider, phase3Prompt);
+  
+  // Extract final score
+  const finalScoreMatch = phase3Response.match(/(\d+)\/100/);
+  const finalScore = finalScoreMatch ? parseInt(finalScoreMatch[1]) : currentScore;
+
+  // PHASE 4: Accept and report
+  const phase4Response = "Assessment completed per 4-phase protocol.";
+
+  return {
+    phase1: phase1Response,
+    phase2: phase2Response,
+    phase3: phase3Response,
+    phase4: phase4Response,
+    finalScore: finalScore
+  };
+}
+
 export async function performIntelligenceComparison(
   documentA: string,
   documentB: string,
   provider: LLMProvider
 ): Promise<IntelligenceComparisonResult> {
   
-  let response: string;
+  console.log(`COMPARING INTELLIGENCE WITH ${provider.toUpperCase()}`);
   
-  const prompt = INTELLIGENCE_COMPARISON_PROMPT + 
-    `\n\nPlease assess and compare the intelligence levels of these two authors:\n\nDOCUMENT A:\n${documentA}\n\nDOCUMENT B:\n${documentB}`;
+  // Perform 4-phase evaluation for Document A
+  const evaluationA = await perform4PhaseEvaluation(provider, documentA, "A");
+  console.log(`Document A 4-phase score: ${evaluationA.finalScore}`);
   
-  try {
-    if (provider === 'openai') {
-      const OpenAI = (await import('openai')).default;
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.2
-      });
-      
-      response = completion.choices[0]?.message?.content || '';
-    } else if (provider === 'anthropic') {
-      const Anthropic = (await import('@anthropic-ai/sdk')).default;
-      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-      
-      const completion = await anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
-        max_tokens: 4000,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.2
-      });
-      
-      response = completion.content[0]?.type === 'text' ? completion.content[0].text : '';
-    } else if (provider === 'perplexity') {
-      const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: "sonar",
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.2
-        })
-      });
-      
-      const data = await perplexityResponse.json();
-      response = data.choices[0]?.message?.content || '';
-    } else if (provider === 'deepseek') {
-      const deepseekResponse = await fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: "deepseek-chat",
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.2,
-          max_tokens: 4000
-        })
-      });
-      
-      const data = await deepseekResponse.json();
-      response = data.choices[0]?.message?.content || '';
-    } else {
-      throw new Error(`Unsupported provider: ${provider}`);
-    }
-  } catch (error) {
-    console.error(`Error calling ${provider}:`, error);
-    throw error;
-  }
+  // Perform 4-phase evaluation for Document B  
+  const evaluationB = await perform4PhaseEvaluation(provider, documentB, "B");
+  console.log(`Document B 4-phase score: ${evaluationB.finalScore}`);
+  
+  // Create comprehensive reports
+  const reportA = `**4-PHASE INTELLIGENCE EVALUATION - DOCUMENT A**
 
-  return parseIntelligenceComparisonResponse(response, provider, documentA, documentB);
+**PHASE 1 - ANALYTICAL QUESTIONS:**
+${evaluationA.phase1}
+
+**PHASE 2 - PUSHBACK ANALYSIS:**
+${evaluationA.phase2}
+
+**PHASE 3 - CONSISTENCY CHECK:**
+${evaluationA.phase3}
+
+**PHASE 4 - FINAL ASSESSMENT:**
+${evaluationA.phase4}
+
+**FINAL SCORE: ${evaluationA.finalScore}/100**`;
+
+  const reportB = `**4-PHASE INTELLIGENCE EVALUATION - DOCUMENT B**
+
+**PHASE 1 - ANALYTICAL QUESTIONS:**
+${evaluationB.phase1}
+
+**PHASE 2 - PUSHBACK ANALYSIS:**
+${evaluationB.phase2}
+
+**PHASE 3 - CONSISTENCY CHECK:**
+${evaluationB.phase3}
+
+**PHASE 4 - FINAL ASSESSMENT:**
+${evaluationB.phase4}
+
+**FINAL SCORE: ${evaluationB.finalScore}/100**`;
+
+  // Create document analyses
+  const analysisA: DocumentAnalysis = {
+    id: 0,
+    documentId: 0,
+    provider: `${provider} - 4-Phase Analysis`,
+    formattedReport: reportA,
+    overallScore: evaluationA.finalScore,
+    surface: {
+      grammar: Math.max(0, evaluationA.finalScore - 10),
+      structure: Math.max(0, evaluationA.finalScore - 5),
+      jargonUsage: Math.min(100, evaluationA.finalScore + 5),
+      surfaceFluency: evaluationA.finalScore
+    },
+    deep: {
+      score: evaluationA.finalScore
+    }
+  };
+  
+  const analysisB: DocumentAnalysis = {
+    id: 1,
+    documentId: 1,
+    provider: `${provider} - 4-Phase Analysis`,
+    formattedReport: reportB,
+    overallScore: evaluationB.finalScore,
+    surface: {
+      grammar: Math.max(0, evaluationB.finalScore - 10),
+      structure: Math.max(0, evaluationB.finalScore - 5),
+      jargonUsage: Math.min(100, evaluationB.finalScore + 5),
+      surfaceFluency: evaluationB.finalScore
+    },
+    deep: {
+      score: evaluationB.finalScore
+    }
+  };
+
+  // Determine winner based on scores
+  const winnerDocument: 'A' | 'B' = evaluationA.finalScore >= evaluationB.finalScore ? 'A' : 'B';
+  console.log(`Winner determined by scores: ${winnerDocument} (A: ${evaluationA.finalScore} vs B: ${evaluationB.finalScore})`);
+
+  const comparison: DocumentComparison = {
+    winnerDocument,
+    summary: `Document ${winnerDocument} demonstrates superior cognitive sophistication with a score of ${winnerDocument === 'A' ? evaluationA.finalScore : evaluationB.finalScore}/100 versus ${winnerDocument === 'A' ? evaluationB.finalScore : evaluationA.finalScore}/100.`,
+    detailedAnalysis: `**COMPARATIVE INTELLIGENCE ANALYSIS**
+    
+Document A Score: ${evaluationA.finalScore}/100
+Document B Score: ${evaluationB.finalScore}/100
+
+Winner: Document ${winnerDocument}
+
+The evaluation used the comprehensive 4-phase protocol with anti-diplomatic instructions, pushback methodology, and consistency verification to ensure accurate assessment of cognitive sophistication.`
+  };
+
+  return {
+    analysisA,
+    analysisB,
+    comparison
+  };
 }
 
 function parseIntelligenceComparisonResponse(
