@@ -146,14 +146,7 @@ const ImmediateRewriteDialog: React.FC<ImmediateRewriteDialogProps> = ({
 
   // Handle rewrite
   const handleRewrite = async () => {
-    if (!rewriteInstructions.trim()) {
-      toast({
-        title: "Instructions required",
-        description: "Please provide rewrite instructions",
-        variant: "destructive"
-      });
-      return;
-    }
+    // Instructions are optional - empty means use default Conditions A & B
 
     if (selectedChunks.size === 0) {
       toast({

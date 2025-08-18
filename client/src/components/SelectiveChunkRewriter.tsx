@@ -110,14 +110,7 @@ const SelectiveChunkRewriter: React.FC<SelectiveChunkRewriterProps> = ({
       return;
     }
 
-    if (!instructions.trim()) {
-      toast({
-        title: "Instructions required",
-        description: "Please enter rewrite instructions",
-        variant: "destructive"
-      });
-      return;
-    }
+    // Instructions are optional - empty means use default Conditions A & B
 
     setIsRewriting(true);
     setProgress(0);
@@ -286,7 +279,7 @@ const SelectiveChunkRewriter: React.FC<SelectiveChunkRewriterProps> = ({
               <Textarea
                 value={instructions}
                 onChange={(e) => setInstructions(e.target.value)}
-                placeholder="Instructions for selected chunks..."
+                placeholder="Optional custom instructions. If left empty, the system will use default Conditions: (A) Rewrite to score significantly higher on the 4-phase intelligence evaluation protocol, while (B) preserving existing content as much as Condition A allows."
                 className="min-h-24"
               />
             </div>
@@ -302,7 +295,7 @@ const SelectiveChunkRewriter: React.FC<SelectiveChunkRewriterProps> = ({
 
             <Button 
               onClick={rewriteSelectedChunks} 
-              disabled={isRewriting || selectedCount === 0 || !instructions.trim()}
+              disabled={isRewriting || selectedCount === 0}
               className="w-full"
             >
               {isRewriting ? "Rewriting..." : `Rewrite ${selectedCount} Selected`}

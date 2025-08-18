@@ -75,14 +75,7 @@ const ChunkRewriteModal: React.FC<ChunkRewriteModalProps> = ({
   };
 
   const handleChunkRewrite = async () => {
-    if (!instructions.trim()) {
-      toast({
-        title: "Instructions required",
-        description: "Please enter rewrite instructions",
-        variant: "destructive"
-      });
-      return;
-    }
+    // Instructions are optional - empty means use default Conditions A & B
 
     setIsRewriting(true);
     setProgress(0);
@@ -265,14 +258,14 @@ const ChunkRewriteModal: React.FC<ChunkRewriteModalProps> = ({
               <Textarea
                 value={instructions}
                 onChange={(e) => setInstructions(e.target.value)}
-                placeholder="Enter rewrite instructions for all chunks..."
+                placeholder="Optional custom instructions. If left empty, the system will use default Conditions: (A) Rewrite to score significantly higher on the 4-phase intelligence evaluation protocol, while (B) preserving existing content as much as Condition A allows."
                 className="min-h-32"
               />
             </div>
 
             <Button 
               onClick={handleChunkRewrite} 
-              disabled={isRewriting || !instructions.trim()}
+              disabled={isRewriting}
               className="w-full"
             >
               {isRewriting ? `Processing Chunk ${currentChunk}/${totalChunks}...` : "Start Chunk Rewrite"}

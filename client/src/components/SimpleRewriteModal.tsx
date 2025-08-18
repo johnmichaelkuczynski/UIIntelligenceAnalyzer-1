@@ -43,14 +43,7 @@ const SimpleRewriteModal: React.FC<SimpleRewriteModalProps> = ({
   }, [isOpen]);
 
   const handleRewrite = async () => {
-    if (!instructions.trim()) {
-      toast({
-        title: "Instructions required",
-        description: "Please enter rewrite instructions",
-        variant: "destructive"
-      });
-      return;
-    }
+    // Instructions are optional - empty means use default Conditions A & B
 
     setIsRewriting(true);
     
@@ -143,14 +136,14 @@ const SimpleRewriteModal: React.FC<SimpleRewriteModalProps> = ({
               <Textarea
                 value={instructions}
                 onChange={(e) => setInstructions(e.target.value)}
-                placeholder="Enter your rewrite instructions here..."
+                placeholder="Optional custom instructions. If left empty, the system will use default Conditions: (A) Rewrite to score significantly higher on the 4-phase intelligence evaluation protocol, while (B) preserving existing content as much as Condition A allows."
                 className="min-h-32"
               />
             </div>
 
             <Button 
               onClick={handleRewrite} 
-              disabled={isRewriting || !instructions.trim()}
+              disabled={isRewriting}
               className="w-full"
             >
               {isRewriting ? "Rewriting..." : "Start Rewrite"}
