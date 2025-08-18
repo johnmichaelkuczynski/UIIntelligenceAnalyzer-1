@@ -63,44 +63,13 @@ export async function registerRoutes(app: Express): Promise<Express> {
     });
   });
 
-  // Cognitive evaluation endpoint with tiered analysis
+  // Cognitive evaluation endpoint - deprecated, use /api/analyze instead
   app.post("/api/cognitive-evaluate", async (req: Request, res: Response) => {
-    try {
-      const { content, tier = 'standard', overrides = {} } = req.body;
-
-      if (!content || typeof content !== 'string') {
-        return res.status(400).json({ 
-          error: "Content is required and must be a string" 
-        });
-      }
-
-      // Use structural evaluator instead of broken statistical proxies
-      const evaluator = new StructuralEvaluator();
-
-      console.log(`STRUCTURAL EVALUATION: Analyzing ${content.length} characters with structural logic (not statistical proxies)`);
-      
-      const evaluation = await evaluator.evaluate(content);
-
-      res.json({
-        success: true,
-        evaluation: {
-          ...evaluation,
-          metadata: {
-            contentLength: content.length,
-            evaluationType: 'structural',
-            timestamp: new Date().toISOString()
-          }
-        }
-      });
-
-    } catch (error: any) {
-      console.error("Error in cognitive evaluation:", error);
-      res.status(500).json({
-        success: false,
-        error: "Cognitive evaluation failed",
-        details: error.message
-      });
-    }
+    res.status(410).json({
+      success: false,
+      error: "This endpoint has been deprecated. Please use /api/analyze instead.",
+      details: "The cognitive evaluation system has been updated to use authentic intelligence assessment methods."
+    });
   });
   
   // Extract text from uploaded document

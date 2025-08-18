@@ -324,11 +324,11 @@ COGNITIVE PROFILING RULES:
 10. Use calibration system: 30 (pseudo-intellectual mimicry), 40 (superficial mimicry), 70 (competent but unoriginal), 75 (scholarly competence), 80 (high competence), 96-98 (doctoral theoretical sophistication), 98-99 (exceptional conceptual innovation), 100 (maximum theoretical construction)
 
 ANTI-JARGON DETECTION PROTOCOL:
-11. PENALIZE vocabulary density without semantic compression
+11. PENALIZE vocabulary density without intellectual substance
 12. IDENTIFY "fluid interface", "emergent horizon", "recursive landscape" as impostor signals
 13. DETECT buzzword stacking: multiple technical terms without logical connections
-14. PUNISH opacity that creates confusion rather than epistemic resistance
-15. DISTINGUISH performative complexity from genuine conceptual difficulty
+14. PUNISH opacity that creates confusion rather than genuine difficulty
+15. DISTINGUISH performative complexity from genuine conceptual sophistication
 16. FLAG texts that use advanced terminology to hide lack of content
 17. REWARD clear expression of difficult concepts over obfuscated simple ideas
 
@@ -442,65 +442,65 @@ REQUIRED COMPREHENSIVE REPORT STRUCTURE:
 
 ## Detailed Cognitive Analysis
 
-### 1. Semantic Compression Assessment: [X.X]/10
+### 1. Abstract Reasoning Assessment: [X.X]/10
 **Quote Analysis:**
-"[Direct quote from text showing high/low semantic density]"
+"[Direct quote from text showing abstract thinking]"
 
-**Justification:** [2-3 sentences explaining how this quote demonstrates the author's ability to pack meaning into sentences, with specific analysis of layered concepts, implicit connections, and information density]
+**Justification:** [2-3 sentences explaining how this quote demonstrates the author's ability to work with abstract concepts, form generalizations, and think beyond concrete examples]
 
 **Additional Evidence:**
 "[Second supporting quote]"
-[Further analysis of compression patterns]
+[Further analysis of abstract reasoning patterns]
 
-### 2. Inferential Control Assessment: [X.X]/10
+### 2. Logical Structure Assessment: [X.X]/10
 **Quote Analysis:**
 "[Direct quote showing logical reasoning patterns]"
 
-**Justification:** [2-3 sentences analyzing the quality of inferences, non-obvious connections, and logical structure demonstrated in this passage]
+**Justification:** [2-3 sentences analyzing the quality of logical arguments, premise-conclusion relationships, and coherent reasoning demonstrated in this passage]
 
 **Additional Evidence:**
 "[Second supporting quote]"
-[Further analysis of inferential sophistication]
+[Further analysis of logical sophistication]
 
-### 3. Cognitive Risk Assessment: [X.X]/10
+### 3. Conceptual Precision Assessment: [X.X]/10
 **Quote Analysis:**
-"[Direct quote showing intellectual boldness or caution]"
+"[Direct quote showing precise use of concepts]"
 
-**Justification:** [2-3 sentences evaluating the author's willingness to engage with difficult problems, make bold claims, or navigate uncertainty]
+**Justification:** [2-3 sentences evaluating the author's ability to use concepts precisely, make clear distinctions, and demonstrate understanding of complex ideas]
 
 **Additional Evidence:**
 "[Second supporting quote]"
-[Further analysis of intellectual courage]
+[Further analysis of conceptual clarity]
 
-### 4. Meta-Theoretical Awareness Assessment: [X.X]/10
+### 4. Analytical Depth Assessment: [X.X]/10
 **Quote Analysis:**
-"[Direct quote showing self-reflection or framework awareness]"
+"[Direct quote showing deep analysis]"
 
-**Justification:** [2-3 sentences analyzing evidence of metacognitive sophistication, awareness of limitations, anticipation of objections]
+**Justification:** [2-3 sentences analyzing evidence of thorough analysis, consideration of multiple perspectives, and ability to explore implications]
 
 **Additional Evidence:**
 "[Second supporting quote]"
-[Further analysis of metacognitive patterns]
+[Further analysis of analytical sophistication]
 
-### 5. Conceptual Innovation Assessment: [X.X]/10
+### 5. Intellectual Originality Assessment: [X.X]/10
 **Quote Analysis:**
-"[Direct quote showing novel concepts or distinctions]"
+"[Direct quote showing novel insights or approaches]"
 
-**Justification:** [2-3 sentences evaluating originality, introduction of new frameworks, or creative synthesis of existing ideas]
+**Justification:** [2-3 sentences evaluating originality of thought, creative problem-solving, or unique perspectives demonstrated]
 
 **Additional Evidence:**
 "[Second supporting quote]"
 [Further analysis of innovative thinking]
 
-### 6. Epistemic Resistance Assessment: [X.X]/10
+### 6. Complexity Handling Assessment: [X.X]/10
 **Quote Analysis:**
-"[Direct quote showing non-obvious or challenging ideas]"
+"[Direct quote showing handling of complex ideas]"
 
-**Justification:** [2-3 sentences analyzing the cognitive friction required to understand the author's points, resistance to easy categorization]
+**Justification:** [2-3 sentences analyzing the author's ability to manage complexity, integrate multiple variables, and work with sophisticated concepts]
 
 **Additional Evidence:**
 "[Second supporting quote]"
-[Further analysis of epistemic difficulty]
+[Further analysis of complexity management]
 
 ## Comparative Intelligence Placement
 **Evidence-Based Positioning:** [Detailed comparison with specific quotes showing how the author's thinking compares to undergraduate, graduate, journal-level, and canonical thinkers]
@@ -518,7 +518,7 @@ CRITICAL REQUIREMENTS:
 - NO unjustified statements - every claim requires textual proof and logical argumentation
 - Doctoral-level theoretical work MUST score 96-98/100
 - For each dimension, explain HOW the evidence connects to intelligence markers
-- Quote analysis should examine: semantic density, inferential leaps, conceptual innovation, epistemic sophistication
+- Quote analysis should examine: intellectual depth, logical reasoning, conceptual clarity, analytical sophistication
 
 🚨 PSEUDO-INTELLECTUAL OVERRIDE PROTOCOL 🚨
 IF TEXT CONTAINS: "conceptual scaffolding of intersubjective normativity", "recursive landscape", "fluid interface", "polycentric episteme", "emergent horizon of discontinuous legitimacy", "semiotic event", "embodied discursivity" WITHOUT clear logical arguments:
