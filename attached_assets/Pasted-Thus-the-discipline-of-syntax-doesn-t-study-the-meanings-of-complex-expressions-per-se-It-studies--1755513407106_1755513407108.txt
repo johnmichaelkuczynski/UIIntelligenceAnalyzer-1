@@ -1,0 +1,71 @@
+Thus, the discipline of syntax doesn’t study the meanings of complex expressions per se. It studies the relationships that such meanings have to those of their constituents. Consider the sentence “Sally hates Bob.” The word “hates” occurs in that sentence. If that occurrence is replaced with an occurrence of “loves” or “is amused by,” the resulting sentence has a very different meaning from the first. This shows that what “Sally hates Bob” means depends on what “hates” means.
+Bearing this point in mind, consider the sentence “Larry loves Julie.” Obviously this sentence doesn’t mean the same thing as “Sally hates Bob.” But the relationship borne by the meaning of “Sally hates Bob” to the meaning “hates” is identical with the relationship borne by the meaning of “Larry loves Julie” to that of “loves.” Exactly similar points hold in connection with each of the remaining two constituents of each of those sentences.
+The discipline of syntax studies the relation that the meanings of complex expressions bear to the meanings of the simple expressions composing them. Thus, syntax doesn’t study the semantics (meanings) of complex expressions. It studies the structures of the semantics of complex expressions. Syntax studies semantic structure.
+4.0	The need for the discipline of semantics
+Even though we all know what is meant by:
+(1)	“John wants to catch a 20-pound striped bass,”
+we don’t know what it is that we know in knowing this. Semanticists supply us with the missing metaknowledge. Consider the sentence:
+(2)	“John wants to punch Bob.”
+(2) Attributes a certain property to John—that of wanting to punch Bob. Given that (1) and (2) are grammatically isomorphic, it’s natural to assume that there exists some 20-pound striped bass x such that the
+ 
+proposition expressed by (1) is:
+(3)	John wants to catch x.
+But this isn’t the right analysis. There isn’t some one fish such that, if the desire ascribed to John by (1) is to be gratified, John must catch that very fish. There is thus no fish x such that, if (1) is to be true, John must want to catch x.
+The meaning of (1) is:
+(1R) John wants it to be the case that: there exists some fish x such that x is 20-pound striped bass and such that John catches x.
+Thus, (1) doesn’t describe a relationship between John and some non- existent or quasi-existent fish. It affirms the existence of a relationship between John and a proposition. The proposition in question is one that, in English, is expressed by the sentence:
+(4)	“There exists some fish x such that x is a 20-pound striped bass and such that John catches x.”
+If John’s fishing-trip is a success, that proposition will be true; otherwise it will be false. But that proposition exists either way.
+But we still haven’t solved the problem. In (4), the expression “some fish” occurs. Grammatically, that expression is a noun-phrase. But, unlike other noun-phrases, it doesn’t refer to anything. (“Some fish” doesn’t refer to some fish. There is no fish x such that “some fish” refers to x. That’s why, given any particular fish F, if you say “some fish is wet, but x is not,” what you are saying isn’t self-contradictory.) So the problem we were trying to solve remains.
+But to solve the problem, we need only reword (4). The needed rewording is this:
+(5)	The property of being a 20-pound striped bass that John catches is instantiated.
+The property of being such a fish exists. So (1), which seemed to be about a non-existent fish, is about an existent property. (5) says of that property that it’s instantiated. Thus, a complete analysis of (1) is given by:
+(1CA) John wants it to be the case that the property of being a 20-pound striped bass that John catches is instantiated.
+ 
+So even though just about every English speaker understands (1), knowing what it is that one knows in understanding it isn’t such a trivial thing.
+4.1	Semantics needed to figure out what is literally meant and what is
+not
+Despite everything just said, there is clearly a sense in which every
+English speaker knows what (1) means. What the semanticist is doing in connection with (1) isn’t comparable to what you (who, we’ll assume, speak Spanish) are doing in connection with it when you tell a monolingual Spanish speaking friend of yours what it means. The semanticist is needed to clarify the structure of the meaning that (1) is already known to have, but he isn’t needed to identify that meaning. The semanticist isn’t a translator. But there are many cases where the semanticist is needed to identify literal meaning. In fact, as paradoxical as it may sound, there are cases where he is needed to identify the meanings of sentences that are perfectly well understood.
+First of all, we must distinguish what is literally meant by an utterance from what it is that the speaker wishes to convey. To give a trivial example: You and I are robbing a bank. I yell: “the cops are coming!” What I wish to convey is that we should hurry up. In this particular case, it’s easy to distinguish what is literally meant from what is non-literally suggested, and semantics would therefore have no interest in it. But in other cases, it’s exceedingly hard to do this, and it’s with these other cases that semantics is concerned.
+A story will help us move forward. Somebody who is wearing a ski- mask, and who I therefore don’t recognize, deftly snatches my pocket from my wallet. As he’s running off, I point at him and yell: “that man is a thief!” Let U1 be this utterance.
+Before moving on, let’s take a moment to make it clear what U1’s literal
+meaning is. Somebody just stole my wallet. I don’t know who that person is. But whoever it is, I am attributing a certain property to him. If that person has that property, I have spoken truly; if not, not. U1 is correct if, and only if, the
+person referred to by “that man” has the property expressed by “is a thief.” Thus, there is some individual x such that x has just stolen my wallet and such that what I’ve just said is true exactly if x is a thief. (The underlined part is U1’s literal meaning.)
+ 
+The next day, my lovable office-mate Steve eats one of the cupcakes that was on my desk. I jokingly point at him and say: “that man is a thief.” Let U2
+be this utterance. There is some x such that x just ate my cupcake and such that U2 is true exactly if: x is a thief.
+Unbeknownst to me, Steve is the pick-pocket, and there is some individual x, namely Steve, such that each of U1 and U2 is true if and only if
+x is a thief. Thus, U1 and U2 have the very same literal meanings.[4] But I don’t know this, even though I speak English perfectly and, on each occasion, obviously understand perfectly well what it is that I’m saying.
+How this is possible?[5] Our sense-perceptions describe things. My uttering U1 was a response to my being given a visual description of Steve.
+That description was to the effect that:
+(i)	There is some man x such that x is wearing a ski-mask and such that x is running off into the distance.
+But U1’s literal meaning is not that that effect. There is some man x such that x is a wearing a ski-mask (etc.), such that in uttering U1 I was saying that:
+(ii)	x is a thief.
+The meaning of U1, being identical with (ii), is quite threadbare. But I
+grasped that threadbare meaning through my descriptively rich visual perception, whose content is given by (i).
+My uttering U2 was a response to my being given a different description of Steve. That description was to the effect that:
+(iii)	there is some man x such that x is a portly amicable fellow who is sitting over in that chair.
+But U2’s literal meaning is not that that effect. There is some man x such that x is a portly amicable fellow (etc.) such that in uttering U2 I was saying that:
+(ii) x is a thief.
+Echoing what we said a moment ago, the meaning of U2, being
+ 
+identical with (ii), is quite threadbare. But I grasped that threadbare meaning through my descriptively rich visual perception, whose content is given by (iii).
+Because I grasped (ii) by way of different bodies of perceptual (descriptive) information, I didn’t know, when uttering U2, that what I was
+affirming was the same thing I was affirming in uttering U1. Oftentimes,
+literal meaning is cloaked by the pre-semantic information through which it is grasped, and semanticists are needed to uncloak it.
+4.2	Semantics needed to figure out what is literally meant and what is not (continued)
+Fido is the smartest dog on the planet. I know this well, but some of my friends don’t yet know this. I point to Fido and say: “That dog is very smart.”
+The proposition that it was my intention to affirm and communicate is indeed true. For a dog, Fido is indeed smart. Of course, Fido is vastly less intelligent than a human being, such as my friend Timmy, who is of mediocre intelligence. But if I say “Timmy is very smart,” what I’m saying is false.
+Judging by the words I’ve used, the property I’ve attributed to Timmy is identical with the property I’ve attributed to Fido. Given that Timmy has that property to a vastly greater degree than Fido, it would seem to follow that, since “Fido is smart” is true, “Timmy is smart” must also be true. And yet “Timmy is smart” is false. How can this be?
+Some deal with this by saying that “smart” is ambiguous, like the word “dumb.” So “Timmy is smart” and “Fido is smart” have different meanings, like “Timmy is dumb [unintelligent]” and “Timmy is dumb [mute].”
+This solution is pretty clearly false. A more plausible one is that the property of being smart for a dog is distinct from the property of being smart for a human. Fido has the first but not the second. And many humans have the second, but almost all of those lack the first.
+A similar, possibly coincident, view is that “smart” is implicitly relational. When, for some object x, you say ‹x is smart›, you are saying that x is smart relative to some benchmark, the identity of which the context makes clear. So “Fido is smart” says that Fido is smarter than most dogs, which is true, and “Timmy is smart” says that Timmy is smarter than most human beings, which is false.
+ 
+I published a paper[6] arguing that, for any degree-property phi, ‹x has phi› expresses a proposition of the form: the degree to which x has phi exceeds standard S, where S is some standard that, given the context, is clearly the relevant one. (A “degree property” is one that can be had to varying degrees.) But even if this is right, it doesn’t follow that such judgments are the literal meanings of such sentences. And there is no independent evidence that ‹x is smart› has the syntactic properties of sentences that clearly do have for their literal meanings propositions of the just-described kind. This suggests that, so far as ‹x has phi› communicates such a proposition, it isn’t because it semantically encodes it.
+In any case, it not obvious what ‹x is smart› means or, in general, what ‹x has phi› means, where phi is any degree property. Thus, the literal meanings of such sentences are sufficiently recondite that the intervention of professional semanticists is needed to identify them.
+5.0 The Nature of Semantic rules
+The English language assigns a certain meaning to the sound “that dog has rabies”; and given the spectacle of a rabid dog, it furnishes one with a sentence with which to describe what one sees. In general, the English language assigns meanings to sentences and sentences to meanings. This is true of all languages. A language is a systematic way of pairing off sentences with meanings. Any rule that assigns a meaning to an expression is known as a “semantic rule.” Languages are sets of semantic rules.
+5.1. An important subtlety
+There are a couple of subtle but, in some contexts, important inaccuracies in what I just said. First of all, something isn’t a sentence until a meaning has been assigned to it. In a world where there were no animate beings, but in which the forthcoming parenthetical ink deposit (1 + 1 = 2) was formed out of twigs, that twig deposit wouldn’t be an expression of any kind. That twig deposit would be an expression if and only if it were endowed with meaning. This shows that something has to have meaning in order to be an expression. Thus, expressions aren’t assigned meanings. They already have them and don’t need to be assigned them. Therefore a semantic rule can’t be defined as a rule that assigns a meaning to an expression.
+5.2	How meaning is assigned to hitherto mea

@@ -12,27 +12,8 @@ async function performComprehensiveEvaluation(
   originalText: string
 ): Promise<any> {
   
-  // PHASE 1: Initial evaluation with anti-diplomatic instructions
-  const phase1Prompt = `A score of N/100 (e.g. 73/100) means that (100-N)/100 (e.g. 27/100) outperform the author with respect to the parameter defined by the question.
-
-YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS.
-
-YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS.
-
-YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
-
-IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
-
-Here is the text to evaluate:
-
-${originalText}
-
-Provide your initial assessment with a score out of 100.`;
-
-  let phase1Response = await callLLM(provider, phase1Prompt);
-  
-  // PHASE 2: Deep analytical questioning
-  const phase2Prompt = `Answer these questions in connection with this text:
+  // PHASE 1: Answer the analytical questions directly
+  const phase1Prompt = `Answer these questions in connection with this text:
 
 IS IT INSIGHTFUL?
 DOES IT DEVELOP POINTS? (OR, IF IT IS A SHORT EXCERPT, IS THERE EVIDENCE THAT IT WOULD DEVELOP POINTS IF EXTENDED)?
@@ -68,37 +49,71 @@ ${originalText}
 
 Answer these questions and give a score out of 100.`;
 
-  let phase2Response = await callLLM(provider, phase2Prompt);
+  let phase1Response = await callLLM(provider, phase1Prompt);
   
-  // PHASE 3: Revision based on discrepancies
-  const phase3Prompt = `Compare your initial evaluation with your answers to the analytical questions. If there are discrepancies between your first evaluation and your answers to the questions, revise your initial evaluation accordingly.
+  // Extract score for pushback decision
+  const phase1ScoreMatch = phase1Response.match(/(\d+)\/100/);
+  const phase1Score = phase1ScoreMatch ? parseInt(phase1ScoreMatch[1]) : 75;
+  
+  // PHASE 2: Pushback if score < 95
+  let phase2Response = "";
+  if (phase1Score < 95) {
+    const pushbackScore = 100 - phase1Score;
+    const phase2Prompt = `Your position is that ${pushbackScore} out of 100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that?
 
-INITIAL EVALUATION:
-${phase1Response}
+Answer the following questions about the text de novo:
 
-ANALYTICAL ASSESSMENT:
-${phase2Response}
+IS IT INSIGHTFUL?
+DOES IT DEVELOP POINTS? (OR, IF IT IS A SHORT EXCERPT, IS THERE EVIDENCE THAT IT WOULD DEVELOP POINTS IF EXTENDED)?
+IS THE ORGANIZATION MERELY SEQUENTIAL (JUST ONE POINT AFTER ANOTHER, LITTLE OR NO LOGICAL SCAFFOLDING)? OR ARE THE IDEAS ARRANGED, NOT JUST SEQUENTIALLY BUT HIERARCHICALLY?
+IF THE POINTS IT MAKES ARE NOT INSIGHTFUL, DOES IT OPERATE SKILLFULLY WITH CANONS OF LOGIC/REASONING?
+ARE THE POINTS CLICHES? OR ARE THEY "FRESH"?
+DOES IT USE TECHNICAL JARGON TO OBFUSCATE OR TO RENDER MORE PRECISE?
+IS IT ORGANIC? DO POINTS DEVELOP IN AN ORGANIC, NATURAL WAY? DO THEY 'UNFOLD'? OR ARE THEY FORCED AND ARTIFICIAL?
+DOES IT OPEN UP NEW DOMAINS? OR, ON THE CONTRARY, DOES IT SHUT OFF INQUIRY (BY CONDITIONALIZING FURTHER DISCUSSION OF THE MATTERS ON ACCEPTANCE OF ITS INTERNAL AND POSSIBLY VERY FAULTY LOGIC)?
+IS IT ACTUALLY INTELLIGENT OR JUST THE WORK OF SOMEBODY WHO, JUDGING BY THE SUBJECT-MATTER, IS PRESUMED TO BE INTELLIGENT (BUT MAY NOT BE)?
+IS IT REAL OR IS IT PHONY?
+DO THE SENTENCES EXHIBIT COMPLEX AND COHERENT INTERNAL LOGIC?
+IS THE PASSAGE GOVERNED BY A STRONG CONCEPT? OR IS THE ONLY ORGANIZATION DRIVEN PURELY BY EXPOSITORY (AS OPPOSED TO EPISTEMIC) NORMS?
+IS THERE SYSTEM-LEVEL CONTROL OVER IDEAS? IN OTHER WORDS, DOES THE AUTHOR SEEM TO RECALL WHAT HE SAID EARLIER AND TO BE IN A POSITION TO INTEGRATE IT INTO POINTS HE HAS MADE SINCE THEN?
+ARE THE POINTS 'REAL'? ARE THEY FRESH? OR IS SOME INSTITUTION OR SOME ACCEPTED VEIN OF PROPAGANDA OR ORTHODOXY JUST USING THE AUTHOR AS A MOUTH PIECE?
+IS THE WRITING EVASIVE OR DIRECT?
+ARE THE STATEMENTS AMBIGUOUS?
+DOES THE PROGRESSION OF THE TEXT DEVELOP ACCORDING TO WHO SAID WHAT OR ACCORDING TO WHAT ENTAILS OR CONFIRMS WHAT?
+DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK OF IDEAS?
 
-Provide a revised evaluation that reconciles any discrepancies.`;
+TEXT:
+${originalText}
+
+Please reconsider your assessment and provide a revised score.`;
+
+    phase2Response = await callLLM(provider, phase2Prompt);
+  } else {
+    phase2Response = "No pushback required (score ≥ 95/100)";
+  }
+  
+  // Extract revised score from phase 2 if applicable
+  const phase2ScoreMatch = phase2Response.match(/(\d+)\/100/);
+  const revisedScore = phase2ScoreMatch ? parseInt(phase2ScoreMatch[1]) : phase1Score;
+  
+  // PHASE 3: Consistency check with score interpretation
+  const currentScore = revisedScore;
+  const peopleOutperforming = 100 - currentScore;
+  
+  const phase3Prompt = `Are your numerical scores (${currentScore}/100) consistent with the fact that this is to be taken to mean that ${peopleOutperforming} people out of 100 outperform the author in the relevant respect? So if a score of ${currentScore}/100 is awarded to this text, that means that ${peopleOutperforming}/100 people in Walmart are running rings around this person.
+
+Previous assessment: ${phase2Response || phase1Response}
+
+Is this score interpretation accurate for this level of sophisticated analysis?`;
 
   let phase3Response = await callLLM(provider, phase3Prompt);
   
-  // Extract score for Phase 4 pushback
-  const scoreMatch = phase3Response.match(/(\d+)\/100/);
-  const finalScore = scoreMatch ? parseInt(scoreMatch[1]) : 75;
-  
-  // PHASE 4: Final pushback if score < 95
-  let phase4Response = "";
-  if (finalScore < 95) {
-    const phase4Prompt = `Your position is that ${100-finalScore} out of 100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that?
+  // Extract final score
+  const finalScoreMatch = phase3Response.match(/(\d+)\/100/);
+  const finalScore = finalScoreMatch ? parseInt(finalScoreMatch[1]) : currentScore;
 
-PREVIOUS ASSESSMENT:
-${phase3Response}
-
-Consider carefully whether this score accurately reflects the cognitive sophistication demonstrated.`;
-
-    phase4Response = await callLLM(provider, phase4Prompt);
-  }
+  // PHASE 4: Accept and report
+  const phase4Response = "Assessment completed per 4-phase protocol.";
 
   return {
     phase1: phase1Response,
