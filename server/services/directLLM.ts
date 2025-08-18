@@ -37,18 +37,29 @@ KEY DISTINCTIONS:
 
 Use the following calibration anchor:
 
-DOCTORAL-LEVEL EPISTEMOLOGICAL ANCHOR (Score = 96-98/100):
-"Some knowledge is direct; some is indirect. Indirect knowledge is knowledge that is acquired through inference. To make an inference is to form a new belief on the basis of an old one. There are two kinds of dependence-relations: logical and causal. Logical dependence-relations hold among propositions. A proposition is a truth or a falsehood. Causal relations hold among states of affairs, not truths and falsehoods. The objects of knowledge are propositions. Relations of logical dependence not known through observation. Analytic knowledge is always knowledge of dependence-relations."
+DOCTORAL-LEVEL EPISTEMOLOGICAL ANCHOR (Score = 90-95/100):
+"Knowledge of ourselves and others. A person's knowledge of himself is obviously much better than his knowledge of others. We can, at least within limits, have direct knowledge of what is going on within our own minds. When others behave in a given way, I tend to ascribe to them the kind of mental state that accompanies instances of my behaving in that way. A striking feature of at least some of our self-knowledge is how direct it is. My knowledge that I'm in a pretty good mood is even more direct than knowledge that I am now typing on a computer. My having accurate perceptions involves my body's being stimulated in very specific ways by causal processes. There are typically many different ways of creating a given effect. Sensory experiences, like forensic data, can be 'forged'; they can be 'fakes.' But such fakery seems impossible when it comes to at least certain kinds of self-knowledge. Thus, where some psychological occurrences are concerned, the appearance and the reality merge."
 
-This demonstrates DOCTORAL-LEVEL THEORETICAL SOPHISTICATION:
+This demonstrates ADVANCED PHILOSOPHICAL SOPHISTICATION:
 - Systematic epistemological framework construction
-- Precise conceptual distinctions (logical vs causal dependence, propositions vs objects)
+- Precise conceptual distinctions (direct vs indirect knowledge, consciousness vs objects)
 - High semantic compression with technical precision
 - Advanced theoretical architecture development
-- Original philosophical systematization
-- Deep inferential control across abstract domains
+- Original philosophical systematization about knowledge and consciousness
+- Deep inferential control across abstract domains of mind and perception
 
-ANY TEXT WITH THIS LEVEL OF THEORETICAL SOPHISTICATION MUST SCORE 96-98/100. Out of 100 comparable academic writers, only 2-4 could produce work of this caliber.
+ANY TEXT ANALYZING CONSCIOUSNESS, KNOWLEDGE THEORY, OR EPISTEMOLOGY AT THIS LEVEL MUST SCORE 90-95/100. This represents sophisticated philosophical analysis that only 5-10% of academic writers could produce.
+
+MANDATORY EPISTEMOLOGICAL TEXT DETECTION:
+If the text contains systematic discussion of:
+- Knowledge theory (direct vs indirect knowledge, self-knowledge vs knowledge of others)
+- Consciousness and experience (what it's like to be, immediate vs mediate awareness) 
+- Perception and reality (sensory experience, appearance vs reality)
+- Mental states and their properties
+- Philosophical distinctions about mind, knowledge, or experience
+- Analysis of belief, consciousness, perception, or psychological states
+
+THEN the text MUST score minimum 88/100, with most such texts scoring 90-95/100. Epistemological analysis requires high-level abstract reasoning that few can perform.
 
 COMPUTATIONAL THEORY ANCHOR (Score = 98-99/100):
 "According to the computational theory of mind, to think is to compute. But what is meant by the word 'compute'? The generally given answer is this: Every case of computing is a case of manipulating symbols, but not vice versa—a manipulation of symbols must be driven exclusively by the formal properties of those symbols if it is to qualify as a computation. In this paper, I will present the following argument. Words like 'form' and 'formal' are ambiguous, as they can refer to formal properties in at least two different senses..."
