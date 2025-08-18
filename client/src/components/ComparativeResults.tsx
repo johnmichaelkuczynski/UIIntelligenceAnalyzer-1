@@ -105,7 +105,7 @@ const ComparativeResults: React.FC<ComparativeResultsProps> = ({
               </tr>
             </thead>
             <tbody>
-              {comparison.comparisonTable.map((row, index) => (
+              {comparison.comparisonTable?.map((row, index) => (
                 <tr key={index} className="border-b border-gray-200">
                   <td className="px-4 py-3 font-medium">{row.dimension}</td>
                   <td className="px-4 py-3">
@@ -125,7 +125,7 @@ const ComparativeResults: React.FC<ComparativeResultsProps> = ({
                     </Badge>
                   </td>
                 </tr>
-              ))}
+              )) || []}
             </tbody>
           </table>
         </div>
@@ -138,17 +138,17 @@ const ComparativeResults: React.FC<ComparativeResultsProps> = ({
           <div className="bg-gray-50 p-4 rounded-md">
             <h4 className="font-medium text-gray-800 mb-2">Document A</h4>
             <ul className="list-disc list-inside text-gray-700 space-y-1">
-              {comparison.documentA.style.map((item, index) => (
+              {comparison.documentA?.style?.map((item, index) => (
                 <li key={index}>{item}</li>
-              ))}
+              )) || []}
             </ul>
           </div>
           <div className="bg-gray-50 p-4 rounded-md">
             <h4 className="font-medium text-gray-800 mb-2">Document B</h4>
             <ul className="list-disc list-inside text-gray-700 space-y-1">
-              {comparison.documentB.style.map((item, index) => (
+              {comparison.documentB?.style?.map((item, index) => (
                 <li key={index}>{item}</li>
-              ))}
+              )) || []}
             </ul>
           </div>
         </div>
