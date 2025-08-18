@@ -299,12 +299,12 @@ async function performRewriteSanityCheck(originalText: string, rewrittenText: st
 PRIMARY MISSION: Detect and reject ANY decrease in semantic compression ratio or definitional clarity, with ZERO TOLERANCE for verbosity increases.
 
 EVALUATION HIERARCHY (WEIGHTED METRICS):
-1. SEMANTIC COMPRESSION RATIO (70%): Information divided by word count - THE CRITICAL METRIC
+1. INTELLECTUAL DENSITY RATIO (70%): Information divided by word count - THE CRITICAL METRIC
 2. DEFINITIONAL PRECISION (25%): Clarity and specificity of key concepts - ESSENTIAL
 3. LOGICAL FLOW (5%): Inferential necessity between adjacent claims - SECONDARY CONCERN
 
 ABSOLUTE REJECTION RULES (ZERO EXCEPTIONS):
-- ANY decrease in semantic compression ratio (even slight)
+- ANY decrease in intellectual density ratio (even slight)
 - ANY transformation of "X is Y" into longer formulations
 - ANY addition of academic padding words (even a single instance)
 - ANY increase in sentence complexity without proportional information gain
@@ -324,11 +324,11 @@ COMPREHENSIVE DEGRADATION PATTERNS TO DETECT:
 SPECIAL DIDACTIC TEXT PROTECTION:
 Texts with high didactic value that use precise operational definitions MUST be preserved exactly as written. These texts are especially sensitive to verbosity damage. Even minor "improvements" often degrade their intelligence value.
 
-When evaluating, examine EACH SENTENCE for information density. Even a SINGLE instance of reduced semantic compression is grounds for rejection. Be EXCEEDINGLY STRICT - better to reject a rewrite than to allow ANY quality degradation.
+When evaluating, examine EACH SENTENCE for information density. Even a SINGLE instance of reduced intellectual density is grounds for rejection. Be EXCEEDINGLY STRICT - better to reject a rewrite than to allow ANY quality degradation.
 
 Respond with a JSON object that looks EXACTLY like this:
 {
-  "semanticCompression": {
+  "intellectualDensity": {
     "originalScore": <1-10>,
     "rewriteScore": <1-10>,
     "preserved": <true|false>,
@@ -358,7 +358,7 @@ ${truncatedOriginal}
 REWRITTEN TEXT:
 ${truncatedRewrite}
 
-Evaluate whether the rewrite preserves or improves the cognitive qualities of the original text with specific attention to semantic compression (meaning-per-word ratio).`
+Evaluate whether the rewrite preserves or improves the cognitive qualities of the original text with specific attention to intellectual density (meaning-per-word ratio).`
         }
       ],
       response_format: { type: "json_object" },
@@ -373,11 +373,11 @@ Evaluate whether the rewrite preserves or improves the cognitive qualities of th
       
       // Get a second opinion from Claude if available for high-quality texts
       let claudeVerdict = { 
-        semanticCompression: { preserved: true },
+        intellectualDensity: { preserved: true },
         definitionalClarity: { preserved: true }
       };
       
-      if (useMultiModel && result.semanticCompression?.originalScore >= 7) {
+      if (useMultiModel && result.intellectualDensity?.originalScore >= 7) {
         try {
           console.log("Getting second opinion from Claude for high-quality text...");
           const claudeResponse = await anthropic.messages.create({
@@ -388,14 +388,14 @@ Evaluate whether the rewrite preserves or improves the cognitive qualities of th
             MISSION: Evaluate whether a rewrite preserves or improves the semantic compression ratio, definitional clarity, and logical structure of the original text.
             
             FOCUS SPECIFICALLY ON:
-            1. Semantic Compression: Information-per-word ratio (HIGHEST PRIORITY)
+            1. Intellectual Density: Information-per-word ratio (HIGHEST PRIORITY)
             2. Definitional Precision: Clarity and specificity of concept definitions
             
-            When evaluating, be EXTREMELY STRICT. For high-level philosophical or theoretical texts, even minor degradations in semantic density are unacceptable.
+            When evaluating, be EXTREMELY STRICT. For high-level philosophical or theoretical texts, even minor degradations in intellectual density are unacceptable.
             
             Respond with a JSON object containing only two fields:
             {
-              "semanticCompressionPreserved": true|false,
+              "intellectualDensityPreserved": true|false,
               "definitionalClarityPreserved": true|false
             }`,
             messages: [
@@ -407,7 +407,7 @@ Evaluate whether the rewrite preserves or improves the cognitive qualities of th
               REWRITTEN TEXT:
               ${truncatedRewrite}
               
-              Evaluate whether the rewrite preserves or improves the semantic compression ratio and definitional clarity of the original text. Respond with JSON.`
+              Evaluate whether the rewrite preserves or improves the intellectual density ratio and definitional clarity of the original text. Respond with JSON.`
               }
             ],
             temperature: 0.2,
@@ -424,36 +424,36 @@ Evaluate whether the rewrite preserves or improves the cognitive qualities of th
         }
       }
       
-      // Check individual dimensions with stricter semantic compression requirement
-      const semanticCompressionPreserved = result.semanticCompression?.preserved === true &&
-                                          (useMultiModel ? claudeVerdict.semanticCompression?.preserved !== false : true);
+      // Check individual dimensions with stricter intellectual density requirement
+      const intellectualDensityPreserved = result.intellectualDensity?.preserved === true &&
+                                          (useMultiModel ? claudeVerdict.intellectualDensity?.preserved !== false : true);
       
-      const semanticCompressionImproved = semanticCompressionPreserved && 
-                                          result.semanticCompression?.rewriteScore > 
-                                          result.semanticCompression?.originalScore;
+      const intellectualDensityImproved = intellectualDensityPreserved && 
+                                          result.intellectualDensity?.rewriteScore > 
+                                          result.intellectualDensity?.originalScore;
       
       const definitionalClarityPreserved = result.definitionalClarity?.preserved === true &&
                                          (useMultiModel ? claudeVerdict.definitionalClarity?.preserved !== false : true);
       
       const logicalStructurePreserved = result.logicalStructure?.preserved === true;
       
-      // Only accept if ALL dimensions are preserved AND semantic compression is maintained or improved
+      // Only accept if ALL dimensions are preserved AND intellectual density is maintained or improved
       // Both models must agree on preservation for enhanced reliability
-      const verdict = semanticCompressionPreserved && 
+      const verdict = intellectualDensityPreserved && 
                      definitionalClarityPreserved && 
                      logicalStructurePreserved &&
                      result.overallVerdict === true;
       
-      // EXTREME ENFORCEMENT: If semantic compression is even slightly worse, automatic rejection
-      if (!semanticCompressionPreserved) {
-        console.warn("SANITY CHECK FAILED: Semantic compression degraded - absolute dealbreaker");
+      // EXTREME ENFORCEMENT: If intellectual density is even slightly worse, automatic rejection
+      if (!intellectualDensityPreserved) {
+        console.warn("SANITY CHECK FAILED: Intellectual density degraded - absolute dealbreaker");
         return false;
       }
       
-      // STRICT IMPROVEMENT REQUIREMENT: If original scores are already high (7+ on semantic compression), 
+      // STRICT IMPROVEMENT REQUIREMENT: If original scores are already high (7+ on intellectual density), 
       // rewrite MUST improve or be rejected. Lowered threshold from 8 to 7 to capture more high-quality texts.
-      if (result.semanticCompression?.originalScore >= 7 && !semanticCompressionImproved) {
-        console.warn("SANITY CHECK FAILED: Original has high semantic compression (7+) but rewrite didn't improve it");
+      if (result.intellectualDensity?.originalScore >= 7 && !intellectualDensityImproved) {
+        console.warn("SANITY CHECK FAILED: Original has high intellectual density (7+) but rewrite didn't improve it");
         return false;
       }
       
@@ -466,10 +466,10 @@ Evaluate whether the rewrite preserves or improves the cognitive qualities of th
       }
       
       // ENFORCE MINIMUM IMPROVEMENT: Reject marginal improvements as not worth the risk
-      // If rewrite only slightly improves semantic compression, reject it to be safe
-      if (semanticCompressionImproved && 
-          result.semanticCompression?.rewriteScore <= result.semanticCompression?.originalScore + 0.5) {
-        console.warn("SANITY CHECK FAILED: Improvement in semantic compression too minimal to justify risk");
+      // If rewrite only slightly improves intellectual density, reject it to be safe
+      if (intellectualDensityImproved && 
+          result.intellectualDensity?.rewriteScore <= result.intellectualDensity?.originalScore + 0.5) {
+        console.warn("SANITY CHECK FAILED: Improvement in intellectual density too minimal to justify risk");
         return false;
       }
       

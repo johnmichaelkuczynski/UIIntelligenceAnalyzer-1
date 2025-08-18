@@ -30,7 +30,7 @@ const ScoringInfoBanner: React.FC = () => {
             </p>
             
             <ul className="list-disc pl-5 mb-2 space-y-1">
-              <li><span className="font-medium">Semantic Compression</span>: Dense meaning packed into minimal language</li>
+              <li><span className="font-medium">Intellectual Capacity</span>: Dense meaning packed into minimal language</li>
               <li><span className="font-medium">Inferential Continuity</span>: Logical necessity between claims</li>
               <li><span className="font-medium">Conceptual Originality</span>: Creation of new cognitive frameworks</li>
               <li><span className="font-medium">Density of Meaning</span>: Rich web of relations between concepts</li>

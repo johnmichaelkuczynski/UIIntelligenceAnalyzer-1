@@ -81,7 +81,7 @@ const INSTRUCTION_MAP: Record<string, string> = {
   
   "logical_coherence": "Strengthen logical coherence by making implicit reasoning chains explicit. Ensure each claim follows necessarily from previous ones. Preserve compact sentences while improving inferential clarity. NEVER add transitional fluff phrases.",
   
-  "inferential_connections": "Enhance inferential connections by revealing the steps between linked ideas. Show how premises lead to conclusions. Transform A→C reasoning into A→B→C without adding words. Preserve semantic compression throughout.",
+  "inferential_connections": "Enhance inferential connections by revealing the steps between linked ideas. Show how premises lead to conclusions. Transform A→C reasoning into A→B→C without adding words. Preserve intellectual depth throughout.",
   
   "meta_structural": "Clarify the logical architecture without meta-commentary. Strengthen the core argument skeleton. Reveal rather than describe the logical progression. NEVER add phrases like 'it should be noted that' or other academic filler."
 };
@@ -446,13 +446,13 @@ const DocumentResults: React.FC<DocumentResultsProps> = ({ id, analysis, origina
                 Intelligent Rewrite Guidelines - Read This First
               </h4>
               <div className="text-xs text-red-800 font-semibold mb-2 border-b border-blue-100 pb-1.5">
-                IMPORTANT: Our rewrite engine now preserves semantic compression and logical structure, never bloating content with unnecessary words.
+                IMPORTANT: Our rewrite engine now preserves intellectual structure and logical coherence, never bloating content with unnecessary words.
               </div>
               <p className="text-xs text-blue-800 mb-2">
                 To improve intelligence score, our rewrite engine will now:
               </p>
               <ul className="text-xs space-y-1 text-blue-800 mb-2 list-disc pl-4">
-                <li><span className="font-medium">Preserve semantic compression</span> - Never adding words without adding value</li>
+                <li><span className="font-medium">Preserve intellectual density</span> - Never adding words without adding value</li>
                 <li><span className="font-medium">Maintain recursive structures</span> - Keeping or enhancing logical A→B→C→A* patterns</li>
                 <li><span className="font-medium">Enhance definitional clarity</span> - Making operational definitions sharper</li>
                 <li><span className="font-medium">Reveal inferential structures</span> - Making implicit reasoning chains explicit</li>

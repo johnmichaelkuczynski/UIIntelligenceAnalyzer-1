@@ -5,7 +5,7 @@ import path from "path";
 import { extractTextFromFile } from "./api/documentParser";
 import { sendSimpleEmail } from "./api/simpleEmailService";
 import { upload as speechUpload, processSpeechToText } from "./api/simpleSpeechToText";
-import { StructuralEvaluator } from "./services/structuralEvaluator";
+
 
 // Configure multer for file uploads
 const upload = multer({ 

@@ -16,11 +16,7 @@ interface DocumentAnalysis {
     surfaceFluency: number;
   };
   deep: {
-    conceptualDepth: number;
-    inferentialContinuity: number;
-    semanticCompression: number;
-    logicalLaddering: number;
-    originality: number;
+    score: number;
   };
 }
 
@@ -49,30 +45,16 @@ SCORING INTERPRETATION:
 - 40-69/100: Average to below-average cognitive demonstration
 - 30-39/100: Pseudo-intellectual simulation without substance
 
-EVALUATION DIMENSIONS (0-10 scale each):
-1. SEMANTIC COMPRESSION: Ability to pack complex meaning into concise expression
-2. INFERENTIAL CONTINUITY: Logical flow and reasoning coherence
-3. SEMANTIC TOPOLOGY: Understanding of conceptual relationships and structures  
-4. COGNITIVE ASYMMETRY: Novel insights that go beyond obvious conclusions
-5. EPISTEMIC RESISTANCE: Engagement with genuinely difficult conceptual problems
-6. METACOGNITIVE AWARENESS: Reflection on thinking processes and limitations
-
-For each document, provide:
+For each document, provide a clear intelligence assessment using real evaluation methods:
 
 DOCUMENT [A/B] INTELLIGENCE ASSESSMENT:
 🧠 Final Intelligence Score: [X]/100
 
 PERCENTILE INTERPRETATION: This author is intellectually superior to approximately [X]% of the general population.
 
-COGNITIVE DIMENSION BREAKDOWN:
-- Semantic Compression: [0-10]/10 - [Justification with quotes]
-- Inferential Continuity: [0-10]/10 - [Justification with quotes]  
-- Semantic Topology: [0-10]/10 - [Justification with quotes]
-- Cognitive Asymmetry: [0-10]/10 - [Justification with quotes]
-- Epistemic Resistance: [0-10]/10 - [Justification with quotes]
-- Metacognitive Awareness: [0-10]/10 - [Justification with quotes]
+ASSESSMENT JUSTIFICATION: [Detailed explanation of the intelligence evaluation based on genuine cognitive abilities demonstrated in the text]
 
-EXECUTIVE SUMMARY: [200-word assessment of author's intellectual profile]
+EXECUTIVE SUMMARY: [200-word assessment of author's intellectual profile based on real intelligence indicators]
 
 COMPARATIVE INTELLIGENCE PLACEMENT: [How this author compares to undergraduates, graduates, journal authors, canonical thinkers]
 
@@ -208,11 +190,7 @@ function parseIntelligenceComparisonResponse(
       surfaceFluency: cleanAnalysisA.overallScore
     },
     deep: {
-      conceptualDepth: cleanAnalysisA.overallScore,
-      inferentialContinuity: cleanAnalysisA.overallScore,
-      semanticCompression: cleanAnalysisA.overallScore,
-      logicalLaddering: cleanAnalysisA.overallScore,
-      originality: cleanAnalysisA.overallScore
+      score: cleanAnalysisA.overallScore
     }
   };
   
@@ -229,11 +207,7 @@ function parseIntelligenceComparisonResponse(
       surfaceFluency: cleanAnalysisB.overallScore
     },
     deep: {
-      conceptualDepth: cleanAnalysisB.overallScore,
-      inferentialContinuity: cleanAnalysisB.overallScore,
-      semanticCompression: cleanAnalysisB.overallScore,
-      logicalLaddering: cleanAnalysisB.overallScore,
-      originality: cleanAnalysisB.overallScore
+      score: cleanAnalysisB.overallScore
     }
   };
   

@@ -31,29 +31,8 @@ function extractIntelligenceScore(text: string): number | null {
 }
 
 function extractDimensions(text: string): Array<{name: string, score: string, icon: React.ReactNode, analysis: string}> {
-  const dimensions = [];
-  const dimensionPatterns = [
-    { name: 'Semantic Compression', pattern: /### 1\. Semantic Compression Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=### 2\.|\n## |$)/i, icon: <Zap className="w-4 h-4" /> },
-    { name: 'Inferential Control', pattern: /### 2\. Inferential Control Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=### 3\.|\n## |$)/i, icon: <Target className="w-4 h-4" /> },
-    { name: 'Cognitive Risk', pattern: /### 3\. Cognitive Risk Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=### 4\.|\n## |$)/i, icon: <TrendingUp className="w-4 h-4" /> },
-    { name: 'Meta-Theoretical Awareness', pattern: /### 4\. Meta-Theoretical Awareness Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=### 5\.|\n## |$)/i, icon: <Eye className="w-4 h-4" /> },
-    { name: 'Conceptual Innovation', pattern: /### 5\. Conceptual Innovation Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=### 6\.|\n## |$)/i, icon: <Lightbulb className="w-4 h-4" /> },
-    { name: 'Epistemic Resistance', pattern: /### 6\. Epistemic Resistance Assessment:\s*([\d.]+\/10)([\s\S]*?)(?=## |\n## |$)/i, icon: <Brain className="w-4 h-4" /> }
-  ];
-  
-  for (const dim of dimensionPatterns) {
-    const match = text.match(dim.pattern);
-    if (match && match[1] && match[2]) {
-      dimensions.push({
-        name: dim.name,
-        score: match[1],
-        icon: dim.icon,
-        analysis: match[2].trim()
-      });
-    }
-  }
-  
-  return dimensions;
+  // Removed fake cognitive dimensions - focus only on real intelligence evaluation
+  return [];
 }
 
 function extractSummary(text: string): string {

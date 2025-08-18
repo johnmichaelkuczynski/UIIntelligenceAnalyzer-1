@@ -474,38 +474,8 @@ export async function generateWordReport(
       }),
       new Paragraph({
         children: [
-          new TextRun({ text: "Conceptual Depth: ", bold: true }),
-          new TextRun({ text: `${analysisA.deep?.conceptualDepth || 0}/100` })
-        ]
-      }),
-      new Paragraph({
-        children: [
-          new TextRun({ text: "Inferential Continuity: ", bold: true }),
-          new TextRun({ text: `${analysisA.deep?.inferentialContinuity || 0}/100` })
-        ]
-      }),
-      new Paragraph({
-        children: [
-          new TextRun({ text: "Semantic Compression: ", bold: true }),
-          new TextRun({ text: `${analysisA.deep?.semanticCompression || 0}/100` })
-        ]
-      }),
-      new Paragraph({
-        children: [
-          new TextRun({ text: "Logical Laddering: ", bold: true }),
-          new TextRun({ text: `${analysisA.deep?.logicalLaddering || 0}/100` })
-        ]
-      }),
-      new Paragraph({
-        children: [
-          new TextRun({ text: "Conceptual Depth: ", bold: true }),
-          new TextRun({ text: `${analysisA.deep?.conceptualDepth || 0}/100` })
-        ]
-      }),
-      new Paragraph({
-        children: [
-          new TextRun({ text: "Originality: ", bold: true }),
-          new TextRun({ text: `${analysisA.deep?.originality || 0}/100` })
+          new TextRun({ text: "Intelligence Score: ", bold: true }),
+          new TextRun({ text: `${analysisA.deep?.score || analysisA.overallScore || 0}/100` })
         ]
       }),
       new Paragraph({ 

@@ -159,7 +159,7 @@ const CalibrationTester: React.FC = () => {
             <li><span className="font-medium">Pragmatism Paper</span> (Expected: 95) - Blueprint-level compression and reframing with deep recursive structure</li>
             <li><span className="font-medium">The Will to Project</span> (Expected: 94) - Major compression of psychological concepts into a recursive model</li>
             <li><span className="font-medium">CTM Critique</span> (Expected: 94) - Deep structural critique with major compression and original reframing</li>
-            <li><span className="font-medium">Revised Dianetics Review</span> (Expected: 92) - Independent sociological framing with strong semantic compression</li>
+            <li><span className="font-medium">Revised Dianetics Review</span> (Expected: 92) - Independent sociological framing with strong intellectual depth</li>
             <li><span className="font-medium">Ninety Paradoxes</span> (Expected: 90) - Original pattern recognition with high inferential compression</li>
             <li><span className="font-medium">Market Efficiency Critique</span> (Expected: 78) - Solid compression but not blueprint-grade recursion</li>
             <li><span className="font-medium">Free Will Paragraph</span> (Expected: 55) - Basic inferential step with low compression</li>

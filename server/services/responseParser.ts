@@ -9,14 +9,7 @@ export interface ParsedAnalysis {
   provider: string;
   percentileExplanation?: string;
   summaryDiagnosis?: string;
-  cognitiveBreakdown?: {
-    semanticCompression: { score: number; analysis: string };
-    inferentialControl: { score: number; analysis: string };
-    conceptualInnovation: { score: number; analysis: string };
-    cognitiveRisk: { score: number; analysis: string };
-    theoreticalIntegration: { score: number; analysis: string };
-    metaCognition: { score: number; analysis: string };
-  };
+  cognitiveBreakdown?: {};
   comparativePlacement?: string;
   finalAssessment?: string;
   surface?: {
@@ -26,11 +19,7 @@ export interface ParsedAnalysis {
     surfaceFluency: number;
   };
   deep?: {
-    conceptualDepth: number;
-    inferentialContinuity: number;
-    semanticCompression: number;
-    logicalLaddering: number;
-    originality: number;
+    score: number;
   };
   dimensions?: Record<string, any>;
   analysis?: string;
@@ -77,32 +66,8 @@ export function extractIntelligenceScore(text: string): number | null {
  * Extract structured cognitive breakdown from intelligence report
  */
 function extractCognitiveBreakdown(text: string): ParsedAnalysis['cognitiveBreakdown'] {
-  const breakdown: any = {};
-  
-  // Extract dimension scores and analyses
-  const dimensionPattern = /([a-zA-Z\s&]+)\s*\((\d+)\/10\)\s*([^a-zA-Z]*(?:[^(](?!\d+\/10))*)/g;
-  let match;
-  
-  while ((match = dimensionPattern.exec(text)) !== null) {
-    const [, name, score, analysis] = match;
-    const cleanName = name.trim().toLowerCase().replace(/[^a-z]/g, '');
-    
-    if (cleanName.includes('semantic') || cleanName.includes('compression')) {
-      breakdown.semanticCompression = { score: parseInt(score), analysis: analysis.trim() };
-    } else if (cleanName.includes('inferential') || cleanName.includes('control')) {
-      breakdown.inferentialControl = { score: parseInt(score), analysis: analysis.trim() };
-    } else if (cleanName.includes('conceptual') || cleanName.includes('innovation')) {
-      breakdown.conceptualInnovation = { score: parseInt(score), analysis: analysis.trim() };
-    } else if (cleanName.includes('cognitive') || cleanName.includes('risk')) {
-      breakdown.cognitiveRisk = { score: parseInt(score), analysis: analysis.trim() };
-    } else if (cleanName.includes('theoretical') || cleanName.includes('integration')) {
-      breakdown.theoreticalIntegration = { score: parseInt(score), analysis: analysis.trim() };
-    } else if (cleanName.includes('meta') || cleanName.includes('cognition')) {
-      breakdown.metaCognition = { score: parseInt(score), analysis: analysis.trim() };
-    }
-  }
-  
-  return Object.keys(breakdown).length > 0 ? breakdown : undefined;
+  // Removed fake cognitive dimensions - focus only on real intelligence evaluation
+  return undefined;
 }
 
 /**

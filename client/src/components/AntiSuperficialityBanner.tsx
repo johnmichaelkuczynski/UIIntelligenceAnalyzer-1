@@ -24,7 +24,7 @@ const AntiSuperficialityBanner = () => {
           Blueprint thinking CREATES original conceptual frameworks and distinctions.
         </p>
         <p>
-          Blueprint-grade scores require demonstrated <span className="font-medium">semantic compression</span>, 
+          Blueprint-grade scores require demonstrated <span className="font-medium">intellectual depth</span>, 
           <span className="font-medium"> inferential continuity</span>, 
           <span className="font-medium"> conceptual originality</span>, and
           <span className="font-medium"> density of meaning</span>.

@@ -76,23 +76,8 @@ export function extractSummary(text: string): string {
  * Extract dimension scores from LLM structured output
  */
 export function extractDimensions(text: string): Record<string, number> {
+  // Removed fake cognitive dimensions - only real intelligence scoring matters
   const dimensions: Record<string, number> = {};
-  const dimensionPatterns = [
-    { name: 'Semantic Compression', pattern: /Semantic Compression:\s*([\d.]+)\/10/i },
-    { name: 'Inferential Control', pattern: /Inferential Control:\s*([\d.]+)\/10/i },
-    { name: 'Cognitive Risk', pattern: /Cognitive Risk:\s*([\d.]+)\/10/i },
-    { name: 'Meta-Theoretical Awareness', pattern: /Meta-Theoretical Awareness:\s*([\d.]+)\/10/i },
-    { name: 'Conceptual Innovation', pattern: /Conceptual Innovation:\s*([\d.]+)\/10/i },
-    { name: 'Epistemic Resistance', pattern: /Epistemic Resistance:\s*([\d.]+)\/10/i }
-  ];
-  
-  for (const dim of dimensionPatterns) {
-    const match = text.match(dim.pattern);
-    if (match && match[1]) {
-      dimensions[dim.name] = parseFloat(match[1]);
-    }
-  }
-  
   return dimensions;
 }
 

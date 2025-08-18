@@ -95,29 +95,13 @@ const AnalysisReport: React.FC<AnalysisReportProps> = ({
     ],
   };
 
-  // Prepare data for radar chart (deep metrics)
+  // Simplified intelligence scoring - no fake cognitive dimensions
   const radarDataDeep = {
-    labels: [
-      'Conceptual Depth',
-      'Inferential Continuity',
-      'Claim Necessity',
-      'Semantic Compression',
-      'Logical Laddering',
-      'Depth Fluency',
-      'Originality'
-    ],
+    labels: ['Intelligence Score'],
     datasets: [
       {
         label: 'Document A',
-        data: [
-          analysisA.deep?.conceptualDepth || 0,
-          analysisA.deep?.inferentialContinuity || 0,
-          analysisA.deep?.claimNecessity || 0,
-          analysisA.deep?.semanticCompression || 0,
-          analysisA.deep?.logicalLaddering || 0,
-          analysisA.deep?.depthFluency || 0,
-          analysisA.deep?.originality || 0
-        ],
+        data: [analysisA.overallScore || 0],
         backgroundColor: 'rgba(54, 162, 235, 0.2)',
         borderColor: 'rgba(54, 162, 235, 1)',
         borderWidth: 2,
@@ -126,15 +110,7 @@ const AnalysisReport: React.FC<AnalysisReportProps> = ({
       },
       ...(mode === 'compare' && analysisB ? [{
         label: 'Document B',
-        data: [
-          analysisB.deep?.conceptualDepth || 0,
-          analysisB.deep?.inferentialContinuity || 0,
-          analysisB.deep?.claimNecessity || 0,
-          analysisB.deep?.semanticCompression || 0,
-          analysisB.deep?.logicalLaddering || 0,
-          analysisB.deep?.depthFluency || 0,
-          analysisB.deep?.originality || 0
-        ],
+        data: [analysisB.overallScore || 0],
         backgroundColor: 'rgba(255, 99, 132, 0.2)',
         borderColor: 'rgba(255, 99, 132, 1)',
         borderWidth: 2,
