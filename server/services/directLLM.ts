@@ -159,6 +159,28 @@ async function callLLM(provider: string, prompt: string): Promise<string> {
     });
     const data = await apiResponse.json() as any;
     response = data.choices?.[0]?.message?.content || "";
+  } else if (provider === "deepseek") {
+    const apiResponse = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [
+          { 
+            role: "system", 
+            content: "You are a forensic cognitive profiler. Follow instructions precisely and avoid diplomatic hedging." 
+          },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.1,
+        max_tokens: 3000
+      })
+    });
+    const data = await apiResponse.json() as any;
+    response = data.choices?.[0]?.message?.content || "";
   }
   
   return response;
@@ -1166,11 +1188,31 @@ export async function directDeepSeekAnalyze(textInput: string): Promise<any> {
       
       const data: any = await response.json();
       
-      const rawContent = data.choices?.[0]?.message?.content || "No response received from DeepSeek";
-      const result = parseCleanIntelligenceResponse(rawContent, "DeepSeek", text);
+      // Perform comprehensive 4-phase evaluation
+      console.log("Performing comprehensive 4-phase intelligence evaluation with DeepSeek...");
+      const comprehensiveResult = await performComprehensiveEvaluation("deepseek", text);
+      
+      // Create detailed report with all phases
+      const detailedReport = `**COMPREHENSIVE INTELLIGENCE EVALUATION**
+
+**PHASE 1 - INITIAL ASSESSMENT:**
+${comprehensiveResult.phase1}
+
+**PHASE 2 - ANALYTICAL QUESTIONING:**
+${comprehensiveResult.phase2}
+
+**PHASE 3 - REVISION AND RECONCILIATION:**
+${comprehensiveResult.phase3}
+
+${comprehensiveResult.phase4 ? `**PHASE 4 - FINAL PUSHBACK:**
+${comprehensiveResult.phase4}` : '**PHASE 4:** No pushback required (score ≥ 95/100)'}
+
+**FINAL SCORE:** ${comprehensiveResult.finalScore}/100`;
+
       return {
-        provider: result.provider,
-        formattedReport: result.formattedReport
+        provider: "DeepSeek - 4-Phase Analysis",
+        formattedReport: detailedReport,
+        overallScore: comprehensiveResult.finalScore
       };
     } catch (error: any) {
       console.error(`Error in direct passthrough to DeepSeek:`, error);

@@ -50,7 +50,7 @@ const AnalysisReport: React.FC<AnalysisReportProps> = ({
     labels: ['Score', 'Remaining'],
     datasets: [
       {
-        data: [analysisA.overallScore, 100 - analysisA.overallScore],
+        data: [analysisA.overallScore || 0, 100 - (analysisA.overallScore || 0)],
         backgroundColor: [
           'rgba(54, 162, 235, 0.8)',
           'rgba(200, 200, 200, 0.2)',
@@ -225,7 +225,7 @@ const AnalysisReport: React.FC<AnalysisReportProps> = ({
                     labels: ['Score', 'Remaining'],
                     datasets: [
                       {
-                        data: [analysisB.overallScore, 100 - analysisB.overallScore],
+                        data: [analysisB.overallScore || 0, 100 - (analysisB.overallScore || 0)],
                         backgroundColor: [
                           'rgba(255, 99, 132, 0.8)',
                           'rgba(200, 200, 200, 0.2)',
@@ -419,24 +419,34 @@ const AnalysisReport: React.FC<AnalysisReportProps> = ({
         </div>
       </div>
 
-      {/* Detailed Analysis Section */}
+      {/* Complete Intelligence Analysis Report */}
       <div className="mt-10 px-6 mb-10">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Detailed Analysis</h2>
-        <div className="bg-white p-4 rounded-lg shadow">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Complete Intelligence Analysis</h2>
+        <div className="bg-white p-6 rounded-lg shadow">
           <div className="prose max-w-none">
-            {/* Use the formatted report if available, otherwise fall back to the analysis field */}
-            {analysisA.formattedReport ? (
-              <div className="whitespace-pre-line font-serif">{cleanAIResponse(analysisA.formattedReport)}</div>
-            ) : (
-              <p className="whitespace-pre-line">{cleanAIResponse(analysisA.analysis || '')}</p>
-            )}
+            <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+              {cleanAIResponse(analysisA.formattedReport || 'No analysis report available.')}
+            </div>
           </div>
         </div>
-      </div>
+        
+        {mode === 'compare' && analysisB && (
+          <div className="mt-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Document B Analysis</h3>
+            <div className="bg-white p-6 rounded-lg shadow">
+              <div className="prose max-w-none">
+                <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                  {cleanAIResponse(analysisB.formattedReport || 'No analysis report available.')}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-      {/* Footer */}
-      <div className="mt-10 py-4 px-6 border-t text-center text-gray-500 text-sm">
-        Generated using Intelligence Analysis Tool | {new Date().toLocaleDateString()} | AI Provider: {analysisA.provider || 'Advanced AI'}
+        {/* Footer */}
+        <div className="mt-10 py-4 px-6 border-t text-center text-gray-500 text-sm">
+          Generated using Intelligence Analysis Tool | {new Date().toLocaleDateString()} | AI Provider: {analysisA.provider || 'Advanced AI'}
+        </div>
       </div>
     </div>
   );
