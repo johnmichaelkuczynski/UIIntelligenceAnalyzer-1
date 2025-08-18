@@ -512,50 +512,53 @@ export async function registerRoutes(app: Express): Promise<Express> {
     }
   });
 
-  // Rewrite document
+  // Intelligent rewrite document using 4-phase evaluation protocol
   app.post("/api/rewrite", async (req: Request, res: Response) => {
     try {
-      const { originalText, instructions, options, provider = "openai", mode = "rewrite_existing" } = req.body;
+      const { originalText, instructions, options, provider = "deepseek", mode = "rewrite_existing" } = req.body;
       
       if (!originalText) {
         return res.status(400).json({ error: "Original text is required" });
       }
       
       // Support both old 'options.instruction' and new 'instructions' format
-      const instruction = instructions || (options && options.instruction);
-      if (!instruction) {
-        return res.status(400).json({ error: "Rewrite instruction is required" });
-      }
+      const customInstructions = instructions || (options && options.instruction) || "";
       
-      // Import the document rewrite service
-      const { rewriteDocument } = await import('./services/documentRewrite');
-      
-      // Create enhanced options object
-      const enhancedOptions = {
-        ...options,
-        instruction,
-        mode,
-        preserveLength: options?.preserveLength !== false,
-        preserveDepth: options?.preserveDepth !== false
-      };
+      // Import the intelligent rewrite service
+      const { performIntelligentRewrite } = await import('./services/intelligentRewrite');
       
       // Log rewrite request
-      console.log(`Starting enhanced rewrite with ${provider} in ${mode} mode`);
+      console.log(`Starting intelligent rewrite with ${provider}`);
       console.log(`Text size: ${originalText.length} characters`);
-      console.log(`Instruction: ${instruction}`);
+      console.log(`Custom instructions: ${customInstructions || "None (using default conditions A & B)"}`);
       
-      // Rewrite the document using the specified provider
-      console.log(`ENHANCED ${provider.toUpperCase()} REWRITE - MODE: ${mode.toUpperCase()}`);
-      const result = await rewriteDocument(originalText, enhancedOptions, provider);
+      // Perform intelligent rewrite using 4-phase evaluation protocol
+      console.log(`INTELLIGENT ${provider.toUpperCase()} REWRITE - Using 4-Phase Evaluation Protocol`);
+      const result = await performIntelligentRewrite(originalText, customInstructions, provider);
+      
+      // Format response to match expected structure
+      const formattedResult = {
+        success: true,
+        originalText: result.originalText,
+        rewrittenText: result.rewrittenText,
+        originalScore: result.originalScore,
+        rewrittenScore: result.rewrittenScore,
+        improvementScore: result.improvementScore,
+        reasoning: result.rewriteReasoning,
+        provider: `${provider} - 4-Phase Intelligence Rewrite`,
+        mode: "intelligent_rewrite"
+      };
       
       // Log completion
-      console.log(`DIRECT PASSTHROUGH REWRITE COMPLETE - Using ${provider}`);
-      return res.json(result);
+      console.log(`INTELLIGENT REWRITE COMPLETE - Using ${provider}`);
+      console.log(`Score improvement: ${result.originalScore}/100 → ${result.rewrittenScore}/100 (${result.improvementScore > 0 ? '+' : ''}${result.improvementScore})`);
+      
+      return res.json(formattedResult);
     } catch (error: any) {
-      console.error("Error rewriting document:", error);
+      console.error("Error performing intelligent rewrite:", error);
       return res.status(500).json({ 
         error: true, 
-        message: error.message || "Failed to rewrite document" 
+        message: error.message || "Failed to perform intelligent rewrite" 
       });
     }
   });
