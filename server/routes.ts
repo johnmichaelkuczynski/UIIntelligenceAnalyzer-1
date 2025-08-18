@@ -295,22 +295,66 @@ export async function registerRoutes(app: Express): Promise<Express> {
     }
   });
 
-  // Intelligence comparison for two documents
+  // Intelligence comparison for two documents using 3-phase protocol
   app.post("/api/intelligence-compare", async (req: Request, res: Response) => {
     try {
-      const { documentA, documentB, provider = "openai" } = req.body;
+      const { documentA, documentB, provider = "deepseek" } = req.body;
       
       if (!documentA || !documentB) {
         return res.status(400).json({ error: "Both documents are required for intelligence comparison" });
       }
       
-      // Import the intelligence comparison service
-      const { performIntelligenceComparison } = await import('./services/intelligenceComparison');
+      // Import the new document comparison service with 3-phase protocol
+      const { compareDocuments } = await import('./services/documentComparison');
+      const { parseIntelligenceResponse } = await import('./services/responseParser');
       
       // Compare intelligence levels using the selected provider
       console.log(`COMPARING INTELLIGENCE WITH ${provider.toUpperCase()}`);
-      const result = await performIntelligenceComparison(documentA.content || documentA, documentB.content || documentB, provider);
-      return res.json(result);
+      const comparisonResult = await compareDocuments(
+        documentA.content || documentA, 
+        documentB.content || documentB, 
+        provider
+      );
+      
+      // Create mock analysis objects for frontend compatibility
+      const analysisA = {
+        id: 0,
+        documentId: 0,
+        provider: provider,
+        formattedReport: `Document A analysis completed with score: ${comparisonResult.documentAScore}/100`,
+        overallScore: comparisonResult.documentAScore,
+        surface: { score: comparisonResult.documentAScore },
+        deep: { score: comparisonResult.documentAScore },
+        dimensions: [],
+        analysis: {}
+      };
+      
+      const analysisB = {
+        id: 1,
+        documentId: 1,
+        provider: provider,
+        formattedReport: `Document B analysis completed with score: ${comparisonResult.documentBScore}/100`,
+        overallScore: comparisonResult.documentBScore,
+        surface: { score: comparisonResult.documentBScore },
+        deep: { score: comparisonResult.documentBScore },
+        dimensions: [],
+        analysis: {}
+      };
+      
+      const comparison = {
+        winnerDocument: comparisonResult.winnerDocument,
+        documentAScore: comparisonResult.documentAScore,
+        documentBScore: comparisonResult.documentBScore,
+        comparisonAnalysis: comparisonResult.comparisonAnalysis,
+        detailedBreakdown: comparisonResult.detailedBreakdown,
+        finalJudgment: `Document ${comparisonResult.winnerDocument} demonstrates superior intelligence with a score of ${comparisonResult.winnerDocument === 'A' ? comparisonResult.documentAScore : comparisonResult.documentBScore}/100 compared to ${comparisonResult.winnerDocument === 'A' ? comparisonResult.documentBScore : comparisonResult.documentAScore}/100.`
+      };
+      
+      return res.json({
+        analysisA,
+        analysisB,
+        comparison
+      });
     } catch (error: any) {
       console.error("Error comparing intelligence:", error);
       return res.status(500).json({ 
