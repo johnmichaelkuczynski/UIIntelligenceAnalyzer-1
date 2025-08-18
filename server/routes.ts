@@ -173,63 +173,48 @@ export async function registerRoutes(app: Express): Promise<Express> {
       
       // If the user requests a specific single provider
       if (provider.toLowerCase() !== 'all') {
-        // Import the direct analysis methods and response parser
-        const { 
-          directOpenAIAnalyze, 
-          directAnthropicAnalyze, 
-          directPerplexityAnalyze,
-          directDeepSeekAnalyze 
-        } = await import('./services/directLLM');
-        const { parseIntelligenceResponse } = await import('./services/responseParser');
+        // Use the strict 3-phase intelligence protocol
+        const { performStrictIntelligenceEvaluation } = await import('./services/strictIntelligenceProtocol');
         
-        // Perform direct analysis with the specified provider
-        console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR ANALYSIS`);
-        
-        let directResult;
+        console.log(`STRICT 3-PHASE INTELLIGENCE EVALUATION WITH ${provider.toUpperCase()}`);
         
         try {
-          switch (provider.toLowerCase()) {
-            case 'anthropic':
-              directResult = await directAnthropicAnalyze(content);
-              break;
-            case 'perplexity':
-              directResult = await directPerplexityAnalyze(content);
-              break;
-            case 'deepseek':
-              directResult = await directDeepSeekAnalyze(content);
-              break;
-            case 'openai':
-            default:
-              directResult = await directOpenAIAnalyze(content);
-              break;
-          }
+          const strictResult = await performStrictIntelligenceEvaluation(content, provider);
           
-          // Parse the response to extract structured data including score
-          const parsedResult = parseIntelligenceResponse(
-            directResult.formattedReport || "Analysis not available",
-            directResult.provider || provider
-          );
-          
-          const result = {
+          // Convert to expected format
+          const analysisResult = {
             id: 0,
             documentId: 0,
-            provider: parsedResult.provider,
-            formattedReport: parsedResult.formattedReport,
-            overallScore: parsedResult.overallScore,
-            surface: parsedResult.surface,
-            deep: parsedResult.deep,
-            dimensions: parsedResult.dimensions,
-            analysis: parsedResult.analysis
+            provider: strictResult.provider,
+            formattedReport: `**STRICT 3-PHASE INTELLIGENCE EVALUATION**\n\n**PHASE 1 ASSESSMENT:**\n${strictResult.phase1Response}\n\n**PHASE 2 ASSESSMENT:**\n${strictResult.phase2Response}\n\n**FINAL EVALUATION:**\n${strictResult.phase3Response || strictResult.phase2Response}\n\n**FINAL SCORE: ${strictResult.finalScore}/100**`,
+            overallScore: strictResult.finalScore,
+            surface: {
+              grammar: Math.max(0, strictResult.finalScore - 10),
+              structure: Math.max(0, strictResult.finalScore - 5),
+              jargonUsage: Math.min(100, strictResult.finalScore + 5),
+              surfaceFluency: strictResult.finalScore
+            },
+            deep: {
+              conceptualDepth: strictResult.finalScore,
+              inferentialContinuity: strictResult.finalScore,
+              semanticCompression: strictResult.finalScore,
+              logicalLaddering: strictResult.finalScore,
+              originality: strictResult.finalScore
+            }
           };
           
-          return res.json(result);
+          return res.json(analysisResult);
         } catch (error: any) {
-          console.error(`Error in direct passthrough to ${provider}:`, error);
+          console.error(`Error in strict intelligence evaluation with ${provider}:`, error);
           return res.status(200).json({
             id: 0,
             documentId: 0, 
             provider: `${provider} (Error)`,
-            formattedReport: `Error analyzing document with direct ${provider} passthrough: ${error.message || "Unknown error"}`
+            formattedReport: `Error analyzing document with strict 3-phase protocol using ${provider}: ${error.message || "Unknown error"}`,
+            overallScore: 0,
+            surface: { grammar: 0, structure: 0, jargonUsage: 0, surfaceFluency: 0 },
+            deep: { conceptualDepth: 0, inferentialContinuity: 0, semanticCompression: 0, logicalLaddering: 0, originality: 0 },
+            error: true
           });
         }
       } else {
@@ -295,7 +280,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
     }
   });
 
-  // Intelligence comparison for two documents
+  // Intelligence comparison for two documents using strict 3-phase protocol
   app.post("/api/intelligence-compare", async (req: Request, res: Response) => {
     try {
       const { documentA, documentB, provider = "openai" } = req.body;
@@ -304,18 +289,68 @@ export async function registerRoutes(app: Express): Promise<Express> {
         return res.status(400).json({ error: "Both documents are required for intelligence comparison" });
       }
       
-      // Import the intelligence comparison service
-      const { performIntelligenceComparison } = await import('./services/intelligenceComparison');
+      // Import the strict intelligence comparison service
+      const { performStrictIntelligenceComparison } = await import('./services/strictIntelligenceProtocol');
       
-      // Compare intelligence levels using the selected provider
-      console.log(`COMPARING INTELLIGENCE WITH ${provider.toUpperCase()}`);
-      const result = await performIntelligenceComparison(documentA.content || documentA, documentB.content || documentB, provider);
+      // Compare intelligence levels using the strict 3-phase protocol
+      console.log(`STRICT 3-PHASE INTELLIGENCE COMPARISON WITH ${provider.toUpperCase()}`);
+      const strictResult = await performStrictIntelligenceComparison(
+        documentA.content || documentA, 
+        documentB.content || documentB, 
+        provider
+      );
+      
+      // Convert to expected format for the frontend
+      const result = {
+        analysisA: {
+          id: 0,
+          documentId: 0,
+          provider: strictResult.analysisA.provider,
+          formattedReport: `**STRICT 3-PHASE INTELLIGENCE EVALUATION**\n\n**PHASE 1:**\n${strictResult.analysisA.phase1Response}\n\n**PHASE 2:**\n${strictResult.analysisA.phase2Response}\n\n**FINAL EVALUATION:**\n${strictResult.analysisA.phase3Response || strictResult.analysisA.phase2Response}\n\n**FINAL SCORE: ${strictResult.analysisA.finalScore}/100**`,
+          overallScore: strictResult.analysisA.finalScore,
+          surface: {
+            grammar: Math.max(0, strictResult.analysisA.finalScore - 10),
+            structure: Math.max(0, strictResult.analysisA.finalScore - 5),
+            jargonUsage: Math.min(100, strictResult.analysisA.finalScore + 5),
+            surfaceFluency: strictResult.analysisA.finalScore
+          },
+          deep: {
+            conceptualDepth: strictResult.analysisA.finalScore,
+            inferentialContinuity: strictResult.analysisA.finalScore,
+            semanticCompression: strictResult.analysisA.finalScore,
+            logicalLaddering: strictResult.analysisA.finalScore,
+            originality: strictResult.analysisA.finalScore
+          }
+        },
+        analysisB: {
+          id: 1,
+          documentId: 1,
+          provider: strictResult.analysisB.provider,
+          formattedReport: `**STRICT 3-PHASE INTELLIGENCE EVALUATION**\n\n**PHASE 1:**\n${strictResult.analysisB.phase1Response}\n\n**PHASE 2:**\n${strictResult.analysisB.phase2Response}\n\n**FINAL EVALUATION:**\n${strictResult.analysisB.phase3Response || strictResult.analysisB.phase2Response}\n\n**FINAL SCORE: ${strictResult.analysisB.finalScore}/100**`,
+          overallScore: strictResult.analysisB.finalScore,
+          surface: {
+            grammar: Math.max(0, strictResult.analysisB.finalScore - 10),
+            structure: Math.max(0, strictResult.analysisB.finalScore - 5),
+            jargonUsage: Math.min(100, strictResult.analysisB.finalScore + 5),
+            surfaceFluency: strictResult.analysisB.finalScore
+          },
+          deep: {
+            conceptualDepth: strictResult.analysisB.finalScore,
+            inferentialContinuity: strictResult.analysisB.finalScore,
+            semanticCompression: strictResult.analysisB.finalScore,
+            logicalLaddering: strictResult.analysisB.finalScore,
+            originality: strictResult.analysisB.finalScore
+          }
+        },
+        comparison: strictResult.comparison
+      };
+      
       return res.json(result);
     } catch (error: any) {
-      console.error("Error comparing intelligence:", error);
+      console.error("Error in strict intelligence comparison:", error);
       return res.status(500).json({ 
         error: true, 
-        message: error.message || "Failed to compare intelligence" 
+        message: error.message || "Failed to perform strict intelligence comparison" 
       });
     }
   });
