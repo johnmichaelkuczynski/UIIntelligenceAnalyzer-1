@@ -321,9 +321,9 @@ const EnhancedRewriteSection: React.FC<EnhancedRewriteSectionProps> = ({
       });
     }
     
-    // If no instructions provided, add a default
+    // If no instructions provided, use default Conditions A & B from 4-phase protocol
     if (!finalInstruction.trim()) {
-      finalInstruction = "Improve the clarity and precision of the text while maintaining the original meaning. Enhance logical flow and conceptual precision.";
+      finalInstruction = ""; // Empty string triggers default Conditions A & B in intelligent rewrite
     }
     
     // Set up the rewrite options
@@ -444,7 +444,7 @@ const EnhancedRewriteSection: React.FC<EnhancedRewriteSectionProps> = ({
               id="rewrite-instruction"
               value={customInstruction}
               onChange={(e) => setCustomInstruction(e.target.value)}
-              placeholder="Provide detailed instructions for rewriting. Example: 'Replace vague terms with precise ones while maintaining original structure' or 'Enhance logical reasoning chains without changing length'"
+              placeholder="Optional custom instructions. If left empty, the system will use default Conditions: (A) Rewrite to score significantly higher on the 4-phase intelligence evaluation protocol, while (B) preserving existing content as much as Condition A allows."
               className="min-h-[120px]"
             />
             {selectedPreset && (
