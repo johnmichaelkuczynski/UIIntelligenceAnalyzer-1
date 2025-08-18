@@ -4,6 +4,106 @@ import fetch from 'node-fetch';
 import cognitiveProfiler from './cognitiveProfiler';
 import { parseCleanIntelligenceResponse } from './cleanResponseParser';
 
+/**
+ * Pushback function that challenges initial scoring and forces recalibration
+ */
+async function performIntelligencePushback(
+  provider: string,
+  originalText: string,
+  initialScore: number,
+  initialAnalysis: string
+): Promise<any> {
+  const pushbackPrompt = `INTELLIGENCE RECALIBRATION CHALLENGE
+
+You just scored this text ${initialScore}/100. This means you're claiming that ${100-initialScore} out of 100 people are intellectually superior to the author of this passage.
+
+CRITICAL REMINDER: You are NOT grading according to academic standards. You are evaluating raw cognitive capacity as revealed through writing.
+
+⚠️ DROP ALL ASSUMPTIONS ⚠️
+- Some texts will be smarter than what 99.99% of professors produce
+- Some texts will be dumber than what 99.99% of professors produce
+- You are NOT grading a community college student
+- You are NOT applying academic formatting standards
+- You are measuring INTELLIGENCE, not prose quality
+
+RECALIBRATION QUESTIONS:
+1. Are you really saying ${100-initialScore} out of 100 people could think more deeply than this author?
+2. Are you conflating writing quality with cognitive capacity?
+3. Are you applying irrelevant academic grading standards?
+4. Are you properly distinguishing between authentic intellectual struggle and midwit simulation?
+
+ORIGINAL TEXT TO RE-EVALUATE:
+${originalText}
+
+YOUR PREVIOUS ANALYSIS:
+${initialAnalysis}
+
+Now provide a RECALIBRATED assessment. Consider whether your initial score properly reflects the cognitive sophistication required to produce this thinking, regardless of how it's expressed.
+
+Respond with:
+RECALIBRATED SCORE: [X]/100
+JUSTIFICATION: [Detailed explanation of why this score properly reflects the cognitive capacity demonstrated]
+INITIAL ERROR: [What assumption or bias led to the initial scoring error, if any]`;
+
+  let response = "";
+  
+  if (provider === "openai") {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { 
+          role: "system", 
+          content: "You are a forensic cognitive profiler. Challenge your own assumptions and focus on pure intelligence assessment." 
+        },
+        { role: "user", content: pushbackPrompt }
+      ],
+      temperature: 0.1,
+      max_tokens: 2000
+    });
+    response = completion.choices[0].message.content || "";
+  } else if (provider === "anthropic") {
+    const completion = await anthropic.messages.create({
+      model: "claude-3-5-sonnet-20241022",
+      max_tokens: 2000,
+      temperature: 0.1,
+      messages: [{ role: "user", content: pushbackPrompt }]
+    });
+    response = completion.content[0].type === 'text' ? completion.content[0].text : "";
+  } else if (provider === "perplexity") {
+    const apiResponse = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "sonar",
+        messages: [
+          { 
+            role: "system", 
+            content: "You are a forensic cognitive profiler. Challenge your own assumptions and focus on pure intelligence assessment." 
+          },
+          { role: "user", content: pushbackPrompt }
+        ],
+        temperature: 0.1,
+        max_tokens: 2000
+      })
+    });
+    const data = await apiResponse.json() as any;
+    response = data.choices?.[0]?.message?.content || "";
+  }
+
+  // Extract recalibrated score
+  const scoreMatch = response.match(/RECALIBRATED SCORE:\s*(\d+)\/100/i);
+  const recalibratedScore = scoreMatch ? parseInt(scoreMatch[1]) : initialScore;
+  
+  return {
+    recalibratedScore,
+    pushbackAnalysis: response,
+    scoreChange: recalibratedScore - initialScore
+  };
+}
+
 // Initialize the API clients
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -487,10 +587,33 @@ export async function directOpenAIAnalyze(textInput: string): Promise<any> {
       
       // Parse with pseudo-intellectual detection for single chunk
       const rawContent = response.choices[0].message.content || "No analysis available.";
-      const result = parseCleanIntelligenceResponse(rawContent, "OpenAI (GPT-4o)", text);
+      const initialResult = parseCleanIntelligenceResponse(rawContent, "OpenAI (GPT-4o)", text);
+      
+      // Extract initial score for pushback
+      const scoreMatch = rawContent.match(/(\d+)\/100/);
+      const initialScore = scoreMatch ? parseInt(scoreMatch[1]) : 75;
+      
+      // Perform intelligence pushback for recalibration
+      console.log(`Initial score: ${initialScore}/100 - Performing pushback recalibration...`);
+      const pushbackResult = await performIntelligencePushback("openai", text, initialScore, rawContent);
+      
+      // Create enhanced report with pushback analysis
+      const enhancedReport = `${initialResult.formattedReport}
+
+---
+
+**INTELLIGENCE RECALIBRATION ANALYSIS**
+
+**Initial Assessment:** ${initialScore}/100
+**Recalibrated Score:** ${pushbackResult.recalibratedScore}/100
+**Score Adjustment:** ${pushbackResult.scoreChange > 0 ? '+' : ''}${pushbackResult.scoreChange} points
+
+**Pushback Analysis:**
+${pushbackResult.pushbackAnalysis}`;
+
       return {
-        provider: result.provider,
-        formattedReport: result.formattedReport
+        provider: `${initialResult.provider} (Recalibrated)`,
+        formattedReport: enhancedReport
       };
     } catch (error: any) {
       // Handle OpenAI API errors
@@ -614,10 +737,33 @@ export async function directAnthropicAnalyze(textInput: string): Promise<any> {
       // Parse the response content with pseudo-intellectual detection
       if (response.content && response.content[0] && 'text' in response.content[0]) {
         const rawContent = response.content[0].text;
-        const result = parseCleanIntelligenceResponse(rawContent, "Anthropic (Claude 3 Sonnet)", text);
+        const initialResult = parseCleanIntelligenceResponse(rawContent, "Anthropic (Claude 3 Sonnet)", text);
+        
+        // Extract initial score for pushback
+        const scoreMatch = rawContent.match(/(\d+)\/100/);
+        const initialScore = scoreMatch ? parseInt(scoreMatch[1]) : 75;
+        
+        // Perform intelligence pushback for recalibration
+        console.log(`Initial score: ${initialScore}/100 - Performing pushback recalibration...`);
+        const pushbackResult = await performIntelligencePushback("anthropic", text, initialScore, rawContent);
+        
+        // Create enhanced report with pushback analysis
+        const enhancedReport = `${initialResult.formattedReport}
+
+---
+
+**INTELLIGENCE RECALIBRATION ANALYSIS**
+
+**Initial Assessment:** ${initialScore}/100
+**Recalibrated Score:** ${pushbackResult.recalibratedScore}/100
+**Score Adjustment:** ${pushbackResult.scoreChange > 0 ? '+' : ''}${pushbackResult.scoreChange} points
+
+**Pushback Analysis:**
+${pushbackResult.pushbackAnalysis}`;
+
         return {
-          provider: result.provider,
-          formattedReport: result.formattedReport
+          provider: `${initialResult.provider} (Recalibrated)`,
+          formattedReport: enhancedReport
         };
       } else {
         return {
@@ -777,10 +923,33 @@ export async function directPerplexityAnalyze(textInput: string): Promise<any> {
       const data: any = await response.json();
       
       const rawContent = data.choices?.[0]?.message?.content || "No response received from Perplexity";
-      const result = parseCleanIntelligenceResponse(rawContent, "Perplexity (LLaMA 3.1)", text);
+      const initialResult = parseCleanIntelligenceResponse(rawContent, "Perplexity (Sonar)", text);
+      
+      // Extract initial score for pushback
+      const scoreMatch = rawContent.match(/(\d+)\/100/);
+      const initialScore = scoreMatch ? parseInt(scoreMatch[1]) : 75;
+      
+      // Perform intelligence pushback for recalibration
+      console.log(`Initial score: ${initialScore}/100 - Performing pushback recalibration...`);
+      const pushbackResult = await performIntelligencePushback("perplexity", text, initialScore, rawContent);
+      
+      // Create enhanced report with pushback analysis
+      const enhancedReport = `${initialResult.formattedReport}
+
+---
+
+**INTELLIGENCE RECALIBRATION ANALYSIS**
+
+**Initial Assessment:** ${initialScore}/100
+**Recalibrated Score:** ${pushbackResult.recalibratedScore}/100
+**Score Adjustment:** ${pushbackResult.scoreChange > 0 ? '+' : ''}${pushbackResult.scoreChange} points
+
+**Pushback Analysis:**
+${pushbackResult.pushbackAnalysis}`;
+
       return {
-        provider: result.provider,
-        formattedReport: result.formattedReport
+        provider: `${initialResult.provider} (Recalibrated)`,
+        formattedReport: enhancedReport
       };
     } catch (error: any) {
       console.error(`Error in direct passthrough to Perplexity:`, error);
