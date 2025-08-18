@@ -4,6 +4,8 @@ import fetch from 'node-fetch';
 import cognitiveProfiler from './cognitiveProfiler';
 import { parseCleanIntelligenceResponse } from './cleanResponseParser';
 
+export { perform4PhaseEvaluation };
+
 /**
  * Comprehensive 4-Phase Intelligence Evaluation System
  */
@@ -755,24 +757,9 @@ export async function directOpenAIAnalyze(textInput: string): Promise<any> {
       
       // Perform comprehensive 4-phase evaluation
       console.log("Performing comprehensive 4-phase intelligence evaluation...");
-      const comprehensiveResult = await performComprehensiveEvaluation("openai", text);
+      const comprehensiveResult = await perform4PhaseEvaluation(text, "openai");
       
-      // Create detailed report with all phases
-      const detailedReport = `**COMPREHENSIVE INTELLIGENCE EVALUATION**
-
-**PHASE 1 - INITIAL ASSESSMENT:**
-${comprehensiveResult.phase1}
-
-**PHASE 2 - ANALYTICAL QUESTIONING:**
-${comprehensiveResult.phase2}
-
-**PHASE 3 - REVISION AND RECONCILIATION:**
-${comprehensiveResult.phase3}
-
-${comprehensiveResult.phase4 ? `**PHASE 4 - FINAL PUSHBACK:**
-${comprehensiveResult.phase4}` : '**PHASE 4:** No pushback required (score ≥ 95/100)'}
-
-**FINAL SCORE:** ${comprehensiveResult.finalScore}/100`;
+      const detailedReport = comprehensiveResult.formattedReport;
 
       return {
         provider: "OpenAI (GPT-4o) - 4-Phase Analysis",
@@ -897,30 +884,14 @@ export async function directAnthropicAnalyze(textInput: string): Promise<any> {
         ]
       });
       
-      // Perform comprehensive 4-phase evaluation
+      // Perform comprehensive 4-phase evaluation  
       console.log("Performing comprehensive 4-phase intelligence evaluation...");
-      const comprehensiveResult = await performComprehensiveEvaluation("anthropic", text);
+      const comprehensiveResult = await perform4PhaseEvaluation(text, "anthropic");
       
-      // Create detailed report with all phases
-      const detailedReport = `**COMPREHENSIVE INTELLIGENCE EVALUATION**
-
-**PHASE 1 - INITIAL ASSESSMENT:**
-${comprehensiveResult.phase1}
-
-**PHASE 2 - ANALYTICAL QUESTIONING:**
-${comprehensiveResult.phase2}
-
-**PHASE 3 - REVISION AND RECONCILIATION:**
-${comprehensiveResult.phase3}
-
-${comprehensiveResult.phase4 ? `**PHASE 4 - FINAL PUSHBACK:**
-${comprehensiveResult.phase4}` : '**PHASE 4:** No pushback required (score ≥ 95/100)'}
-
-**FINAL SCORE:** ${comprehensiveResult.finalScore}/100`;
-
       return {
         provider: "Anthropic (Claude 3 Sonnet) - 4-Phase Analysis",
-        formattedReport: detailedReport
+        formattedReport: comprehensiveResult.formattedReport,
+        overallScore: comprehensiveResult.finalScore
       };
     } catch (error: any) {
       console.error(`Error in direct passthrough to Anthropic:`, error);
@@ -1276,28 +1247,11 @@ export async function directDeepSeekAnalyze(textInput: string): Promise<any> {
       
       // Perform comprehensive 4-phase evaluation
       console.log("Performing comprehensive 4-phase intelligence evaluation with DeepSeek...");
-      const comprehensiveResult = await performComprehensiveEvaluation("deepseek", text);
+      const comprehensiveResult = await perform4PhaseEvaluation(text, "deepseek");
       
-      // Create detailed report with all phases
-      const detailedReport = `**COMPREHENSIVE INTELLIGENCE EVALUATION**
-
-**PHASE 1 - INITIAL ASSESSMENT:**
-${comprehensiveResult.phase1}
-
-**PHASE 2 - ANALYTICAL QUESTIONING:**
-${comprehensiveResult.phase2}
-
-**PHASE 3 - REVISION AND RECONCILIATION:**
-${comprehensiveResult.phase3}
-
-${comprehensiveResult.phase4 ? `**PHASE 4 - FINAL PUSHBACK:**
-${comprehensiveResult.phase4}` : '**PHASE 4:** No pushback required (score ≥ 95/100)'}
-
-**FINAL SCORE:** ${comprehensiveResult.finalScore}/100`;
-
       return {
-        provider: "DeepSeek - 4-Phase Analysis",
-        formattedReport: detailedReport,
+        provider: "DeepSeek - 4-Phase Analysis", 
+        formattedReport: comprehensiveResult.formattedReport,
         overallScore: comprehensiveResult.finalScore
       };
     } catch (error: any) {
