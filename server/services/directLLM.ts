@@ -130,12 +130,37 @@ Is this score interpretation accurate for this level of sophisticated analysis?`
   // PHASE 4: Accept and report
   const phase4Response = "Assessment completed per 4-phase protocol.";
 
+  // Create comprehensive formatted report
+  const formattedReport = `## 4-Phase Intelligence Evaluation
+
+### Phase 1: Initial Assessment
+${phase1Response}
+
+### Phase 2: Score Validation (Score < 95 Pushback)
+${phase2Response}
+
+### Phase 3: Consistency Check 
+${phase3Response}
+
+### Phase 4: Final Assessment
+Assessment completed per 4-phase protocol.
+
+## Final Intelligence Score: ${finalScore}/100
+
+## Executive Summary
+This analysis utilized a comprehensive 4-phase evaluation protocol designed to accurately assess cognitive sophistication. The text demonstrated ${finalScore >= 95 ? 'exceptional' : finalScore >= 85 ? 'high' : finalScore >= 75 ? 'moderate' : 'basic'} intellectual rigor across multiple dimensions of analysis.
+
+## Percentile Ranking
+Author outperforms ${finalScore}% of the general population in cognitive sophistication and analytical depth.
+`;
+
   return {
     phase1: phase1Response,
     phase2: phase2Response,
     phase3: phase3Response,
     phase4: phase4Response,
-    finalScore: finalScore
+    finalScore: finalScore,
+    formattedReport: formattedReport
   };
 }
 
