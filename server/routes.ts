@@ -522,6 +522,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       }
       
       // Support both old 'options.instruction' and new 'instructions' format
+      // Empty string means use default Conditions A & B (no custom instructions)
       const customInstructions = instructions || (options && options.instruction) || "";
       
       // Import the intelligent rewrite service
