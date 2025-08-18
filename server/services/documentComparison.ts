@@ -151,28 +151,71 @@ async function callLLM(provider: LLMProvider, prompt: string): Promise<string> {
   } else if (provider === "deepseek") {
     const fetch = (await import('node-fetch')).default;
     
-    const apiResponse = await fetch('https://api.deepseek.com/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          { 
-            role: "system", 
-            content: "You are a forensic cognitive profiler. Follow instructions precisely and avoid diplomatic hedging." 
-          },
-          { role: "user", content: prompt }
-        ],
-        temperature: 0.1,
-        max_tokens: 3000
-      })
-    });
+    // Add retry logic for DeepSeek API connection issues
+    let attempts = 0;
+    const maxAttempts = 3;
     
-    const data = await apiResponse.json() as any;
-    response = data.choices?.[0]?.message?.content || "";
+    while (attempts < maxAttempts) {
+      try {
+        const apiResponse = await fetch('https://api.deepseek.com/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [
+              { 
+                role: "system", 
+                content: "You are a forensic cognitive profiler. Follow instructions precisely and avoid diplomatic hedging." 
+              },
+              { role: "user", content: prompt }
+            ],
+            temperature: 0.1,
+            max_tokens: 3000
+          }),
+          timeout: 60000 // 60 second timeout
+        });
+        
+        if (!apiResponse.ok) {
+          throw new Error(`DeepSeek API error: ${apiResponse.status} ${apiResponse.statusText}`);
+        }
+        
+        const data = await apiResponse.json() as any;
+        response = data.choices?.[0]?.message?.content || "";
+        break; // Success, exit retry loop
+        
+      } catch (error) {
+        attempts++;
+        console.log(`DeepSeek API attempt ${attempts} failed:`, error);
+        
+        if (attempts === maxAttempts) {
+          // Fall back to OpenAI if DeepSeek fails completely
+          console.log("DeepSeek failed, falling back to OpenAI...");
+          const OpenAI = (await import('openai')).default;
+          const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+          
+          const completion = await openai.chat.completions.create({
+            model: "gpt-4",
+            messages: [
+              { 
+                role: "system", 
+                content: "You are a forensic cognitive profiler. Follow instructions precisely and avoid diplomatic hedging." 
+              },
+              { role: "user", content: prompt }
+            ],
+            temperature: 0.1,
+            max_tokens: 3000
+          });
+          response = completion.choices[0].message.content || "";
+          break;
+        }
+        
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 2000 * attempts));
+      }
+    }
   } else if (provider === "perplexity") {
     const fetch = (await import('node-fetch')).default;
     
