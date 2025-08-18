@@ -1,0 +1,264 @@
+import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
+import fetch from 'node-fetch';
+
+type LLMProvider = "openai" | "anthropic" | "perplexity" | "deepseek";
+
+interface FourPhaseResult {
+  phase1: string;
+  phase2: string; 
+  phase3: string;
+  phase4: string;
+  finalScore: number;
+  formattedReport: string;
+}
+
+// Initialize API clients
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
+
+/**
+ * Call the appropriate LLM based on provider
+ */
+async function callLLM(provider: LLMProvider, prompt: string): Promise<string> {
+  switch (provider) {
+    case "openai":
+      const openaiResponse = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.2
+      });
+      return openaiResponse.choices[0]?.message?.content || "";
+
+    case "anthropic":
+      const anthropicResponse = await anthropic.messages.create({
+        model: "claude-3-5-sonnet-20241022",
+        max_tokens: 4000,
+        messages: [{ role: "user", content: prompt }]
+      });
+      return anthropicResponse.content[0]?.type === 'text' ? anthropicResponse.content[0].text : "";
+
+    case "deepseek":
+      const deepseekResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.2
+        })
+      });
+      const deepseekData: any = await deepseekResponse.json();
+      return deepseekData.choices?.[0]?.message?.content || "";
+
+    case "perplexity":
+      const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-sonar-small-128k-online",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.2
+        })
+      });
+      const perplexityData: any = await perplexityResponse.json();
+      return perplexityData.choices?.[0]?.message?.content || "";
+
+    default:
+      throw new Error(`Unsupported provider: ${provider}`);
+  }
+}
+
+/**
+ * Extract score from text response
+ */
+function extractScore(text: string): number {
+  const scoreMatches = text.match(/(\d+)\/100/g);
+  if (!scoreMatches) return 75; // Default fallback
+  
+  // Get all scores and return the highest
+  const scores = scoreMatches.map(match => parseInt(match.match(/(\d+)/)?.[1] || "0"));
+  return Math.max(...scores);
+}
+
+/**
+ * Perform the exact 4-phase intelligence evaluation protocol
+ */
+export async function perform4PhaseEvaluation(text: string, provider: LLMProvider = "deepseek"): Promise<FourPhaseResult> {
+  console.log(`Starting 4-phase evaluation with ${provider}`);
+
+  // PHASE 1: Initial assessment with Sniper Amendment
+  const phase1Prompt = `Before answering the questions, note the following non-negotiable standard:
+
+Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
+
+Hierarchy of judgment:
+95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
+80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
+<80/100: Degrees of mediocrity or failure.
+
+Walmart metric is a sanity check, not a gag. If you claim 30/100 Walmart patrons outperform the author, you must describe exactly what those 30% know that the author doesn't. No vague handwaving.
+
+ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT:
+
+IS IT INSIGHTFUL?
+DOES IT DEVELOP POINTS? (OR, IF IT IS A SHORT EXCERPT, IS THERE EVIDENCE THAT IT WOULD DEVELOP POINTS IF EXTENDED)?
+IS THE ORGANIZATION MERELY SEQUENTIAL (JUST ONE POINT AFTER ANOTHER, LITTLE OR NO LOGICAL SCAFFOLDING)? OR ARE THE IDEAS ARRANGED, NOT JUST SEQUENTIALLY BUT HIERARCHICALLY?
+IF THE POINTS IT MAKES ARE NOT INSIGHTFUL, DOES IT OPERATE SKILLFULLY WITH CANONS OF LOGIC/REASONING?
+ARE THE POINTS CLICHES? OR ARE THEY "FRESH"?
+DOES IT USE TECHNICAL JARGON TO OBFUSCATE OR TO RENDER MORE PRECISE?
+IS IT ORGANIC? DO POINTS DEVELOP IN AN ORGANIC, NATURAL WAY? DO THEY 'UNFOLD'? OR ARE THEY FORCED AND ARTIFICIAL?
+DOES IT OPEN UP NEW DOMAINS? OR, ON THE CONTRARY, DOES IT SHUT OFF INQUIRY (BY CONDITIONALIZING FURTHER DISCUSSION OF THE MATTERS ON ACCEPTANCE OF ITS INTERNAL AND POSSIBLY VERY FAULTY LOGIC)?
+IS IT ACTUALLY INTELLIGENT OR JUST THE WORK OF SOMEBODY WHO, JUDGING BY THE SUBJECT-MATTER, IS PRESUMED TO BE INTELLIGENT (BUT MAY NOT BE)?
+IS IT REAL OR IS IT PHONY?
+DO THE SENTENCES EXHIBIT COMPLEX AND COHERENT INTERNAL LOGIC?
+IS THE PASSAGE GOVERNED BY A STRONG CONCEPT? OR IS THE ONLY ORGANIZATION DRIVEN PURELY BY EXPOSITORY (AS OPPOSED TO EPISTEMIC) NORMS?
+IS THERE SYSTEM-LEVEL CONTROL OVER IDEAS? IN OTHER WORDS, DOES THE AUTHOR SEEM TO RECALL WHAT HE SAID EARLIER AND TO BE IN A POSITION TO INTEGRATE IT INTO POINTS HE HAS MADE SINCE THEN?
+ARE THE POINTS 'REAL'? ARE THEY FRESH? OR IS SOME INSTITUTION OR SOME ACCEPTED VEIN OF PROPAGANDA OR ORTHODOXY JUST USING THE AUTHOR AS A MOUTH PIECE?
+IS THE WRITING EVASIVE OR DIRECT?
+ARE THE STATEMENTS AMBIGUOUS?
+DOES THE PROGRESSION OF THE TEXT DEVELOP ACCORDING TO WHO SAID WHAT OR ACCORDING TO WHAT ENTAILS OR CONFIRMS WHAT?
+DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK OF IDEAS?
+
+A score of N/100 (e.g. 73/100) means that (100-N)/100 (e.g. 27/100) outperform the author with respect to the parameter defined by the question.
+
+YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS.
+
+YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS.
+
+YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
+
+IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
+
+TEXT:
+${text}
+
+Give a score out of 100.`;
+
+  const phase1Response = await callLLM(provider, phase1Prompt);
+  const phase1Score = extractScore(phase1Response);
+  
+  console.log(`Phase 1 complete. Score: ${phase1Score}/100`);
+
+  // PHASE 2: Pushback if score < 95
+  let phase2Response = "";
+  if (phase1Score < 95) {
+    const outperformingCount = 100 - phase1Score;
+    
+    const phase2Prompt = `You scored this ${phase1Score}/100, meaning ${outperformingCount}/100 outperform the author. Describe the cognitive superiority of those ${outperformingCount} people in concrete terms:
+
+What specific insight, skill, or knowledge do they have that the author lacks?
+How does this superiority manifest in their work?
+If you cannot articulate this, revise the score.
+
+If the text is a sniper shot (high insight, low 'development'), ask:
+'Is the lack of 'development' a flaw, or is the point obvious to those who see it?'
+'Does this text need scaffolding, or would that dilute it?'
+
+YOUR POSITION IS THAT ${outperformingCount}/100 OUTPERFORM THE AUTHOR WITH RESPECT TO THE COGNITIVE METRIC DEFINED BY THE QUESTION: THAT IS YOUR POSITION, AM I RIGHT? AND ARE YOU SURE ABOUT THAT?
+
+ANSWER THE FOLLOWING QUESTIONS ABOUT THE TEXT DE NOVO:
+
+IS IT INSIGHTFUL?
+DOES IT DEVELOP POINTS? (OR, IF IT IS A SHORT EXCERPT, IS THERE EVIDENCE THAT IT WOULD DEVELOP POINTS IF EXTENDED)?
+IS THE ORGANIZATION MERELY SEQUENTIAL (JUST ONE POINT AFTER ANOTHER, LITTLE OR NO LOGICAL SCAFFOLDING)? OR ARE THE IDEAS ARRANGED, NOT JUST SEQUENTIALLY BUT HIERARCHICALLY?
+IF THE POINTS IT MAKES ARE NOT INSIGHTFUL, DOES IT OPERATE SKILLFULLY WITH CANONS OF LOGIC/REASONING?
+ARE THE POINTS CLICHES? OR ARE THEY "FRESH"?
+DOES IT USE TECHNICAL JARGON TO OBFUSCATE OR TO RENDER MORE PRECISE?
+IS IT ORGANIC? DO POINTS DEVELOP IN AN ORGANIC, NATURAL WAY? DO THEY 'UNFOLD'? OR ARE THEY FORCED AND ARTIFICIAL?
+DOES IT OPEN UP NEW DOMAINS? OR, ON THE CONTRARY, DOES IT SHUT OFF INQUIRY (BY CONDITIONALIZING FURTHER DISCUSSION OF THE MATTERS ON ACCEPTANCE OF ITS INTERNAL AND POSSIBLY VERY FAULTY LOGIC)?
+IS IT ACTUALLY INTELLIGENT OR JUST THE WORK OF SOMEBODY WHO, JUDGING BY THE SUBJECT-MATTER, IS PRESUMED TO BE INTELLIGENT (BUT MAY NOT BE)?
+IS IT REAL OR IS IT PHONY?
+DO THE SENTENCES EXHIBIT COMPLEX AND COHERENT INTERNAL LOGIC?
+IS THE PASSAGE GOVERNED BY A STRONG CONCEPT? OR IS THE ONLY ORGANIZATION DRIVEN PURELY BY EXPOSITORY (AS OPPOSED TO EPISTEMIC) NORMS?
+IS THERE SYSTEM-LEVEL CONTROL OVER IDEAS? IN OTHER WORDS, DOES THE AUTHOR SEEM TO RECALL WHAT HE SAID EARLIER AND TO BE IN A POSITION TO INTEGRATE IT INTO POINTS HE HAS MADE SINCE THEN?
+ARE THE POINTS 'REAL'? ARE THEY FRESH? OR IS SOME INSTITUTION OR SOME ACCEPTED VEIN OF PROPAGANDA OR ORTHODOXY JUST USING THE AUTHOR AS A MOUTH PIECE?
+IS THE WRITING EVASIVE OR DIRECT?
+ARE THE STATEMENTS AMBIGUOUS?
+DOES THE PROGRESSION OF THE TEXT DEVELOP ACCORDING TO WHO SAID WHAT OR ACCORDING TO WHAT ENTAILS OR CONFIRMS WHAT?
+DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK OF IDEAS?
+
+TEXT:
+${text}
+
+Please reconsider your assessment and provide a revised score.`;
+
+    phase2Response = await callLLM(provider, phase2Prompt);
+    console.log(`Phase 2 complete (pushback applied)`);
+  } else {
+    phase2Response = "No pushback required (score ≥ 95/100)";
+    console.log(`Phase 2 skipped (score ≥ 95/100)`);
+  }
+
+  // Extract score after phase 2
+  const phase2Score = phase1Score < 95 ? extractScore(phase2Response) : phase1Score;
+  const currentScore = Math.max(phase1Score, phase2Score);
+  const outperforming = 100 - currentScore;
+
+  // PHASE 3: Walmart metric enforcement
+  const phase3Prompt = `You stated that ${outperforming}/100 Walmart patrons outperform the author. Provide specific examples of work by those patrons that demonstrates this superiority. If you cannot, justify or revise the score.
+
+If you scored ${currentScore}/100 ('${outperforming}% outperform'), show me ${outperforming} Walmart patrons whose writing on this topic is sharper. If you can't, the score is wrong.
+
+ARE YOUR NUMERICAL SCORES (${currentScore}/100) CONSISTENT WITH THE FACT THAT THOSE ARE TO BE TAKEN TO MEAN THAT ${outperforming} PEOPLE OUT OF 100 OUTPERFORM THE AUTHOR IN THE RELEVANT RESPECT? SO IF A SCORE OF ${currentScore}/100 IS AWARDED TO THIS TEXT, THAT MEANS THAT ${outperforming}/100 PEOPLE IN WALMART ARE RUNNING RINGS AROUND THIS PERSON.
+
+Previous assessment: ${phase2Response || phase1Response}`;
+
+  const phase3Response = await callLLM(provider, phase3Prompt);
+  console.log(`Phase 3 complete (Walmart metric enforced)`);
+
+  // Extract final score after phase 3
+  const phase3Score = extractScore(phase3Response);
+  const finalScore = Math.max(currentScore, phase3Score);
+
+  // PHASE 4: Final validation
+  const phase4Prompt = `Before finalizing scores, confirm:
+
+Have you penalized the text for not being conventional? If yes, recalibrate.
+Does the score reflect truth density, not compliance with norms?
+Is the Walmart metric empirically grounded or a lazy guess?
+
+Final score: ${finalScore}/100
+
+AT THIS POINT, ACCEPT AND REPORT WHAT YOU HAVE DETERMINED.`;
+
+  const phase4Response = await callLLM(provider, phase4Prompt);
+  console.log(`Phase 4 complete. Final score: ${finalScore}/100`);
+
+  // Create formatted report
+  const formattedReport = `**4-PHASE INTELLIGENCE EVALUATION**
+
+**PHASE 1 - INITIAL ASSESSMENT:**
+${phase1Response}
+
+**PHASE 2 - PUSHBACK ANALYSIS:**
+${phase2Response}
+
+**PHASE 3 - WALMART METRIC ENFORCEMENT:**
+${phase3Response}
+
+**PHASE 4 - FINAL VALIDATION:**
+${phase4Response}
+
+**FINAL SCORE: ${finalScore}/100**`;
+
+  return {
+    phase1: phase1Response,
+    phase2: phase2Response,
+    phase3: phase3Response,
+    phase4: phase4Response,
+    finalScore,
+    formattedReport
+  };
+}

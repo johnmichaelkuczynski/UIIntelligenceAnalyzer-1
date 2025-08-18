@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import fetch from 'node-fetch';
 import cognitiveProfiler from './cognitiveProfiler';
 import { parseCleanIntelligenceResponse } from './cleanResponseParser';
+import { perform4PhaseEvaluation } from './fourPhaseEvaluation';
 
 export { perform4PhaseEvaluation };
 

@@ -298,7 +298,7 @@ export async function performIntelligenceComparison(
   console.log(`COMPARING INTELLIGENCE WITH ${provider.toUpperCase()}`);
   
   // Import the 4-phase evaluation function
-  const { perform4PhaseEvaluation } = await import('./directLLM');
+  const { perform4PhaseEvaluation } = await import('./fourPhaseEvaluation');
   
   // Perform 4-phase evaluation for Document A
   const evaluationA = await perform4PhaseEvaluation(documentA, provider);
