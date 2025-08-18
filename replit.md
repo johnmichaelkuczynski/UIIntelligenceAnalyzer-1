@@ -5,6 +5,7 @@ This platform analyzes written text to assess the intelligence and cognitive fin
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
+Default LLM Provider: DeepSeek (set as default for intelligence evaluation).
 
 ## System Architecture
 The application is structured as a monorepo, separating client and server components.
