@@ -5,46 +5,114 @@ import cognitiveProfiler from './cognitiveProfiler';
 import { parseCleanIntelligenceResponse } from './cleanResponseParser';
 
 /**
- * Pushback function that challenges initial scoring and forces recalibration
+ * Comprehensive 4-Phase Intelligence Evaluation System
  */
-async function performIntelligencePushback(
+async function performComprehensiveEvaluation(
   provider: string,
-  originalText: string,
-  initialScore: number,
-  initialAnalysis: string
+  originalText: string
 ): Promise<any> {
-  const pushbackPrompt = `INTELLIGENCE RECALIBRATION CHALLENGE
+  
+  // PHASE 1: Initial evaluation with anti-diplomatic instructions
+  const phase1Prompt = `A score of N/100 (e.g. 73/100) means that (100-N)/100 (e.g. 27/100) outperform the author with respect to the parameter defined by the question.
 
-You just scored this text ${initialScore}/100. This means you're claiming that ${100-initialScore} out of 100 people are intellectually superior to the author of this passage.
+YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS.
 
-CRITICAL REMINDER: You are NOT grading according to academic standards. You are evaluating raw cognitive capacity as revealed through writing.
+YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS.
 
-⚠️ DROP ALL ASSUMPTIONS ⚠️
-- Some texts will be smarter than what 99.99% of professors produce
-- Some texts will be dumber than what 99.99% of professors produce
-- You are NOT grading a community college student
-- You are NOT applying academic formatting standards
-- You are measuring INTELLIGENCE, not prose quality
+YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
 
-RECALIBRATION QUESTIONS:
-1. Are you really saying ${100-initialScore} out of 100 people could think more deeply than this author?
-2. Are you conflating writing quality with cognitive capacity?
-3. Are you applying irrelevant academic grading standards?
-4. Are you properly distinguishing between authentic intellectual struggle and midwit simulation?
+IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
 
-ORIGINAL TEXT TO RE-EVALUATE:
+Here is the text to evaluate:
+
 ${originalText}
 
-YOUR PREVIOUS ANALYSIS:
-${initialAnalysis}
+Provide your initial assessment with a score out of 100.`;
 
-Now provide a RECALIBRATED assessment. Consider whether your initial score properly reflects the cognitive sophistication required to produce this thinking, regardless of how it's expressed.
+  let phase1Response = await callLLM(provider, phase1Prompt);
+  
+  // PHASE 2: Deep analytical questioning
+  const phase2Prompt = `Answer these questions in connection with this text:
 
-Respond with:
-RECALIBRATED SCORE: [X]/100
-JUSTIFICATION: [Detailed explanation of why this score properly reflects the cognitive capacity demonstrated]
-INITIAL ERROR: [What assumption or bias led to the initial scoring error, if any]`;
+IS IT INSIGHTFUL?
+DOES IT DEVELOP POINTS? (OR, IF IT IS A SHORT EXCERPT, IS THERE EVIDENCE THAT IT WOULD DEVELOP POINTS IF EXTENDED)?
+IS THE ORGANIZATION MERELY SEQUENTIAL (JUST ONE POINT AFTER ANOTHER, LITTLE OR NO LOGICAL SCAFFOLDING)? OR ARE THE IDEAS ARRANGED, NOT JUST SEQUENTIALLY BUT HIERARCHICALLY?
+IF THE POINTS IT MAKES ARE NOT INSIGHTFUL, DOES IT OPERATE SKILLFULLY WITH CANONS OF LOGIC/REASONING?
+ARE THE POINTS CLICHES? OR ARE THEY "FRESH"?
+DOES IT USE TECHNICAL JARGON TO OBFUSCATE OR TO RENDER MORE PRECISE?
+IS IT ORGANIC? DO POINTS DEVELOP IN AN ORGANIC, NATURAL WAY? DO THEY 'UNFOLD'? OR ARE THEY FORCED AND ARTIFICIAL?
+DOES IT OPEN UP NEW DOMAINS? OR, ON THE CONTRARY, DOES IT SHUT OFF INQUIRY (BY CONDITIONALIZING FURTHER DISCUSSION OF THE MATTERS ON ACCEPTANCE OF ITS INTERNAL AND POSSIBLY VERY FAULTY LOGIC)?
+IS IT ACTUALLY INTELLIGENT OR JUST THE WORK OF SOMEBODY WHO, JUDGING BY THE SUBJECT-MATTER, IS PRESUMED TO BE INTELLIGENT (BUT MAY NOT BE)?
+IS IT REAL OR IS IT PHONY?
+DO THE SENTENCES EXHIBIT COMPLEX AND COHERENT INTERNAL LOGIC?
+IS THE PASSAGE GOVERNED BY A STRONG CONCEPT? OR IS THE ONLY ORGANIZATION DRIVEN PURELY BY EXPOSITORY (AS OPPOSED TO EPISTEMIC) NORMS?
+IS THERE SYSTEM-LEVEL CONTROL OVER IDEAS? IN OTHER WORDS, DOES THE AUTHOR SEEM TO RECALL WHAT HE SAID EARLIER AND TO BE IN A POSITION TO INTEGRATE IT INTO POINTS HE HAS MADE SINCE THEN?
+ARE THE POINTS 'REAL'? ARE THEY FRESH? OR IS SOME INSTITUTION OR SOME ACCEPTED VEIN OF PROPAGANDA OR ORTHODOXY JUST USING THE AUTHOR AS A MOUTH PIECE?
+IS THE WRITING EVASIVE OR DIRECT?
+ARE THE STATEMENTS AMBIGUOUS?
+DOES THE PROGRESSION OF THE TEXT DEVELOP ACCORDING TO WHO SAID WHAT OR ACCORDING TO WHAT ENTAILS OR CONFIRMS WHAT?
+DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK OF IDEAS?
 
+A score of N/100 (e.g. 73/100) means that (100-N)/100 (e.g. 27/100) outperform the author with respect to the parameter defined by the question.
+
+YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS.
+
+YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS.
+
+YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
+
+IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
+
+TEXT:
+${originalText}
+
+Answer these questions and give a score out of 100.`;
+
+  let phase2Response = await callLLM(provider, phase2Prompt);
+  
+  // PHASE 3: Revision based on discrepancies
+  const phase3Prompt = `Compare your initial evaluation with your answers to the analytical questions. If there are discrepancies between your first evaluation and your answers to the questions, revise your initial evaluation accordingly.
+
+INITIAL EVALUATION:
+${phase1Response}
+
+ANALYTICAL ASSESSMENT:
+${phase2Response}
+
+Provide a revised evaluation that reconciles any discrepancies.`;
+
+  let phase3Response = await callLLM(provider, phase3Prompt);
+  
+  // Extract score for Phase 4 pushback
+  const scoreMatch = phase3Response.match(/(\d+)\/100/);
+  const finalScore = scoreMatch ? parseInt(scoreMatch[1]) : 75;
+  
+  // PHASE 4: Final pushback if score < 95
+  let phase4Response = "";
+  if (finalScore < 95) {
+    const phase4Prompt = `Your position is that ${100-finalScore} out of 100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that?
+
+PREVIOUS ASSESSMENT:
+${phase3Response}
+
+Consider carefully whether this score accurately reflects the cognitive sophistication demonstrated.`;
+
+    phase4Response = await callLLM(provider, phase4Prompt);
+  }
+
+  return {
+    phase1: phase1Response,
+    phase2: phase2Response,
+    phase3: phase3Response,
+    phase4: phase4Response,
+    finalScore: finalScore
+  };
+}
+
+/**
+ * Helper function to call LLM based on provider
+ */
+async function callLLM(provider: string, prompt: string): Promise<string> {
   let response = "";
   
   if (provider === "openai") {
@@ -53,20 +121,20 @@ INITIAL ERROR: [What assumption or bias led to the initial scoring error, if any
       messages: [
         { 
           role: "system", 
-          content: "You are a forensic cognitive profiler. Challenge your own assumptions and focus on pure intelligence assessment." 
+          content: "You are a forensic cognitive profiler. Follow instructions precisely and avoid diplomatic hedging." 
         },
-        { role: "user", content: pushbackPrompt }
+        { role: "user", content: prompt }
       ],
       temperature: 0.1,
-      max_tokens: 2000
+      max_tokens: 3000
     });
     response = completion.choices[0].message.content || "";
   } else if (provider === "anthropic") {
     const completion = await anthropic.messages.create({
       model: "claude-3-5-sonnet-20241022",
-      max_tokens: 2000,
+      max_tokens: 3000,
       temperature: 0.1,
-      messages: [{ role: "user", content: pushbackPrompt }]
+      messages: [{ role: "user", content: prompt }]
     });
     response = completion.content[0].type === 'text' ? completion.content[0].text : "";
   } else if (provider === "perplexity") {
@@ -81,27 +149,19 @@ INITIAL ERROR: [What assumption or bias led to the initial scoring error, if any
         messages: [
           { 
             role: "system", 
-            content: "You are a forensic cognitive profiler. Challenge your own assumptions and focus on pure intelligence assessment." 
+            content: "You are a forensic cognitive profiler. Follow instructions precisely and avoid diplomatic hedging." 
           },
-          { role: "user", content: pushbackPrompt }
+          { role: "user", content: prompt }
         ],
         temperature: 0.1,
-        max_tokens: 2000
+        max_tokens: 3000
       })
     });
     const data = await apiResponse.json() as any;
     response = data.choices?.[0]?.message?.content || "";
   }
-
-  // Extract recalibrated score
-  const scoreMatch = response.match(/RECALIBRATED SCORE:\s*(\d+)\/100/i);
-  const recalibratedScore = scoreMatch ? parseInt(scoreMatch[1]) : initialScore;
   
-  return {
-    recalibratedScore,
-    pushbackAnalysis: response,
-    scoreChange: recalibratedScore - initialScore
-  };
+  return response;
 }
 
 // Initialize the API clients
@@ -585,35 +645,30 @@ export async function directOpenAIAnalyze(textInput: string): Promise<any> {
         temperature: 0.2
       });
       
-      // Parse with pseudo-intellectual detection for single chunk
-      const rawContent = response.choices[0].message.content || "No analysis available.";
-      const initialResult = parseCleanIntelligenceResponse(rawContent, "OpenAI (GPT-4o)", text);
+      // Perform comprehensive 4-phase evaluation
+      console.log("Performing comprehensive 4-phase intelligence evaluation...");
+      const comprehensiveResult = await performComprehensiveEvaluation("openai", text);
       
-      // Extract initial score for pushback
-      const scoreMatch = rawContent.match(/(\d+)\/100/);
-      const initialScore = scoreMatch ? parseInt(scoreMatch[1]) : 75;
-      
-      // Perform intelligence pushback for recalibration
-      console.log(`Initial score: ${initialScore}/100 - Performing pushback recalibration...`);
-      const pushbackResult = await performIntelligencePushback("openai", text, initialScore, rawContent);
-      
-      // Create enhanced report with pushback analysis
-      const enhancedReport = `${initialResult.formattedReport}
+      // Create detailed report with all phases
+      const detailedReport = `**COMPREHENSIVE INTELLIGENCE EVALUATION**
 
----
+**PHASE 1 - INITIAL ASSESSMENT:**
+${comprehensiveResult.phase1}
 
-**INTELLIGENCE RECALIBRATION ANALYSIS**
+**PHASE 2 - ANALYTICAL QUESTIONING:**
+${comprehensiveResult.phase2}
 
-**Initial Assessment:** ${initialScore}/100
-**Recalibrated Score:** ${pushbackResult.recalibratedScore}/100
-**Score Adjustment:** ${pushbackResult.scoreChange > 0 ? '+' : ''}${pushbackResult.scoreChange} points
+**PHASE 3 - REVISION AND RECONCILIATION:**
+${comprehensiveResult.phase3}
 
-**Pushback Analysis:**
-${pushbackResult.pushbackAnalysis}`;
+${comprehensiveResult.phase4 ? `**PHASE 4 - FINAL PUSHBACK:**
+${comprehensiveResult.phase4}` : '**PHASE 4:** No pushback required (score ≥ 95/100)'}
+
+**FINAL SCORE:** ${comprehensiveResult.finalScore}/100`;
 
       return {
-        provider: `${initialResult.provider} (Recalibrated)`,
-        formattedReport: enhancedReport
+        provider: "OpenAI (GPT-4o) - 4-Phase Analysis",
+        formattedReport: detailedReport
       };
     } catch (error: any) {
       // Handle OpenAI API errors
@@ -734,43 +789,31 @@ export async function directAnthropicAnalyze(textInput: string): Promise<any> {
         ]
       });
       
-      // Parse the response content with pseudo-intellectual detection
-      if (response.content && response.content[0] && 'text' in response.content[0]) {
-        const rawContent = response.content[0].text;
-        const initialResult = parseCleanIntelligenceResponse(rawContent, "Anthropic (Claude 3 Sonnet)", text);
-        
-        // Extract initial score for pushback
-        const scoreMatch = rawContent.match(/(\d+)\/100/);
-        const initialScore = scoreMatch ? parseInt(scoreMatch[1]) : 75;
-        
-        // Perform intelligence pushback for recalibration
-        console.log(`Initial score: ${initialScore}/100 - Performing pushback recalibration...`);
-        const pushbackResult = await performIntelligencePushback("anthropic", text, initialScore, rawContent);
-        
-        // Create enhanced report with pushback analysis
-        const enhancedReport = `${initialResult.formattedReport}
+      // Perform comprehensive 4-phase evaluation
+      console.log("Performing comprehensive 4-phase intelligence evaluation...");
+      const comprehensiveResult = await performComprehensiveEvaluation("anthropic", text);
+      
+      // Create detailed report with all phases
+      const detailedReport = `**COMPREHENSIVE INTELLIGENCE EVALUATION**
 
----
+**PHASE 1 - INITIAL ASSESSMENT:**
+${comprehensiveResult.phase1}
 
-**INTELLIGENCE RECALIBRATION ANALYSIS**
+**PHASE 2 - ANALYTICAL QUESTIONING:**
+${comprehensiveResult.phase2}
 
-**Initial Assessment:** ${initialScore}/100
-**Recalibrated Score:** ${pushbackResult.recalibratedScore}/100
-**Score Adjustment:** ${pushbackResult.scoreChange > 0 ? '+' : ''}${pushbackResult.scoreChange} points
+**PHASE 3 - REVISION AND RECONCILIATION:**
+${comprehensiveResult.phase3}
 
-**Pushback Analysis:**
-${pushbackResult.pushbackAnalysis}`;
+${comprehensiveResult.phase4 ? `**PHASE 4 - FINAL PUSHBACK:**
+${comprehensiveResult.phase4}` : '**PHASE 4:** No pushback required (score ≥ 95/100)'}
 
-        return {
-          provider: `${initialResult.provider} (Recalibrated)`,
-          formattedReport: enhancedReport
-        };
-      } else {
-        return {
-          provider: "Anthropic (Claude 3 Sonnet) - Error",
-          formattedReport: "Error: Unable to extract text from Anthropic response."
-        };
-      }
+**FINAL SCORE:** ${comprehensiveResult.finalScore}/100`;
+
+      return {
+        provider: "Anthropic (Claude 3 Sonnet) - 4-Phase Analysis",
+        formattedReport: detailedReport
+      };
     } catch (error: any) {
       console.error(`Error in direct passthrough to Anthropic:`, error);
       
@@ -922,34 +965,30 @@ export async function directPerplexityAnalyze(textInput: string): Promise<any> {
       
       const data: any = await response.json();
       
-      const rawContent = data.choices?.[0]?.message?.content || "No response received from Perplexity";
-      const initialResult = parseCleanIntelligenceResponse(rawContent, "Perplexity (Sonar)", text);
+      // Perform comprehensive 4-phase evaluation
+      console.log("Performing comprehensive 4-phase intelligence evaluation...");
+      const comprehensiveResult = await performComprehensiveEvaluation("perplexity", text);
       
-      // Extract initial score for pushback
-      const scoreMatch = rawContent.match(/(\d+)\/100/);
-      const initialScore = scoreMatch ? parseInt(scoreMatch[1]) : 75;
-      
-      // Perform intelligence pushback for recalibration
-      console.log(`Initial score: ${initialScore}/100 - Performing pushback recalibration...`);
-      const pushbackResult = await performIntelligencePushback("perplexity", text, initialScore, rawContent);
-      
-      // Create enhanced report with pushback analysis
-      const enhancedReport = `${initialResult.formattedReport}
+      // Create detailed report with all phases
+      const detailedReport = `**COMPREHENSIVE INTELLIGENCE EVALUATION**
 
----
+**PHASE 1 - INITIAL ASSESSMENT:**
+${comprehensiveResult.phase1}
 
-**INTELLIGENCE RECALIBRATION ANALYSIS**
+**PHASE 2 - ANALYTICAL QUESTIONING:**
+${comprehensiveResult.phase2}
 
-**Initial Assessment:** ${initialScore}/100
-**Recalibrated Score:** ${pushbackResult.recalibratedScore}/100
-**Score Adjustment:** ${pushbackResult.scoreChange > 0 ? '+' : ''}${pushbackResult.scoreChange} points
+**PHASE 3 - REVISION AND RECONCILIATION:**
+${comprehensiveResult.phase3}
 
-**Pushback Analysis:**
-${pushbackResult.pushbackAnalysis}`;
+${comprehensiveResult.phase4 ? `**PHASE 4 - FINAL PUSHBACK:**
+${comprehensiveResult.phase4}` : '**PHASE 4:** No pushback required (score ≥ 95/100)'}
+
+**FINAL SCORE:** ${comprehensiveResult.finalScore}/100`;
 
       return {
-        provider: `${initialResult.provider} (Recalibrated)`,
-        formattedReport: enhancedReport
+        provider: "Perplexity (Sonar) - 4-Phase Analysis",
+        formattedReport: detailedReport
       };
     } catch (error: any) {
       console.error(`Error in direct passthrough to Perplexity:`, error);
