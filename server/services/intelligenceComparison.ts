@@ -137,7 +137,18 @@ async function perform4PhaseEvaluation(provider: string, text: string, documentL
 }> {
   
   // PHASE 1: Answer the analytical questions directly
-  const phase1Prompt = `Answer these questions in connection with this text:
+  const phase1Prompt = `Before answering the questions, note the following non-negotiable standard:
+
+Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
+
+Hierarchy of judgment:
+95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
+80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
+<80/100: Degrees of mediocrity or failure.
+
+Walmart metric is a sanity check, not a gag. If you claim 30/100 Walmart patrons outperform the author, you must describe exactly what those 30% know that the author doesn't. No vague handwaving.
+
+Now answer these questions in connection with this text:
 
 IS IT INSIGHTFUL?
 DOES IT DEVELOP POINTS? (OR, IF IT IS A SHORT EXCERPT, IS THERE EVIDENCE THAT IT WOULD DEVELOP POINTS IF EXTENDED)?
@@ -168,6 +179,8 @@ YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF 
 
 IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
 
+THINK VERY VERY VERY HARD ABOUT YOUR ANSWERS; DO NOT DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
+
 TEXT:
 ${text}
 
@@ -183,7 +196,15 @@ Answer these questions and give a score out of 100.`;
   let phase2Response = "";
   if (phase1Score < 95) {
     const pushbackScore = 100 - phase1Score;
-    const phase2Prompt = `Your position is that ${pushbackScore} out of 100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that?
+    const phase2Prompt = `You scored this ${phase1Score}/100, meaning ${pushbackScore}/100 outperform the author. Describe the cognitive superiority of those ${pushbackScore} people in concrete terms:
+
+What specific insight, skill, or knowledge do they have that the author lacks?
+How does this superiority manifest in their work?
+If you cannot articulate this, revise the score.
+
+If the text is a sniper shot (high insight, low 'development'), ask:
+'Is the lack of 'development' a flaw, or is the point obvious to those who see it?'
+'Does this text need scaffolding, or would that dilute it?'
 
 Answer the following questions about the text de novo:
 
@@ -229,11 +250,13 @@ Please reconsider your assessment and provide a revised score.`;
   const currentScore = revisedScore;
   const peopleOutperforming = 100 - currentScore;
   
-  const phase3Prompt = `Are your numerical scores (${currentScore}/100) consistent with the fact that this is to be taken to mean that ${peopleOutperforming} people out of 100 outperform the author in the relevant respect? So if a score of ${currentScore}/100 is awarded to this text, that means that ${peopleOutperforming}/100 people in Walmart are running rings around this person.
+  const phase3Prompt = `You stated that ${peopleOutperforming}/100 Walmart patrons outperform the author. Provide specific examples of work by those patrons that demonstrates this superiority. If you cannot, justify or revise the score.
+
+For example: If you scored ${currentScore}/100 ('${peopleOutperforming}% outperform'), show me ${peopleOutperforming} Walmart patrons whose writing on this topic is sharper. If you can't, the score is wrong.
 
 Previous assessment: ${phase2Response || phase1Response}
 
-Is this score interpretation accurate for this level of sophisticated analysis?`;
+Are your numerical scores (${currentScore}/100) consistent with the fact that ${peopleOutperforming}/100 people in Walmart are running rings around this person? Provide concrete evidence or revise the score.`;
 
   const phase3Response = await callComparisonLLM(provider, phase3Prompt);
   
@@ -246,8 +269,16 @@ Is this score interpretation accurate for this level of sophisticated analysis?`
     finalScore = Math.max(...scores, currentScore);
   }
 
-  // PHASE 4: Accept and report
-  const phase4Response = "Assessment completed per 4-phase protocol.";
+  // PHASE 4: Final validation before accepting
+  const phase4Prompt = `Before finalizing scores, confirm:
+
+Have you penalized the text for not being conventional? If yes, recalibrate.
+Does the score reflect truth density, not compliance with norms?
+Is the Walmart metric empirically grounded or a lazy guess?
+
+Final score: ${finalScore}/100`;
+
+  const phase4Response = await callComparisonLLM(provider, phase4Prompt);
 
   return {
     phase1: phase1Response,
@@ -266,12 +297,15 @@ export async function performIntelligenceComparison(
   
   console.log(`COMPARING INTELLIGENCE WITH ${provider.toUpperCase()}`);
   
+  // Import the 4-phase evaluation function
+  const { perform4PhaseEvaluation } = await import('./directLLM');
+  
   // Perform 4-phase evaluation for Document A
-  const evaluationA = await perform4PhaseEvaluation(provider, documentA, "A");
+  const evaluationA = await perform4PhaseEvaluation(documentA, provider);
   console.log(`Document A 4-phase score: ${evaluationA.finalScore}`);
   
   // Perform 4-phase evaluation for Document B  
-  const evaluationB = await perform4PhaseEvaluation(provider, documentB, "B");
+  const evaluationB = await perform4PhaseEvaluation(documentB, provider);
   console.log(`Document B 4-phase score: ${evaluationB.finalScore}`);
   
   // Create comprehensive reports
