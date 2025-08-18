@@ -92,9 +92,16 @@ Please reconsider your assessment and provide a revised score.`;
     phase2Response = "No pushback required (score ≥ 95/100)";
   }
   
-  // Extract revised score from phase 2 if applicable
-  const phase2ScoreMatch = phase2Response.match(/(\d+)\/100/);
-  const revisedScore = phase2ScoreMatch ? parseInt(phase2ScoreMatch[1]) : phase1Score;
+  // Extract revised score from phase 2 if applicable - take the highest score mentioned
+  const allScoresInPhase2 = phase2Response.match(/(\d+)\/100/g) || [];
+  let revisedScore = phase1Score;
+  
+  if (allScoresInPhase2.length > 0) {
+    const scores = allScoresInPhase2.map(s => parseInt(s.match(/(\d+)/)[1]));
+    revisedScore = Math.max(...scores, phase1Score);
+  }
+  
+  console.log(`Phase 2 revised score: ${revisedScore} (from scores: ${allScoresInPhase2.join(', ')} or phase 1: ${phase1Score})`);
   
   // PHASE 3: Consistency check with score interpretation
   const currentScore = revisedScore;
@@ -108,9 +115,17 @@ Is this score interpretation accurate for this level of sophisticated analysis?`
 
   let phase3Response = await callLLM(provider, phase3Prompt);
   
-  // Extract final score
-  const finalScoreMatch = phase3Response.match(/(\d+)\/100/);
-  const finalScore = finalScoreMatch ? parseInt(finalScoreMatch[1]) : currentScore;
+  // Extract final score - prioritize the last/highest score mentioned in phase 3
+  const allScoresInPhase3 = phase3Response.match(/(\d+)\/100/g) || [];
+  let finalScore = currentScore;
+  
+  if (allScoresInPhase3.length > 0) {
+    // Get all numeric scores and take the highest one
+    const scores = allScoresInPhase3.map(s => parseInt(s.match(/(\d+)/)[1]));
+    finalScore = Math.max(...scores, currentScore);
+  }
+  
+  console.log(`Final score determined: ${finalScore} (from phase 3 scores: ${allScoresInPhase3.join(', ')} or current: ${currentScore})`);
 
   // PHASE 4: Accept and report
   const phase4Response = "Assessment completed per 4-phase protocol.";
