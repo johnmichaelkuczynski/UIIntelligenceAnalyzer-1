@@ -431,13 +431,17 @@ export async function performDual4PhaseEvaluation(textA: string, textB: string, 
           break;
       }
       
-      // Convert to FourPhaseResult format
+      // Convert to FourPhaseResult format and ensure proper score extraction
+      console.log(`Document A directResult overallScore: ${directResult.overallScore}`);
+      let scoreA = directResult.overallScore || extractScore(directResult.formattedReport) || 75;
+      console.log(`Document A final score: ${scoreA}`);
+      
       resultA = {
         phase1: directResult.formattedReport,
         phase2: "Skipped - Quick Mode",
         phase3: "Skipped - Quick Mode",
         phase4: "Skipped - Quick Mode", 
-        finalScore: directResult.overallScore || 75,
+        finalScore: scoreA,
         formattedReport: directResult.formattedReport
       };
     } else {
@@ -477,13 +481,17 @@ export async function performDual4PhaseEvaluation(textA: string, textB: string, 
           break;
       }
       
-      // Convert to FourPhaseResult format
+      // Convert to FourPhaseResult format and ensure proper score extraction
+      console.log(`Document B directResult overallScore: ${directResult.overallScore}`);
+      let scoreB = directResult.overallScore || extractScore(directResult.formattedReport) || 75;
+      console.log(`Document B final score: ${scoreB}`);
+      
       resultB = {
         phase1: directResult.formattedReport,
         phase2: "Skipped - Quick Mode",
         phase3: "Skipped - Quick Mode",
         phase4: "Skipped - Quick Mode",
-        finalScore: directResult.overallScore || 75,
+        finalScore: scoreB,
         formattedReport: directResult.formattedReport
       };
     } else {

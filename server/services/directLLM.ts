@@ -121,7 +121,10 @@ Please reconsider your assessment and provide a revised score.`;
   let revisedScore = phase1Score;
   
   if (allScoresInPhase2.length > 0) {
-    const scores = allScoresInPhase2.map(s => parseInt(s.match(/(\d+)/)[1]));
+    const scores = allScoresInPhase2.map(s => {
+      const match = s.match(/(\d+)/);
+      return match ? parseInt(match[1]) : 0;
+    });
     revisedScore = Math.max(...scores, phase1Score);
   }
   
@@ -147,7 +150,10 @@ Are your numerical scores (${currentScore}/100) consistent with the fact that ${
   
   if (allScoresInPhase3.length > 0) {
     // Get all numeric scores and take the highest one
-    const scores = allScoresInPhase3.map(s => parseInt(s.match(/(\d+)/)[1]));
+    const scores = allScoresInPhase3.map(s => {
+      const match = s.match(/(\d+)/);
+      return match ? parseInt(match[1]) : 0;
+    });
     finalScore = Math.max(...scores, currentScore);
   }
   
