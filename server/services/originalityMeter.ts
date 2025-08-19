@@ -91,11 +91,29 @@ async function callLLM(provider: LLMProvider, prompt: string): Promise<string> {
  * Extract score from text response
  */
 function extractScore(text: string): number {
-  const scoreMatches = text.match(/(\d+)\/100/g);
-  if (!scoreMatches) return 85; // Default fallback
+  // Look for individual question scores in the format "Score: X/100"
+  const scoreMatches = text.match(/Score:\s*(\d+)\/100/g);
   
-  const scores = scoreMatches.map(match => parseInt(match.match(/(\d+)/)?.[1] || "0"));
-  return Math.max(...scores);
+  if (scoreMatches && scoreMatches.length > 1) {
+    // Calculate average of all individual question scores
+    const scores = scoreMatches.map(match => {
+      const scoreMatch = match.match(/(\d+)/);
+      return scoreMatch ? parseInt(scoreMatch[1]) : 0;
+    });
+    const average = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+    console.log(`Calculated average score from ${scores.length} questions: ${scores.join(', ')} = ${average}/100`);
+    return Math.min(Math.max(average, 0), 100);
+  }
+  
+  // Fallback to any X/100 pattern if individual scores not found
+  const fallbackMatches = text.match(/(\d+)\/100/g);
+  if (fallbackMatches) {
+    const scores = fallbackMatches.map(match => parseInt(match.match(/(\d+)/)?.[1] || "0"));
+    return Math.max(...scores);
+  }
+  
+  // Default fallback
+  return 75;
 }
 
 /**
