@@ -69,8 +69,9 @@ const HomePage: React.FC = () => {
   const [fictionComparisonModalOpen, setFictionComparisonModalOpen] = useState(false);
   const [currentFictionDocument, setCurrentFictionDocument] = useState<"A" | "B">("A");
   
-  // State for LLM provider
+  // State for LLM provider and analysis mode
   const [selectedProvider, setSelectedProvider] = useState<LLMProvider>("deepseek");
+  const [quickMode, setQuickMode] = useState<boolean>(true); // Quick Mode is default
   const [apiStatus, setApiStatus] = useState<{
     openai: boolean;
     anthropic: boolean;
@@ -284,16 +285,16 @@ const HomePage: React.FC = () => {
     
     try {
       if (mode === "single") {
-        // Use the selected provider for analysis
-        console.log(`Analyzing with ${selectedProvider}...`);
-        const result = await analyzeDocument(documentA, selectedProvider);
+        // Use the selected provider for analysis with quick mode setting
+        console.log(`Analyzing with ${selectedProvider} (${quickMode ? 'Quick' : 'Comprehensive'} Mode)...`);
+        const result = await analyzeDocument(documentA, selectedProvider, undefined, quickMode);
         setAnalysisA(result);
         setAnalysisB(null);
         setComparison(null);
       } else {
-        // Use the selected provider for comparison
-        console.log(`Comparing with ${selectedProvider}...`);
-        const results = await compareDocuments(documentA, documentB, selectedProvider);
+        // Use the selected provider for comparison with quick mode setting
+        console.log(`Comparing with ${selectedProvider} (${quickMode ? 'Quick' : 'Comprehensive'} Mode)...`);
+        const results = await compareDocuments(documentA, documentB, selectedProvider, quickMode);
         setAnalysisA(results.analysisA);
         setAnalysisB(results.analysisB);
         setComparison(results.comparison);
@@ -354,6 +355,28 @@ const HomePage: React.FC = () => {
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Analysis Settings</h2>
         <div className="flex flex-wrap gap-8 items-center">
           <ModeToggle mode={mode} setMode={setMode} />
+          
+          {/* Quick Mode Toggle */}
+          <div className="border p-4 rounded-lg bg-white shadow-sm">
+            <h3 className="text-lg font-medium text-gray-800 mb-3">Analysis Depth</h3>
+            <div className="flex items-center space-x-3">
+              <div className={`px-4 py-2 rounded-md border cursor-pointer transition-colors ${quickMode ? 'bg-blue-100 border-blue-300 text-blue-800' : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'}`} onClick={() => setQuickMode(true)}>
+                <div className="flex items-center">
+                  <div className={`w-3 h-3 rounded-full mr-2 ${quickMode ? 'bg-blue-500' : 'border-2 border-gray-400'}`}></div>
+                  Quick Mode
+                </div>
+                <p className="text-xs mt-1">Phase 1 only - Fast analysis</p>
+              </div>
+              <div className={`px-4 py-2 rounded-md border cursor-pointer transition-colors ${!quickMode ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'}`} onClick={() => setQuickMode(false)}>
+                <div className="flex items-center">
+                  <div className={`w-3 h-3 rounded-full mr-2 ${!quickMode ? 'bg-green-500' : 'border-2 border-gray-400'}`}></div>
+                  Comprehensive
+                </div>
+                <p className="text-xs mt-1">Full 4-phase evaluation</p>
+              </div>
+            </div>
+          </div>
+          
           <div className="border p-4 rounded-lg bg-white shadow-sm mt-2 md:mt-0">
             <h3 className="text-lg font-medium text-gray-800 mb-3">Choose Your AI Provider</h3>
             <ProviderSelector 

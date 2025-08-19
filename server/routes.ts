@@ -129,7 +129,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
   // Analyze document
   app.post("/api/analyze", async (req: Request, res: Response) => {
     try {
-      const { content, provider = "all", requireProgress = false } = req.body;
+      const { content, provider = "all", requireProgress = false, quickMode = true } = req.body;
       
       if (!content) {
         return res.status(400).json({ 
@@ -152,24 +152,24 @@ export async function registerRoutes(app: Express): Promise<Express> {
         const { parseIntelligenceResponse } = await import('./services/responseParser');
         
         // Perform direct analysis with the specified provider
-        console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR ANALYSIS`);
+        console.log(`DIRECT ${provider.toUpperCase()} PASSTHROUGH FOR ANALYSIS (${quickMode ? 'Quick' : 'Comprehensive'} Mode)`);
         
         let directResult;
         
         try {
           switch (provider.toLowerCase()) {
             case 'anthropic':
-              directResult = await directAnthropicAnalyze(content);
+              directResult = await directAnthropicAnalyze(content, quickMode);
               break;
             case 'perplexity':
-              directResult = await directPerplexityAnalyze(content);
+              directResult = await directPerplexityAnalyze(content, quickMode);
               break;
             case 'deepseek':
-              directResult = await directDeepSeekAnalyze(content);
+              directResult = await directDeepSeekAnalyze(content, quickMode);
               break;
             case 'openai':
             default:
-              directResult = await directOpenAIAnalyze(content);
+              directResult = await directOpenAIAnalyze(content, quickMode);
               break;
           }
           
@@ -267,7 +267,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
   // Intelligence comparison for two documents using 4-phase protocol
   app.post("/api/intelligence-compare", async (req: Request, res: Response) => {
     try {
-      const { documentA, documentB, provider = "deepseek" } = req.body;
+      const { documentA, documentB, provider = "deepseek", quickMode = true } = req.body;
       
       if (!documentA || !documentB) {
         return res.status(400).json({ error: "Both documents are required for intelligence comparison" });
@@ -280,9 +280,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const textA = documentA.content || documentA;
       const textB = documentB.content || documentB;
       
-      // Compare intelligence levels using the 4-phase protocol
-      console.log(`COMPARING INTELLIGENCE WITH 4-PHASE PROTOCOL USING ${provider.toUpperCase()}`);
-      const evaluationResult = await performDual4PhaseEvaluation(textA, textB, provider);
+      // Compare intelligence levels using the 4-phase protocol (with mode selection)
+      console.log(`COMPARING INTELLIGENCE WITH 4-PHASE PROTOCOL USING ${provider.toUpperCase()} (${quickMode ? 'Quick' : 'Comprehensive'} Mode)`);
+      const evaluationResult = await performDual4PhaseEvaluation(textA, textB, provider, quickMode);
       
       // Create properly formatted analysis objects with comprehensive reports
       const analysisA = {

@@ -392,7 +392,7 @@ ${phase4Response}
 /**
  * Perform the exact 4-phase intelligence evaluation protocol for TWO documents (dual comparison)
  */
-export async function performDual4PhaseEvaluation(textA: string, textB: string, provider: LLMProvider): Promise<{
+export async function performDual4PhaseEvaluation(textA: string, textB: string, provider: LLMProvider, quickMode: boolean = true): Promise<{
   documentAScore: number;
   documentBScore: number;
   documentAReport: string;
@@ -407,20 +407,30 @@ export async function performDual4PhaseEvaluation(textA: string, textB: string, 
     const needsChunkingA = textA.length > 3000;
     const needsChunkingB = textB.length > 3000;
     
-    // Evaluate Document A
+    // Evaluate Document A (with mode selection)
     console.log("Evaluating Document A...");
-    const resultA = needsChunkingA 
-      ? await performChunked4PhaseEvaluation(textA, provider)
-      : await performSingle4PhaseEvaluation(textA, provider);
+    let resultA;
+    if (quickMode) {
+      resultA = await performQuickAnalysis(textA, provider);
+    } else {
+      resultA = needsChunkingA 
+        ? await performChunked4PhaseEvaluation(textA, provider)
+        : await performSingle4PhaseEvaluation(textA, provider);
+    }
     
     // Delay between evaluations to avoid rate limiting (10 seconds)
     await delay(10000);
     
-    // Evaluate Document B
+    // Evaluate Document B (with mode selection)
     console.log("Evaluating Document B...");
-    const resultB = needsChunkingB 
-      ? await performChunked4PhaseEvaluation(textB, provider)
-      : await performSingle4PhaseEvaluation(textB, provider);
+    let resultB;
+    if (quickMode) {
+      resultB = await performQuickAnalysis(textB, provider);
+    } else {
+      resultB = needsChunkingB 
+        ? await performChunked4PhaseEvaluation(textB, provider)
+        : await performSingle4PhaseEvaluation(textB, provider);
+    }
     
     // Generate comparative analysis using the same 4-phase protocol
     console.log("Generating comparative analysis...");
@@ -491,12 +501,97 @@ ${comparisonResponse}
 }
 
 /**
- * Main export function - automatically chooses chunked or single evaluation
+ * Quick Analysis Mode - performs only Phase 1 of the evaluation protocol
  */
-export async function perform4PhaseEvaluation(text: string, provider: LLMProvider = "deepseek"): Promise<FourPhaseResult> {
-  console.log(`Starting 4-phase evaluation with ${provider}`);
+async function performQuickAnalysis(text: string, provider: LLMProvider): Promise<FourPhaseResult> {
+  // PHASE 1: Initial assessment only
+  const phase1Prompt = `Before answering the questions, note the following non-negotiable standard:
+
+Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
+
+Hierarchy of judgment:
+95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
+80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
+<80/100: Degrees of mediocrity or failure.
+
+Walmart metric is a sanity check, not a gag. If you claim 30/100 Walmart patrons outperform the author, you must describe exactly what those 30% know that the author doesn't. No vague handwaving.
+
+ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT:
+
+IS IT INSIGHTFUL?
+DOES IT DEVELOP POINTS? (OR, IF IT IS A SHORT EXCERPT, IS THERE EVIDENCE THAT IT WOULD DEVELOP POINTS IF EXTENDED)?
+IS THE ORGANIZATION MERELY SEQUENTIAL (JUST ONE POINT AFTER ANOTHER, LITTLE OR NO LOGICAL SCAFFOLDING)? OR ARE THE IDEAS ARRANGED, NOT JUST SEQUENTIALLY BUT HIERARCHICALLY?
+IF THE POINTS IT MAKES ARE NOT INSIGHTFUL, DOES IT OPERATE SKILLFULLY WITH CANONS OF LOGIC/REASONING?
+ARE THE POINTS CLICHES? OR ARE THEY "FRESH"?
+DOES IT USE TECHNICAL JARGON TO OBFUSCATE OR TO RENDER MORE PRECISE?
+IS IT ORGANIC? DO POINTS DEVELOP IN AN ORGANIC, NATURAL WAY? DO THEY 'UNFOLD'? OR ARE THEY FORCED AND ARTIFICIAL?
+DOES IT OPEN UP NEW DOMAINS? OR, ON THE CONTRARY, DOES IT SHUT OFF INQUIRY (BY CONDITIONALIZING FURTHER DISCUSSION OF THE MATTERS ON ACCEPTANCE OF ITS INTERNAL AND POSSIBLY VERY FAULTY LOGIC)?
+IS IT ACTUALLY INTELLIGENT OR JUST THE WORK OF SOMEBODY WHO, JUDGING BY THE SUBJECT-MATTER, IS PRESUMED TO BE INTELLIGENT (BUT MAY NOT BE)?
+IS IT REAL OR IS IT PHONY?
+DO THE SENTENCES EXHIBIT COMPLEX AND COHERENT INTERNAL LOGIC?
+IS THE PASSAGE GOVERNED BY A STRONG CONCEPT? OR IS THE ONLY ORGANIZATION DRIVEN PURELY BY EXPOSITORY (AS OPPOSED TO EPISTEMIC) NORMS?
+IS THERE SYSTEM-LEVEL CONTROL OVER IDEAS? IN OTHER WORDS, DOES THE AUTHOR SEEM TO RECALL WHAT HE SAID EARLIER AND TO BE IN A POSITION TO INTEGRATE IT INTO POINTS HE HAS MADE SINCE THEN?
+ARE THE POINTS 'REAL'? ARE THEY FRESH? OR IS SOME INSTITUTION OR SOME ACCEPTED VEIN OF PROPAGANDA OR ORTHODOXY JUST USING THE AUTHOR AS A MOUTH PIECE?
+IS THE WRITING EVASIVE OR DIRECT?
+ARE THE STATEMENTS AMBIGUOUS?
+DOES THE PROGRESSION OF THE TEXT DEVELOP ACCORDING TO WHO SAID WHAT OR ACCORDING TO WHAT ENTAILS OR CONFIRMS WHAT?
+DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK OF IDEAS?
+
+A score of N/100 (e.g. 73/100) means that (100-N)/100 (e.g. 27/100) outperform the author with respect to the parameter defined by the question.
+
+YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS.
+
+YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS.
+
+YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
+
+IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
+
+THINK VERY VERY VERY HARD ABOUT YOUR ANSWERS; DO NOT DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
+
+TEXT:
+${text}
+
+Give a score out of 100.`;
+
+  const phase1Response = await callLLM(provider, phase1Prompt);
+  const finalScore = extractScore(phase1Response);
+  console.log(`Quick analysis complete. Score: ${finalScore}/100`);
+
+  const formattedReport = `**QUICK INTELLIGENCE EVALUATION (PHASE 1 ONLY)**
+
+**INITIAL ASSESSMENT:**
+${phase1Response}
+
+**FINAL SCORE: ${finalScore}/100**
+
+*Note: This is a quick analysis. Switch to Comprehensive Mode for full 4-phase evaluation with pushback, Walmart metric enforcement, and final validation.*`;
+
+  return {
+    phase1: phase1Response,
+    phase2: "Skipped in Quick Mode",
+    phase3: "Skipped in Quick Mode", 
+    phase4: "Skipped in Quick Mode",
+    finalScore,
+    formattedReport
+  };
+}
+
+/**
+ * Main export function - automatically chooses chunked or single evaluation
+ * @param text - Text to analyze
+ * @param provider - LLM provider to use
+ * @param quickMode - If true, performs only Phase 1 (default: true)
+ */
+export async function perform4PhaseEvaluation(text: string, provider: LLMProvider = "deepseek", quickMode: boolean = true): Promise<FourPhaseResult> {
+  console.log(`Starting ${quickMode ? 'quick' : 'comprehensive'} evaluation with ${provider}`);
   
-  // Check if text is too long for single evaluation (>3000 chars)
+  // Quick mode - only Phase 1
+  if (quickMode) {
+    return await performQuickAnalysis(text, provider);
+  }
+  
+  // Comprehensive mode - full 4-phase protocol
   if (text.length > 3000) {
     return await performChunked4PhaseEvaluation(text, provider);
   } else {

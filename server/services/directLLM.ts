@@ -736,7 +736,7 @@ async function combineAnalysisResults(results: any[], fullText: string): Promise
 /**
  * Direct pass-through to OpenAI's GPT-4o model without custom processing
  */
-export async function directOpenAIAnalyze(textInput: string): Promise<any> {
+export async function directOpenAIAnalyze(textInput: string, quickMode: boolean = true): Promise<any> {
   // Ensure we have text to analyze
   const text = textInput || "";
   
@@ -756,16 +756,16 @@ export async function directOpenAIAnalyze(textInput: string): Promise<any> {
         temperature: 0.2
       });
       
-      // Perform comprehensive 4-phase evaluation
-      console.log("Performing comprehensive 4-phase intelligence evaluation...");
-      const comprehensiveResult = await perform4PhaseEvaluation(text, "openai");
+      // Perform 4-phase evaluation (quick or comprehensive based on mode)
+      console.log(`Performing ${quickMode ? 'quick' : 'comprehensive'} 4-phase intelligence evaluation...`);
+      const evaluationResult = await perform4PhaseEvaluation(text, "openai", quickMode);
       
-      const detailedReport = comprehensiveResult.formattedReport;
+      const detailedReport = evaluationResult.formattedReport;
 
       return {
-        provider: "OpenAI (GPT-4o) - 4-Phase Analysis",
+        provider: `OpenAI (GPT-4o) - ${quickMode ? 'Quick' : 'Comprehensive'} Analysis`,
         formattedReport: detailedReport,
-        overallScore: comprehensiveResult.finalScore
+        overallScore: evaluationResult.finalScore
       };
     } catch (error: any) {
       // Handle OpenAI API errors
@@ -869,7 +869,7 @@ export async function directOpenAIAnalyze(textInput: string): Promise<any> {
 /**
  * Direct pass-through to Anthropic's Claude model
  */
-export async function directAnthropicAnalyze(textInput: string): Promise<any> {
+export async function directAnthropicAnalyze(textInput: string, quickMode: boolean = true): Promise<any> {
   // Ensure we have text to analyze
   const text = textInput || "";
   
@@ -886,14 +886,14 @@ export async function directAnthropicAnalyze(textInput: string): Promise<any> {
         ]
       });
       
-      // Perform comprehensive 4-phase evaluation  
-      console.log("Performing comprehensive 4-phase intelligence evaluation...");
-      const comprehensiveResult = await perform4PhaseEvaluation(text, "anthropic");
+      // Perform 4-phase evaluation (quick or comprehensive based on mode) 
+      console.log(`Performing ${quickMode ? 'quick' : 'comprehensive'} 4-phase intelligence evaluation...`);
+      const evaluationResult = await perform4PhaseEvaluation(text, "anthropic", quickMode);
       
       return {
-        provider: "Anthropic (Claude 3 Sonnet) - 4-Phase Analysis",
-        formattedReport: comprehensiveResult.formattedReport,
-        overallScore: comprehensiveResult.finalScore
+        provider: `Anthropic (Claude 3 Sonnet) - ${quickMode ? 'Quick' : 'Comprehensive'} Analysis`,
+        formattedReport: evaluationResult.formattedReport,
+        overallScore: evaluationResult.finalScore
       };
     } catch (error: any) {
       console.error(`Error in direct passthrough to Anthropic:`, error);
@@ -1005,7 +1005,7 @@ export async function directAnthropicAnalyze(textInput: string): Promise<any> {
 /**
  * Direct pass-through to Perplexity AI
  */
-export async function directPerplexityAnalyze(textInput: string): Promise<any> {
+export async function directPerplexityAnalyze(textInput: string, quickMode: boolean = true): Promise<any> {
   // Fallback response in case all chunks fail
   const fallbackResponse = {
     provider: "Perplexity (LLaMA 3.1) - Error",
@@ -1046,14 +1046,14 @@ export async function directPerplexityAnalyze(textInput: string): Promise<any> {
       
       const data: any = await response.json();
       
-      // Perform comprehensive 4-phase evaluation
-      console.log("Performing comprehensive 4-phase intelligence evaluation...");
-      const comprehensiveResult = await perform4PhaseEvaluation(text, "perplexity");
+      // Perform 4-phase evaluation (quick or comprehensive based on mode)
+      console.log(`Performing ${quickMode ? 'quick' : 'comprehensive'} 4-phase intelligence evaluation...`);
+      const evaluationResult = await perform4PhaseEvaluation(text, "perplexity", quickMode);
       
       return {
-        provider: "Perplexity (Sonar) - 4-Phase Analysis",
-        formattedReport: comprehensiveResult.formattedReport,
-        overallScore: comprehensiveResult.finalScore
+        provider: `Perplexity (Sonar) - ${quickMode ? 'Quick' : 'Comprehensive'} Analysis`,
+        formattedReport: evaluationResult.formattedReport,
+        overallScore: evaluationResult.finalScore
       };
     } catch (error: any) {
       console.error(`Error in direct passthrough to Perplexity:`, error);
@@ -1190,7 +1190,7 @@ export async function directPerplexityAnalyze(textInput: string): Promise<any> {
 /**
  * Direct pass-through to DeepSeek AI
  */
-export async function directDeepSeekAnalyze(textInput: string): Promise<any> {
+export async function directDeepSeekAnalyze(textInput: string, quickMode: boolean = true): Promise<any> {
   // Fallback response in case all chunks fail
   const fallbackResponse = {
     provider: "DeepSeek - Error",
@@ -1231,14 +1231,14 @@ export async function directDeepSeekAnalyze(textInput: string): Promise<any> {
       
       const data: any = await response.json();
       
-      // Perform comprehensive 4-phase evaluation
-      console.log("Performing comprehensive 4-phase intelligence evaluation with DeepSeek...");
-      const comprehensiveResult = await perform4PhaseEvaluation(text, "deepseek");
+      // Perform 4-phase evaluation (quick or comprehensive based on mode)
+      console.log(`Performing ${quickMode ? 'quick' : 'comprehensive'} 4-phase intelligence evaluation with DeepSeek...`);
+      const evaluationResult = await perform4PhaseEvaluation(text, "deepseek", quickMode);
       
       return {
-        provider: "DeepSeek - 4-Phase Analysis", 
-        formattedReport: comprehensiveResult.formattedReport,
-        overallScore: comprehensiveResult.finalScore
+        provider: `DeepSeek - ${quickMode ? 'Quick' : 'Comprehensive'} Analysis`, 
+        formattedReport: evaluationResult.formattedReport,
+        overallScore: evaluationResult.finalScore
       };
     } catch (error: any) {
       console.error(`Error in direct passthrough to DeepSeek:`, error);

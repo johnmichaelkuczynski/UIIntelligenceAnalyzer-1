@@ -15,7 +15,8 @@ import {
 export async function analyzeDocument(
   document: DocumentInput,
   provider: string = "all", // Default to multi-provider analysis
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
+  quickMode: boolean = true // Quick Mode is default
 ): Promise<DocumentAnalysis> {
   try {
     console.log(`Analyzing with ${provider}...`);
@@ -51,7 +52,8 @@ export async function analyzeDocument(
           body: JSON.stringify({
             content: document.content,
             provider,
-            requireProgress: isLargeDocument
+            requireProgress: isLargeDocument,
+            quickMode
           })
         });
         
@@ -101,7 +103,8 @@ export async function analyzeDocument(
           },
           body: JSON.stringify({
             content: document.content,
-            provider
+            provider,
+            quickMode
           })
         });
         
@@ -170,7 +173,8 @@ export async function analyzeDocument(
 export async function compareDocuments(
   documentA: DocumentInput,
   documentB: DocumentInput,
-  provider: string = "openai"
+  provider: string = "openai",
+  quickMode: boolean = true
 ): Promise<{
   analysisA: DocumentAnalysis;
   analysisB: DocumentAnalysis;
@@ -180,7 +184,8 @@ export async function compareDocuments(
     const response = await apiRequest("POST", "/api/intelligence-compare", {
       documentA,
       documentB,
-      provider
+      provider,
+      quickMode
     });
     return await response.json();
   } catch (error) {
