@@ -83,11 +83,19 @@ export default function OriginalityMeter() {
 
   const singleEvaluationMutation = useMutation({
     mutationFn: async (data: { text: string; provider: LLMProvider; mode: EvaluationMode; comprehensive: boolean }) => {
-      const response = await apiRequest('/api/originality/evaluate', {
+      const response = await fetch('/api/originality/evaluate', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(data),
       });
-      return response as OriginalityResult;
+      
+      if (!response.ok) {
+        throw new Error('Failed to evaluate document');
+      }
+      
+      return await response.json() as OriginalityResult;
     },
     onSuccess: (data) => {
       setResult(data);
@@ -96,11 +104,19 @@ export default function OriginalityMeter() {
 
   const dualEvaluationMutation = useMutation({
     mutationFn: async (data: { textA: string; textB: string; provider: LLMProvider; mode: EvaluationMode; comprehensive: boolean }) => {
-      const response = await apiRequest('/api/originality/evaluate-dual', {
+      const response = await fetch('/api/originality/evaluate-dual', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(data),
       });
-      return response as DualOriginalityResult;
+      
+      if (!response.ok) {
+        throw new Error('Failed to evaluate dual documents');
+      }
+      
+      return await response.json() as DualOriginalityResult;
     },
     onSuccess: (data) => {
       setResult(data);

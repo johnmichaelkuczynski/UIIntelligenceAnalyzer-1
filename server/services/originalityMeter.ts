@@ -1,4 +1,4 @@
-import { LLMProvider } from '../types';
+export type LLMProvider = 'anthropic' | 'deepseek' | 'openai' | 'perplexity';
 
 export interface OriginalityResult {
   phase1?: string;
@@ -29,7 +29,7 @@ async function callLLM(provider: LLMProvider, prompt: string): Promise<string> {
         apiKey: process.env.ANTHROPIC_API_KEY
       });
       const anthropicResponse = await anthropic.messages.create({
-        model: "claude-3-sonnet-20240229",
+        model: "claude-3-5-sonnet-20241022",
         max_tokens: 4000,
         temperature: 0.1,
         messages: [{ role: "user", content: prompt }]
