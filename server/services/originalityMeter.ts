@@ -223,13 +223,27 @@ Answer each question with quotations and a score out of 100.`;
   const response = await callLLM(provider, prompt);
   const score = extractScore(response);
   
-  const formattedReport = `# QUICK ${mode.toUpperCase()} EVALUATION
+  // Helper function to clean markdown
+  const cleanMarkdown = (text: string) => text
+    .replace(/#{1,6}\s*/g, '') // Remove # headers
+    .replace(/\*\*(.*?)\*\*/g, '$1') // Remove **bold**
+    .replace(/\*(.*?)\*/g, '$1') // Remove *italic*
+    .replace(/_{1,2}(.*?)_{1,2}/g, '$1') // Remove _underline_
+    .replace(/`{1,3}(.*?)`{1,3}/g, '$1') // Remove `code`
+    .trim();
 
-${response}
+  const cleanResponse = cleanMarkdown(response);
+  
+  let formattedReport = `QUICK ${mode.toUpperCase()} EVALUATION
 
-**Final Score: ${score}/100**
+${cleanResponse}
 
-*Quick Mode Analysis Complete*`;
+Final Score: ${score}/100
+
+Quick Mode Analysis Complete`;
+
+  // Clean the final report too
+  formattedReport = cleanMarkdown(formattedReport);
 
   return {
     phase1: response,
@@ -312,23 +326,41 @@ Final score out of 100:`;
   const phase4Response = await callLLM(provider, phase4Prompt);
   const finalScore = Math.max(phase1Score, phase2Score, phase3Score, extractScore(phase4Response));
 
-  const formattedReport = `# COMPREHENSIVE ${mode.toUpperCase()} EVALUATION
+  // Helper function to clean markdown
+  const cleanMarkdown = (text: string) => text
+    .replace(/#{1,6}\s*/g, '') // Remove # headers
+    .replace(/\*\*(.*?)\*\*/g, '$1') // Remove **bold**
+    .replace(/\*(.*?)\*/g, '$1') // Remove *italic*
+    .replace(/_{1,2}(.*?)_{1,2}/g, '$1') // Remove _underline_
+    .replace(/`{1,3}(.*?)`{1,3}/g, '$1') // Remove `code`
+    .trim();
 
-## PHASE 1: INITIAL ASSESSMENT
-${phase1Response}
+  // Clean up all markdown formatting
+  const cleanPhase1 = cleanMarkdown(phase1Response);
+  const cleanPhase2 = cleanMarkdown(phase2Response);
+  const cleanPhase3 = cleanMarkdown(phase3Response);
+  const cleanPhase4 = cleanMarkdown(phase4Response);
 
-## PHASE 2: PUSHBACK ANALYSIS
-${phase2Response}
+  let formattedReport = `COMPREHENSIVE ${mode.toUpperCase()} EVALUATION
 
-## PHASE 3: WALMART METRIC ENFORCEMENT
-${phase3Response}
+PHASE 1: INITIAL ASSESSMENT
+${cleanPhase1}
 
-## PHASE 4: FINAL VALIDATION
-${phase4Response}
+PHASE 2: PUSHBACK ANALYSIS
+${cleanPhase2}
 
-**Final Score: ${finalScore}/100**
+PHASE 3: WALMART METRIC ENFORCEMENT
+${cleanPhase3}
 
-*Comprehensive 4-Phase Analysis Complete*`;
+PHASE 4: FINAL VALIDATION
+${cleanPhase4}
+
+Final Score: ${finalScore}/100
+
+Comprehensive 4-Phase Analysis Complete`;
+
+  // Clean the final report too
+  formattedReport = cleanMarkdown(formattedReport);
 
   return {
     phase1: phase1Response,
@@ -389,19 +421,19 @@ async function performChunkedEvaluation(
   const totalScore = chunkResults.reduce((sum, result) => sum + result.finalScore, 0);
   const avgScore = Math.round(totalScore / chunkResults.length);
   
-  const amalgamatedReport = `# CHUNKED ${mode.toUpperCase()} EVALUATION
-**Document Length:** ${text.split(/\s+/).length} words  
-**Analysis Chunks:** ${chunkResults.length}  
-**Final Score:** ${avgScore}/100
+  const amalgamatedReport = `CHUNKED ${mode.toUpperCase()} EVALUATION
+Document Length: ${text.split(/\s+/).length} words  
+Analysis Chunks: ${chunkResults.length}  
+Final Score: ${avgScore}/100
 
-## CHUNK ANALYSES
+CHUNK ANALYSES
 
-${chunkResults.map((result, i) => `### CHUNK ${i + 1} (Score: ${result.finalScore}/100)
+${chunkResults.map((result, i) => `CHUNK ${i + 1} (Score: ${result.finalScore}/100)
 ${result.formattedReport}
 
 ---`).join('\n\n')}
 
-## AMALGAMATED SUMMARY
+AMALGAMATED SUMMARY
 This analysis processed ${chunkResults.length} text chunks with individual scores ranging from ${Math.min(...chunkResults.map(r => r.finalScore))} to ${Math.max(...chunkResults.map(r => r.finalScore))}, resulting in an overall ${mode} assessment of ${avgScore}/100.`;
 
   return {

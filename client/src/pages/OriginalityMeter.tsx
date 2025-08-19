@@ -389,10 +389,10 @@ export default function OriginalityMeter() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="prose max-w-none">
-                <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed bg-gray-50 p-4 rounded-lg overflow-auto max-h-[600px]">
+              <div className="max-w-none">
+                <div className="whitespace-pre-wrap font-sans text-sm leading-relaxed bg-white p-6 rounded-lg border overflow-auto max-h-[600px] text-black">
                   {'finalReport' in result ? result.finalReport : result.formattedReport}
-                </pre>
+                </div>
               </div>
             </CardContent>
           </Card>
