@@ -319,6 +319,11 @@ export async function performIntelligenceComparison(
   // Create comprehensive reports using the formatted reports from 4-phase evaluation
   const reportA = evaluationA.formattedReport;
   const reportB = evaluationB.formattedReport;
+  
+  console.log(`Report A length: ${reportA?.length || 0} chars`);
+  console.log(`Report B length: ${reportB?.length || 0} chars`);
+  console.log(`Report A preview: ${reportA?.substring(0, 200) || 'EMPTY'}...`);
+  console.log(`Report B preview: ${reportB?.substring(0, 200) || 'EMPTY'}...`);
 
 
 
