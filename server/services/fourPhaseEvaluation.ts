@@ -550,18 +550,6 @@ async function callLLMForPhase(provider: LLMProvider, prompt: string): Promise<s
 }
 
 /**
- * Extract intelligence score from text response
- */
-function extractScore(text: string): number | null {
-  const scoreMatches = text.match(/(\d+)\/100/g);
-  if (scoreMatches && scoreMatches.length > 0) {
-    const scores = scoreMatches.map(match => parseInt(match.match(/(\d+)/)?.[1] || '0'));
-    return Math.max(...scores);
-  }
-  return null;
-}
-
-/**
  * Perform the exact 4-phase intelligence evaluation protocol for TWO documents (dual comparison)
  */
 export async function performDual4PhaseEvaluation(textA: string, textB: string, provider: LLMProvider, quickMode: boolean = true): Promise<{
