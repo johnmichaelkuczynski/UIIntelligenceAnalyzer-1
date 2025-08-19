@@ -836,6 +836,32 @@ export async function registerRoutes(app: Express): Promise<Express> {
 
   // ORIGINALITY METER API ENDPOINTS
   
+  // Document upload endpoint
+  app.post('/api/upload-document', upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+
+      console.log(`Processing uploaded file: ${req.file.originalname}`);
+      
+      const documentInput = await extractTextFromFile(req.file);
+      
+      return res.json({
+        success: true,
+        filename: req.file.originalname,
+        content: documentInput.content,
+        metadata: documentInput.metadata
+      });
+    } catch (error: any) {
+      console.error("Error processing uploaded file:", error);
+      return res.status(500).json({ 
+        error: "Failed to process uploaded file",
+        message: error.message 
+      });
+    }
+  });
+
   // Single document evaluation
   app.post('/api/originality/evaluate', async (req, res) => {
     try {

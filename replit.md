@@ -1,7 +1,7 @@
 # Cognitive Analysis Platform
 
 ## Overview
-This platform analyzes written text to assess the intelligence and cognitive fingerprint of authors using multi-model AI evaluation. It offers document analysis, AI detection, text rewriting, translation, and comprehensive cognitive profiling. The project aims to provide deep insights into cognitive abilities and thought processes from written content.
+The Originality Meter is a specialized evaluation platform that assesses written text across four distinct modes: Originality, Intelligence, Cogency, and Overall Quality. Using rigorous analytical protocols with multiple LLM providers, it provides comprehensive document analysis with both quick (30-second) and comprehensive (4-phase) evaluation options. The platform supports file uploads and handles large documents through intelligent chunked processing.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
