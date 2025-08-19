@@ -9,19 +9,20 @@ import RewritePage from "@/pages/RewritePage";
 import WebSearchPage from "@/pages/WebSearchPage";
 import SimpleDirectPage from "@/pages/SimpleDirectPage";
 import { AnalyticsPage } from "@/pages/AnalyticsPage";
+import OriginalityMeter from "@/pages/OriginalityMeter";
 import NotFound from "@/pages/not-found";
-import { BrainCircuit, Languages, FileEdit, Globe, Bot, Brain } from "lucide-react";
+import { BrainCircuit, Languages, FileEdit, Globe, Bot, Brain, Lightbulb } from "lucide-react";
 
 function Navigation() {
   return (
     <nav className="bg-primary text-primary-foreground py-4">
       <div className="container mx-auto flex justify-between items-center">
-        <div className="font-bold text-xl">Cognitive Analysis Platform</div>
+        <div className="font-bold text-xl">Originality Meter</div>
         <ul className="flex gap-6">
           <li>
             <Link href="/" className="flex items-center gap-2 hover:underline">
-              <BrainCircuit className="h-5 w-5" />
-              <span>Intelligence Analysis</span>
+              <Lightbulb className="h-5 w-5" />
+              <span>Originality Meter</span>
             </Link>
           </li>
           <li>
@@ -47,7 +48,7 @@ function Router() {
     <>
       <Navigation />
       <Switch>
-        <Route path="/" component={HomePage} />
+        <Route path="/" component={OriginalityMeter} />
         <Route path="/analytics" component={AnalyticsPage} />
         <Route path="/direct" component={SimpleDirectPage} />
         <Route component={NotFound} />

@@ -834,5 +834,55 @@ export async function registerRoutes(app: Express): Promise<Express> {
     }
   });
 
+  // ORIGINALITY METER API ENDPOINTS
+  
+  // Single document evaluation
+  app.post('/api/originality/evaluate', async (req, res) => {
+    try {
+      const { text, provider = 'anthropic', mode = 'originality', comprehensive = false } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({ error: "Text is required" });
+      }
+      
+      const { evaluateDocument } = await import('./services/originalityMeter');
+      const result = await evaluateDocument(text, provider, mode, comprehensive);
+      
+      console.log(`${comprehensive ? 'Comprehensive' : 'Quick'} ${mode} evaluation complete - Score: ${result.finalScore}/100`);
+      
+      return res.json(result);
+    } catch (error: any) {
+      console.error("Error in originality evaluation:", error);
+      return res.status(500).json({ 
+        error: "Failed to perform originality evaluation",
+        message: error.message 
+      });
+    }
+  });
+
+  // Dual document evaluation
+  app.post('/api/originality/evaluate-dual', async (req, res) => {
+    try {
+      const { textA, textB, provider = 'anthropic', mode = 'originality', comprehensive = false } = req.body;
+      
+      if (!textA || !textB) {
+        return res.status(400).json({ error: "Both documents are required" });
+      }
+      
+      const { evaluateDualDocuments } = await import('./services/originalityMeter');
+      const result = await evaluateDualDocuments(textA, textB, provider, mode, comprehensive);
+      
+      console.log(`Dual ${mode} evaluation complete - Doc A: ${result.documentAScore}/100, Doc B: ${result.documentBScore}/100`);
+      
+      return res.json(result);
+    } catch (error: any) {
+      console.error("Error in dual originality evaluation:", error);
+      return res.status(500).json({ 
+        error: "Failed to perform dual originality evaluation",
+        message: error.message 
+      });
+    }
+  });
+
   return app;
 }
