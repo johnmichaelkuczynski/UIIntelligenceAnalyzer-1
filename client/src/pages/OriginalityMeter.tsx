@@ -6,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Download, Upload, Brain, Lightbulb, Scale, Target } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, Download, Upload, Brain, Lightbulb, Scale, Target, FileText } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -50,8 +51,35 @@ export default function OriginalityMeter() {
   const [textA, setTextA] = useState('');
   const [textB, setTextB] = useState('');
   const [result, setResult] = useState<OriginalityResult | DualOriginalityResult | null>(null);
+  const [uploadingA, setUploadingA] = useState(false);
+  const [uploadingB, setUploadingB] = useState(false);
 
   const queryClient = useQueryClient();
+
+  const handleFileUpload = async (file: File, setTextFunction: (text: string) => void, setUploading: (loading: boolean) => void) => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload-document', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload file');
+      }
+
+      const data = await response.json();
+      setTextFunction(data.content);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      alert('Failed to upload file. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const singleEvaluationMutation = useMutation({
     mutationFn: async (data: { text: string; provider: LLMProvider; mode: EvaluationMode; comprehensive: boolean }) => {
@@ -203,6 +231,8 @@ export default function OriginalityMeter() {
 
             <Alert className="mb-6">
               <AlertDescription>
+                <strong>File Upload:</strong> Supports .txt, .pdf, .docx, .doc files
+                <br />
                 <strong>Quick Mode:</strong> Fast evaluation using core questions (~30 seconds)
                 <br />
                 <strong>Comprehensive Mode:</strong> Full 4-phase rigorous analysis protocol
@@ -223,18 +253,32 @@ export default function OriginalityMeter() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Textarea
-                placeholder="Paste your text here for analysis..."
-                value={textA}
-                onChange={(e) => setTextA(e.target.value)}
-                className="min-h-[300px] resize-none"
-              />
-              <p className="text-sm text-gray-500 mt-2">
-                Word count: {textA.split(/\s+/).filter(w => w).length}
-                {textA.split(/\s+/).filter(w => w).length > 1000 && (
-                  <Badge variant="secondary" className="ml-2">Will use chunked processing</Badge>
-                )}
-              </p>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    accept=".txt,.pdf,.docx,.doc"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileUpload(file, setTextA, setUploadingA);
+                    }}
+                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                  />
+                  {uploadingA && <Loader2 className="w-4 h-4 animate-spin" />}
+                </div>
+                <Textarea
+                  placeholder="Upload a file above or paste your text here for analysis..."
+                  value={textA}
+                  onChange={(e) => setTextA(e.target.value)}
+                  className="min-h-[300px] resize-none"
+                />
+                <p className="text-sm text-gray-500">
+                  Word count: {textA.split(/\s+/).filter(w => w).length}
+                  {textA.split(/\s+/).filter(w => w).length > 1000 && (
+                    <Badge variant="secondary" className="ml-2">Will use chunked processing</Badge>
+                  )}
+                </p>
+              </div>
             </CardContent>
           </Card>
 
@@ -247,18 +291,32 @@ export default function OriginalityMeter() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Textarea
-                  placeholder="Paste your second text here for comparison..."
-                  value={textB}
-                  onChange={(e) => setTextB(e.target.value)}
-                  className="min-h-[300px] resize-none"
-                />
-                <p className="text-sm text-gray-500 mt-2">
-                  Word count: {textB.split(/\s+/).filter(w => w).length}
-                  {textB.split(/\s+/).filter(w => w).length > 1000 && (
-                    <Badge variant="secondary" className="ml-2">Will use chunked processing</Badge>
-                  )}
-                </p>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      accept=".txt,.pdf,.docx,.doc"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(file, setTextB, setUploadingB);
+                      }}
+                      className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                    />
+                    {uploadingB && <Loader2 className="w-4 h-4 animate-spin" />}
+                  </div>
+                  <Textarea
+                    placeholder="Upload a file above or paste your second text here for comparison..."
+                    value={textB}
+                    onChange={(e) => setTextB(e.target.value)}
+                    className="min-h-[300px] resize-none"
+                  />
+                  <p className="text-sm text-gray-500">
+                    Word count: {textB.split(/\s+/).filter(w => w).length}
+                    {textB.split(/\s+/).filter(w => w).length > 1000 && (
+                      <Badge variant="secondary" className="ml-2">Will use chunked processing</Badge>
+                    )}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           )}
