@@ -222,7 +222,7 @@ This comprehensive evaluation processed ${chunkResults.length} text segments wit
  * Perform the exact 4-phase intelligence evaluation protocol (single text)
  */
 async function performSingle4PhaseEvaluation(text: string, provider: LLMProvider): Promise<FourPhaseResult> {
-  // PHASE 1: Initial assessment with Sniper Amendment
+  // PHASE 1: Initial assessment with the exact protocol from specification
   const phase1Prompt = `Before answering the questions, note the following non-negotiable standard:
 
 Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
@@ -264,6 +264,8 @@ YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU 
 YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
 
 IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
+
+THINK VERY VERY VERY HARD ABOUT YOUR ANSWERS; DO NOT DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
 
 TEXT:
 ${text}
@@ -385,6 +387,107 @@ ${phase4Response}
     finalScore,
     formattedReport
   };
+}
+
+/**
+ * Perform the exact 4-phase intelligence evaluation protocol for TWO documents (dual comparison)
+ */
+export async function performDual4PhaseEvaluation(textA: string, textB: string, provider: LLMProvider): Promise<{
+  documentAScore: number;
+  documentBScore: number;
+  documentAReport: string;
+  documentBReport: string;
+  comparisonAnalysis: string;
+  finalReport: string;
+}> {
+  try {
+    console.log(`Starting dual 4-phase evaluation with ${provider}`);
+    
+    // Determine if we need chunking for either document
+    const needsChunkingA = textA.length > CHUNK_THRESHOLD;
+    const needsChunkingB = textB.length > CHUNK_THRESHOLD;
+    
+    // Evaluate Document A
+    console.log("Evaluating Document A...");
+    const resultA = needsChunkingA 
+      ? await performChunked4PhaseEvaluation(textA, provider)
+      : await performSingle4PhaseEvaluation(textA, provider);
+    
+    // Delay between evaluations to avoid rate limiting
+    await delay(DELAY_BETWEEN_CHUNKS);
+    
+    // Evaluate Document B
+    console.log("Evaluating Document B...");
+    const resultB = needsChunkingB 
+      ? await performChunked4PhaseEvaluation(textB, provider)
+      : await performSingle4PhaseEvaluation(textB, provider);
+    
+    // Generate comparative analysis using the same 4-phase protocol
+    console.log("Generating comparative analysis...");
+    const comparisonPrompt = `Using the 4-phase intelligence evaluation protocol, compare these two documents:
+
+DOCUMENT A EVALUATION RESULT:
+Score: ${resultA.finalScore}/100
+${resultA.formattedReport}
+
+DOCUMENT B EVALUATION RESULT:
+Score: ${resultB.finalScore}/100
+${resultB.formattedReport}
+
+COMPARATIVE ANALYSIS INSTRUCTIONS:
+Analyze which document demonstrates superior intelligence according to the established criteria:
+- Insightfulness and depth of analysis
+- Logical structure and coherence
+- Originality and freshness of ideas
+- Technical precision vs obfuscation
+- Organic development of concepts
+- System-level control over ideas
+
+Provide a detailed comparative analysis explaining why one document scores higher than the other, citing specific examples from each text.
+
+**FINAL COMPARISON SCORE:**
+Document A: ${resultA.finalScore}/100
+Document B: ${resultB.finalScore}/100
+Winner: Document ${resultA.finalScore > resultB.finalScore ? 'A' : resultB.finalScore > resultA.finalScore ? 'B' : 'Tie'}`;
+    
+    const comparisonResponse = await callLLM(provider, comparisonPrompt);
+    
+    const finalReport = `# Dual Document Intelligence Evaluation Report
+
+## Document A Analysis
+**Final Score: ${resultA.finalScore}/100**
+
+${resultA.formattedReport}
+
+---
+
+## Document B Analysis
+**Final Score: ${resultB.finalScore}/100**
+
+${resultB.formattedReport}
+
+---
+
+## Comparative Analysis
+${comparisonResponse}
+
+---
+
+**Final Judgment:** Document ${resultA.finalScore > resultB.finalScore ? 'A' : resultB.finalScore > resultA.finalScore ? 'B' : 'Both documents show equal'} demonstrates superior intelligence with rigorous 4-phase evaluation.`;
+
+    return {
+      documentAScore: resultA.finalScore,
+      documentBScore: resultB.finalScore,
+      documentAReport: resultA.formattedReport,
+      documentBReport: resultB.formattedReport,
+      comparisonAnalysis: comparisonResponse,
+      finalReport
+    };
+    
+  } catch (error) {
+    console.error("Error in dual 4-phase evaluation:", error);
+    throw error;
+  }
 }
 
 /**

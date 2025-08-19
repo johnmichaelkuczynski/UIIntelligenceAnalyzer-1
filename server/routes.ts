@@ -264,7 +264,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
     }
   });
 
-  // Intelligence comparison for two documents using 3-phase protocol
+  // Intelligence comparison for two documents using 4-phase protocol
   app.post("/api/intelligence-compare", async (req: Request, res: Response) => {
     try {
       const { documentA, documentB, provider = "deepseek" } = req.body;
@@ -273,27 +273,26 @@ export async function registerRoutes(app: Express): Promise<Express> {
         return res.status(400).json({ error: "Both documents are required for intelligence comparison" });
       }
       
-      // Import the new document comparison service with 3-phase protocol
-      const { compareDocuments } = await import('./services/documentComparison');
-      const { parseIntelligenceResponse } = await import('./services/responseParser');
+      // Import the 4-phase evaluation service
+      const { performDual4PhaseEvaluation } = await import('./services/fourPhaseEvaluation');
       
-      // Compare intelligence levels using the selected provider
-      console.log(`COMPARING INTELLIGENCE WITH ${provider.toUpperCase()}`);
-      const comparisonResult = await compareDocuments(
-        documentA.content || documentA, 
-        documentB.content || documentB, 
-        provider
-      );
+      // Extract text content from documents
+      const textA = documentA.content || documentA;
+      const textB = documentB.content || documentB;
       
-      // Create mock analysis objects for frontend compatibility
+      // Compare intelligence levels using the 4-phase protocol
+      console.log(`COMPARING INTELLIGENCE WITH 4-PHASE PROTOCOL USING ${provider.toUpperCase()}`);
+      const evaluationResult = await performDual4PhaseEvaluation(textA, textB, provider);
+      
+      // Create properly formatted analysis objects with comprehensive reports
       const analysisA = {
         id: 0,
         documentId: 0,
         provider: provider,
-        formattedReport: `Document A analysis completed with score: ${comparisonResult.documentAScore}/100`,
-        overallScore: comparisonResult.documentAScore,
-        surface: { score: comparisonResult.documentAScore },
-        deep: { score: comparisonResult.documentAScore },
+        formattedReport: evaluationResult.documentAReport,
+        overallScore: evaluationResult.documentAScore,
+        surface: { score: evaluationResult.documentAScore },
+        deep: { score: evaluationResult.documentAScore },
         dimensions: [],
         analysis: {}
       };
@@ -302,21 +301,21 @@ export async function registerRoutes(app: Express): Promise<Express> {
         id: 1,
         documentId: 1,
         provider: provider,
-        formattedReport: `Document B analysis completed with score: ${comparisonResult.documentBScore}/100`,
-        overallScore: comparisonResult.documentBScore,
-        surface: { score: comparisonResult.documentBScore },
-        deep: { score: comparisonResult.documentBScore },
+        formattedReport: evaluationResult.documentBReport,
+        overallScore: evaluationResult.documentBScore,
+        surface: { score: evaluationResult.documentBScore },
+        deep: { score: evaluationResult.documentBScore },
         dimensions: [],
         analysis: {}
       };
       
       const comparison = {
-        winnerDocument: comparisonResult.winnerDocument,
-        documentAScore: comparisonResult.documentAScore,
-        documentBScore: comparisonResult.documentBScore,
-        comparisonAnalysis: comparisonResult.comparisonAnalysis,
-        detailedBreakdown: comparisonResult.detailedBreakdown,
-        finalJudgment: `Document ${comparisonResult.winnerDocument} demonstrates superior intelligence with a score of ${comparisonResult.winnerDocument === 'A' ? comparisonResult.documentAScore : comparisonResult.documentBScore}/100 compared to ${comparisonResult.winnerDocument === 'A' ? comparisonResult.documentBScore : comparisonResult.documentAScore}/100.`
+        winnerDocument: evaluationResult.documentAScore > evaluationResult.documentBScore ? 'A' : 'B',
+        documentAScore: evaluationResult.documentAScore,
+        documentBScore: evaluationResult.documentBScore,
+        comparisonAnalysis: evaluationResult.comparisonAnalysis,
+        detailedBreakdown: evaluationResult.finalReport,
+        finalJudgment: `Document ${evaluationResult.documentAScore > evaluationResult.documentBScore ? 'A' : 'B'} demonstrates superior intelligence with a score of ${Math.max(evaluationResult.documentAScore, evaluationResult.documentBScore)}/100 compared to ${Math.min(evaluationResult.documentAScore, evaluationResult.documentBScore)}/100.`
       };
       
       return res.json({
@@ -325,7 +324,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         comparison
       });
     } catch (error: any) {
-      console.error("Error comparing intelligence:", error);
+      console.error("Error comparing intelligence with 4-phase protocol:", error);
       return res.status(500).json({ 
         error: true, 
         message: error.message || "Failed to compare intelligence" 
