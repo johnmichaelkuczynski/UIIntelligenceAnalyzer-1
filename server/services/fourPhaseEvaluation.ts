@@ -403,9 +403,9 @@ export async function performDual4PhaseEvaluation(textA: string, textB: string, 
   try {
     console.log(`Starting dual 4-phase evaluation with ${provider}`);
     
-    // Determine if we need chunking for either document
-    const needsChunkingA = textA.length > CHUNK_THRESHOLD;
-    const needsChunkingB = textB.length > CHUNK_THRESHOLD;
+    // Determine if we need chunking for either document (using 3000 char threshold)
+    const needsChunkingA = textA.length > 3000;
+    const needsChunkingB = textB.length > 3000;
     
     // Evaluate Document A
     console.log("Evaluating Document A...");
@@ -413,8 +413,8 @@ export async function performDual4PhaseEvaluation(textA: string, textB: string, 
       ? await performChunked4PhaseEvaluation(textA, provider)
       : await performSingle4PhaseEvaluation(textA, provider);
     
-    // Delay between evaluations to avoid rate limiting
-    await delay(DELAY_BETWEEN_CHUNKS);
+    // Delay between evaluations to avoid rate limiting (10 seconds)
+    await delay(10000);
     
     // Evaluate Document B
     console.log("Evaluating Document B...");
