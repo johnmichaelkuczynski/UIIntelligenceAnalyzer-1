@@ -764,7 +764,8 @@ export async function directOpenAIAnalyze(textInput: string): Promise<any> {
 
       return {
         provider: "OpenAI (GPT-4o) - 4-Phase Analysis",
-        formattedReport: detailedReport
+        formattedReport: detailedReport,
+        overallScore: comprehensiveResult.finalScore
       };
     } catch (error: any) {
       // Handle OpenAI API errors
@@ -1047,28 +1048,12 @@ export async function directPerplexityAnalyze(textInput: string): Promise<any> {
       
       // Perform comprehensive 4-phase evaluation
       console.log("Performing comprehensive 4-phase intelligence evaluation...");
-      const comprehensiveResult = await performComprehensiveEvaluation("perplexity", text);
+      const comprehensiveResult = await perform4PhaseEvaluation(text, "perplexity");
       
-      // Create detailed report with all phases
-      const detailedReport = `**COMPREHENSIVE INTELLIGENCE EVALUATION**
-
-**PHASE 1 - INITIAL ASSESSMENT:**
-${comprehensiveResult.phase1}
-
-**PHASE 2 - ANALYTICAL QUESTIONING:**
-${comprehensiveResult.phase2}
-
-**PHASE 3 - REVISION AND RECONCILIATION:**
-${comprehensiveResult.phase3}
-
-${comprehensiveResult.phase4 ? `**PHASE 4 - FINAL PUSHBACK:**
-${comprehensiveResult.phase4}` : '**PHASE 4:** No pushback required (score ≥ 95/100)'}
-
-**FINAL SCORE:** ${comprehensiveResult.finalScore}/100`;
-
       return {
         provider: "Perplexity (Sonar) - 4-Phase Analysis",
-        formattedReport: detailedReport
+        formattedReport: comprehensiveResult.formattedReport,
+        overallScore: comprehensiveResult.finalScore
       };
     } catch (error: any) {
       console.error(`Error in direct passthrough to Perplexity:`, error);

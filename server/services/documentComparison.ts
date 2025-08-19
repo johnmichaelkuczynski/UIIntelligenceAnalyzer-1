@@ -16,15 +16,29 @@ interface ThreePhaseResult {
 }
 
 /**
- * Simplified 3-Phase Intelligence Evaluation Protocol
+ * Use the standardized 4-Phase Intelligence Evaluation Protocol
  */
 async function performThreePhaseAnalysis(
   text: string,
   provider: LLMProvider
 ): Promise<ThreePhaseResult> {
   
-  // PHASE 1: Core analytical questions
-  const phase1Prompt = `Answer these questions in connection with this text:
+  // Import and use the standardized 4-phase evaluation
+  const { perform4PhaseEvaluation } = await import('./fourPhaseEvaluation');
+  
+  try {
+    const result = await perform4PhaseEvaluation(text, provider);
+    return {
+      phase1: result.phase1,
+      phase2: result.phase2,
+      phase3: result.phase3,
+      finalScore: result.finalScore
+    };
+  } catch (error) {
+    console.error(`Error in 4-phase evaluation for ${provider}:`, error);
+    
+    // Fallback to basic evaluation if 4-phase fails
+    const phase1Prompt = `Answer these questions in connection with this text:
 
 IS IT INSIGHTFUL?
 DOES IT DEVELOP POINTS? (OR, IF IT IS A SHORT EXCERPT, IS THERE EVIDENCE THAT IT WOULD DEVELOP POINTS IF EXTENDED)?
@@ -60,16 +74,16 @@ Give a score out of 100.
 TEXT:
 ${text}`;
 
-  let phase1Response = await callLLM(provider, phase1Prompt);
-  
-  // Extract initial score
-  const scoreMatch = phase1Response.match(/(\d+)\/100/);
-  const initialScore = scoreMatch ? parseInt(scoreMatch[1]) : 75;
-  
-  // PHASE 2: Pushback if score < 95
-  let phase2Response = "";
-  if (initialScore < 95) {
-    const phase2Prompt = `Your position is that ${100-initialScore} out of 100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that?
+    let phase1Response = await callLLM(provider, phase1Prompt);
+    
+    // Extract initial score
+    const scoreMatch = phase1Response.match(/(\d+)\/100/);
+    const initialScore = scoreMatch ? parseInt(scoreMatch[1]) : 75;
+    
+    // PHASE 2: Pushback if score < 95
+    let phase2Response = "";
+    if (initialScore < 95) {
+      const phase2Prompt = `Your position is that ${100-initialScore} out of 100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that?
 
 Answer the following questions about the text DE NOVO:
 IS IT INSIGHTFUL?
@@ -106,12 +120,13 @@ Consider carefully whether your score accurately reflects the cognitive sophisti
   const finalScoreMatch = phase3Response.match(/(\d+)\/100/);
   const finalScore = finalScoreMatch ? parseInt(finalScoreMatch[1]) : initialScore;
 
-  return {
-    phase1: phase1Response,
-    phase2: phase2Response,
-    phase3: phase3Response,
-    finalScore: finalScore
-  };
+    return {
+      phase1: phase1Response,
+      phase2: phase2Response,
+      phase3: phase3Response,
+      finalScore: finalScore
+    };
+  }
 }
 
 /**

@@ -29,18 +29,15 @@ export interface ParsedAnalysis {
  * Parse intelligence score from AI response text
  */
 export function extractIntelligenceScore(text: string): number | null {
-  // Extract only from the new structured format
-  const patterns = [
-    /🧠\s*Final Intelligence Score:\s*(\d+)\/100/i,
-    /Final Intelligence Score:\s*(\d+)\/100/i,
-    /Intelligence Score:\s*(\d+)\/100/i,
-    /Overall Score:\s*(\d+)\/100/i,
-    /Intelligence Level:\s*(\d+)/i,
-    /Cognitive Score:\s*(\d+)/i,
-    /Percentile:\s*Author outperforms\s*(\d+)%/i
+  // Extract from 4-phase evaluation format FIRST (highest priority)
+  const phasePatterns = [
+    /\*\*FINAL SCORE:\s*(\d+)\/100\*\*/i,
+    /FINAL SCORE:\s*(\d+)\/100/i,
+    /Final Score:\s*(\d+)\/100/i,
+    /Overall Score:\s*(\d+)\/100/i
   ];
   
-  for (const pattern of patterns) {
+  for (const pattern of phasePatterns) {
     const match = text.match(pattern);
     if (match) {
       const score = parseInt(match[1], 10);
@@ -50,10 +47,30 @@ export function extractIntelligenceScore(text: string): number | null {
     }
   }
   
-  // Look for any number between 0-100 in context of intelligence/score
-  const contextualMatch = text.match(/(?:intelligence|cognitive|score|assessment).*?(\d{1,3})(?!\d)/i);
-  if (contextualMatch) {
-    const score = parseInt(contextualMatch[1], 10);
+  // Extract from structured format (secondary priority)
+  const structuredPatterns = [
+    /🧠\s*Final Intelligence Score:\s*(\d+)\/100/i,
+    /Final Intelligence Score:\s*(\d+)\/100/i,
+    /Intelligence Score:\s*(\d+)\/100/i,
+    /Intelligence Level:\s*(\d+)/i,
+    /Cognitive Score:\s*(\d+)/i,
+    /Percentile:\s*Author outperforms\s*(\d+)%/i
+  ];
+  
+  for (const pattern of structuredPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const score = parseInt(match[1], 10);
+      if (score >= 0 && score <= 100) {
+        return score;
+      }
+    }
+  }
+  
+  // Look for any number/100 pattern (fallback)
+  const scoreMatch = text.match(/(\d+)\/100/);
+  if (scoreMatch) {
+    const score = parseInt(scoreMatch[1], 10);
     if (score >= 0 && score <= 100) {
       return score;
     }
