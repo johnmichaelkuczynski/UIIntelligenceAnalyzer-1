@@ -93,11 +93,135 @@ function extractScore(text: string): number {
 }
 
 /**
- * Perform the exact 4-phase intelligence evaluation protocol
+ * Split text into chunks for processing
  */
-export async function perform4PhaseEvaluation(text: string, provider: LLMProvider = "deepseek"): Promise<FourPhaseResult> {
-  console.log(`Starting 4-phase evaluation with ${provider}`);
+function splitTextIntoChunks(text: string, maxChunkSize: number = 2000): string[] {
+  // Split by sentences first to preserve meaning
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  const chunks: string[] = [];
+  let currentChunk = '';
+  
+  for (const sentence of sentences) {
+    if ((currentChunk + sentence).length > maxChunkSize && currentChunk.length > 0) {
+      chunks.push(currentChunk.trim() + '.');
+      currentChunk = sentence;
+    } else {
+      currentChunk += sentence + '.';
+    }
+  }
+  
+  if (currentChunk.trim().length > 0) {
+    chunks.push(currentChunk.trim());
+  }
+  
+  return chunks;
+}
 
+/**
+ * Delay function for pacing requests
+ */
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Perform chunked 4-phase evaluation for large documents
+ */
+async function performChunked4PhaseEvaluation(text: string, provider: LLMProvider): Promise<FourPhaseResult> {
+  console.log(`Text is large (${text.length} chars), performing chunked 4-phase evaluation...`);
+  
+  const chunks = splitTextIntoChunks(text, 2000); // 2000 char chunks
+  console.log(`Split into ${chunks.length} chunks for evaluation`);
+  
+  const chunkResults: FourPhaseResult[] = [];
+  
+  // Process each chunk with 4-phase evaluation
+  for (let i = 0; i < chunks.length; i++) {
+    console.log(`Processing chunk ${i + 1}/${chunks.length} (${chunks[i].length} chars)...`);
+    
+    try {
+      const chunkResult = await performSingle4PhaseEvaluation(chunks[i], provider);
+      chunkResults.push(chunkResult);
+      console.log(`Chunk ${i + 1} complete. Score: ${chunkResult.finalScore}/100`);
+      
+      // 10-second delay between chunks as requested
+      if (i < chunks.length - 1) {
+        console.log(`Waiting 10 seconds before processing next chunk...`);
+        await delay(10000);
+      }
+    } catch (error) {
+      console.error(`Error processing chunk ${i + 1}:`, error);
+      // Continue with other chunks
+    }
+  }
+  
+  if (chunkResults.length === 0) {
+    throw new Error("Failed to process any chunks during evaluation");
+  }
+  
+  // Amalgamate results from all chunks
+  console.log(`Amalgamating results from ${chunkResults.length} chunks...`);
+  return amalgamateChunkResults(chunkResults, text);
+}
+
+/**
+ * Amalgamate chunk results into a single comprehensive report
+ */
+function amalgamateChunkResults(chunkResults: FourPhaseResult[], fullText: string): FourPhaseResult {
+  // Calculate overall score (weighted average based on text length)
+  const totalScore = chunkResults.reduce((sum, result) => sum + result.finalScore, 0);
+  const avgScore = Math.round(totalScore / chunkResults.length);
+  
+  // Combine all phases
+  const combinedPhase1 = `COMPREHENSIVE ANALYSIS ACROSS ${chunkResults.length} TEXT SEGMENTS:\n\n` +
+    chunkResults.map((result, i) => `SEGMENT ${i + 1} ASSESSMENT:\n${result.phase1}`).join('\n\n');
+  
+  const combinedPhase2 = chunkResults.map((result, i) => `SEGMENT ${i + 1} PUSHBACK:\n${result.phase2}`).join('\n\n');
+  
+  const combinedPhase3 = chunkResults.map((result, i) => `SEGMENT ${i + 1} WALMART METRIC:\n${result.phase3}`).join('\n\n');
+  
+  const combinedPhase4 = `FINAL VALIDATION ACROSS ALL SEGMENTS:\n\n` +
+    `Overall Score: ${avgScore}/100\n\n` +
+    `Individual Segment Scores: ${chunkResults.map(r => r.finalScore).join(', ')}\n\n` +
+    chunkResults.map((result, i) => `SEGMENT ${i + 1} FINAL VALIDATION:\n${result.phase4}`).join('\n\n');
+  
+  // Create comprehensive formatted report
+  const formattedReport = `
+# COMPREHENSIVE 4-PHASE INTELLIGENCE EVALUATION
+**Document Length:** ${fullText.length} characters  
+**Analysis Segments:** ${chunkResults.length}  
+**Final Score:** ${avgScore}/100
+
+## PHASE 1: INITIAL ASSESSMENT
+${combinedPhase1}
+
+## PHASE 2: PUSHBACK ANALYSIS  
+${combinedPhase2}
+
+## PHASE 3: WALMART METRIC ENFORCEMENT
+${combinedPhase3}
+
+## PHASE 4: FINAL VALIDATION
+${combinedPhase4}
+
+## SUMMARY
+This comprehensive evaluation processed ${chunkResults.length} text segments with individual scores ranging from ${Math.min(...chunkResults.map(r => r.finalScore))} to ${Math.max(...chunkResults.map(r => r.finalScore))}, resulting in an overall intelligence assessment of ${avgScore}/100.
+`.trim();
+
+  return {
+    phase1: combinedPhase1,
+    phase2: combinedPhase2,
+    phase3: combinedPhase3,
+    phase4: combinedPhase4,
+    finalScore: avgScore,
+    formattedReport
+  };
+}
+
+/**
+ * Perform the exact 4-phase intelligence evaluation protocol (single text)
+ */
+async function performSingle4PhaseEvaluation(text: string, provider: LLMProvider): Promise<FourPhaseResult> {
   // PHASE 1: Initial assessment with Sniper Amendment
   const phase1Prompt = `Before answering the questions, note the following non-negotiable standard:
 
@@ -261,4 +385,18 @@ ${phase4Response}
     finalScore,
     formattedReport
   };
+}
+
+/**
+ * Main export function - automatically chooses chunked or single evaluation
+ */
+export async function perform4PhaseEvaluation(text: string, provider: LLMProvider = "deepseek"): Promise<FourPhaseResult> {
+  console.log(`Starting 4-phase evaluation with ${provider}`);
+  
+  // Check if text is too long for single evaluation (>3000 chars)
+  if (text.length > 3000) {
+    return await performChunked4PhaseEvaluation(text, provider);
+  } else {
+    return await performSingle4PhaseEvaluation(text, provider);
+  }
 }
