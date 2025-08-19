@@ -242,7 +242,10 @@ Please reconsider your assessment and provide a revised score.`;
   let revisedScore = phase1Score;
   
   if (allScoresInPhase2.length > 0) {
-    const scores = allScoresInPhase2.map(s => parseInt(s.match(/(\d+)/)[1]));
+    const scores = allScoresInPhase2.map(s => {
+      const match = s.match(/(\d+)/);
+      return match ? parseInt(match[1]) : 0;
+    });
     revisedScore = Math.max(...scores, phase1Score);
   }
   
@@ -265,7 +268,10 @@ Are your numerical scores (${currentScore}/100) consistent with the fact that ${
   let finalScore = currentScore;
   
   if (allScoresInPhase3.length > 0) {
-    const scores = allScoresInPhase3.map(s => parseInt(s.match(/(\d+)/)[1]));
+    const scores = allScoresInPhase3.map(s => {
+      const match = s.match(/(\d+)/);
+      return match ? parseInt(match[1]) : 0;
+    });
     finalScore = Math.max(...scores, currentScore);
   }
 
@@ -300,46 +306,21 @@ export async function performIntelligenceComparison(
   // Import the 4-phase evaluation function
   const { perform4PhaseEvaluation } = await import('./fourPhaseEvaluation');
   
-  // Perform 4-phase evaluation for Document A
+  // Perform 4-phase evaluation for Document A with chunking support
+  console.log(`Starting 4-phase evaluation for Document A (${documentA.length} chars)`);
   const evaluationA = await perform4PhaseEvaluation(documentA, provider);
   console.log(`Document A 4-phase score: ${evaluationA.finalScore}`);
   
-  // Perform 4-phase evaluation for Document B  
+  // Perform 4-phase evaluation for Document B with chunking support  
+  console.log(`Starting 4-phase evaluation for Document B (${documentB.length} chars)`);
   const evaluationB = await perform4PhaseEvaluation(documentB, provider);
   console.log(`Document B 4-phase score: ${evaluationB.finalScore}`);
   
-  // Create comprehensive reports
-  const reportA = `**4-PHASE INTELLIGENCE EVALUATION - DOCUMENT A**
+  // Create comprehensive reports using the formatted reports from 4-phase evaluation
+  const reportA = evaluationA.formattedReport;
+  const reportB = evaluationB.formattedReport;
 
-**PHASE 1 - ANALYTICAL QUESTIONS:**
-${evaluationA.phase1}
 
-**PHASE 2 - PUSHBACK ANALYSIS:**
-${evaluationA.phase2}
-
-**PHASE 3 - CONSISTENCY CHECK:**
-${evaluationA.phase3}
-
-**PHASE 4 - FINAL ASSESSMENT:**
-${evaluationA.phase4}
-
-**FINAL SCORE: ${evaluationA.finalScore}/100**`;
-
-  const reportB = `**4-PHASE INTELLIGENCE EVALUATION - DOCUMENT B**
-
-**PHASE 1 - ANALYTICAL QUESTIONS:**
-${evaluationB.phase1}
-
-**PHASE 2 - PUSHBACK ANALYSIS:**
-${evaluationB.phase2}
-
-**PHASE 3 - CONSISTENCY CHECK:**
-${evaluationB.phase3}
-
-**PHASE 4 - FINAL ASSESSMENT:**
-${evaluationB.phase4}
-
-**FINAL SCORE: ${evaluationB.finalScore}/100**`;
 
   // Create document analyses
   const analysisA: DocumentAnalysis = {

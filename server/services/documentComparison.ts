@@ -189,8 +189,7 @@ async function callLLM(provider: LLMProvider, prompt: string): Promise<string> {
             ],
             temperature: 0.1,
             max_tokens: 3000
-          }),
-          timeout: 60000 // 60 second timeout
+          })
         });
         
         if (!apiResponse.ok) {
@@ -336,16 +335,21 @@ export async function compareDocuments(
   documentB: string,
   provider: LLMProvider = 'openai'
 ): Promise<DocumentComparisonResult> {
-  // Use the simplified 3-phase protocol for each document
-  const analysisA = await performThreePhaseAnalysis(documentA, provider);
-  const analysisB = await performThreePhaseAnalysis(documentB, provider);
+  // Use the standardized 4-phase evaluation for both documents  
+  const { perform4PhaseEvaluation } = await import('./fourPhaseEvaluation');
   
-  console.log(`Document A 3-phase score: ${analysisA.finalScore}`);
-  console.log(`Document B 3-phase score: ${analysisB.finalScore}`);
+  console.log(`Processing Document A (${documentA.length} chars) with 4-phase evaluation...`);
+  const evaluationA = await perform4PhaseEvaluation(documentA, provider);
   
-  // Now perform comparison using the 3-phase results
+  console.log(`Processing Document B (${documentB.length} chars) with 4-phase evaluation...`);
+  const evaluationB = await perform4PhaseEvaluation(documentB, provider);
+  
+  console.log(`Document A 4-phase score: ${evaluationA.finalScore}`);
+  console.log(`Document B 4-phase score: ${evaluationB.finalScore}`);
+  
+  // Now perform comparison using the 4-phase results
   const prompt = COMPARISON_PROMPT + 
-    `\n\nIMPORTANT: Document A has been assessed at ${analysisA.finalScore}/100 and Document B at ${analysisB.finalScore}/100 using the 3-phase intelligence evaluation protocol. Use these exact scores in your comparison - do not deviate from them.\n\n` +
+    `\n\nIMPORTANT: Document A has been assessed at ${evaluationA.finalScore}/100 and Document B at ${evaluationB.finalScore}/100 using the 4-phase intelligence evaluation protocol. Use these exact scores in your comparison - do not deviate from them.\n\n` +
     "DOCUMENT A:\n" + documentA + "\n\nDOCUMENT B:\n" + documentB;
   
   // Call the LLM directly without using the analysis functions
@@ -424,7 +428,7 @@ export async function compareDocuments(
   }
   
   console.log('Raw comparison response:', response.substring(0, 500) + '...');
-  return parseComparisonResponse(response, analysisA.finalScore, analysisB.finalScore);
+  return parseComparisonResponse(response, evaluationA.finalScore, evaluationB.finalScore);
 }
 
 function parseComparisonResponse(response: string, lockedScoreA: number, lockedScoreB: number): DocumentComparisonResult {
