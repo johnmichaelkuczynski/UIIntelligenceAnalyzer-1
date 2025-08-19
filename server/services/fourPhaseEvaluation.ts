@@ -407,11 +407,39 @@ export async function performDual4PhaseEvaluation(textA: string, textB: string, 
     const needsChunkingA = textA.length > 3000;
     const needsChunkingB = textB.length > 3000;
     
-    // Evaluate Document A (with mode selection)
+    // Use the same analysis method as single document mode for consistency
     console.log("Evaluating Document A...");
     let resultA;
     if (quickMode) {
-      resultA = await performQuickAnalysis(textA, provider);
+      // Use the same directLLM analysis as single document mode
+      const { directDeepSeekAnalyze, directOpenAIAnalyze, directAnthropicAnalyze, directPerplexityAnalyze } = await import('./directLLM');
+      let directResult;
+      
+      switch (provider.toLowerCase()) {
+        case 'anthropic':
+          directResult = await directAnthropicAnalyze(textA, quickMode);
+          break;
+        case 'perplexity':
+          directResult = await directPerplexityAnalyze(textA, quickMode);
+          break;
+        case 'deepseek':
+          directResult = await directDeepSeekAnalyze(textA, quickMode);
+          break;
+        case 'openai':
+        default:
+          directResult = await directOpenAIAnalyze(textA, quickMode);
+          break;
+      }
+      
+      // Convert to FourPhaseResult format
+      resultA = {
+        phase1: directResult.formattedReport,
+        phase2: "Skipped - Quick Mode",
+        phase3: "Skipped - Quick Mode",
+        phase4: "Skipped - Quick Mode", 
+        finalScore: directResult.overallScore || 75,
+        formattedReport: directResult.formattedReport
+      };
     } else {
       resultA = needsChunkingA 
         ? await performChunked4PhaseEvaluation(textA, provider)
@@ -429,7 +457,35 @@ export async function performDual4PhaseEvaluation(textA: string, textB: string, 
     console.log("Evaluating Document B...");
     let resultB;
     if (quickMode) {
-      resultB = await performQuickAnalysis(textB, provider);
+      // Use the same directLLM analysis as single document mode
+      const { directDeepSeekAnalyze, directOpenAIAnalyze, directAnthropicAnalyze, directPerplexityAnalyze } = await import('./directLLM');
+      let directResult;
+      
+      switch (provider.toLowerCase()) {
+        case 'anthropic':
+          directResult = await directAnthropicAnalyze(textB, quickMode);
+          break;
+        case 'perplexity':
+          directResult = await directPerplexityAnalyze(textB, quickMode);
+          break;
+        case 'deepseek':
+          directResult = await directDeepSeekAnalyze(textB, quickMode);
+          break;
+        case 'openai':
+        default:
+          directResult = await directOpenAIAnalyze(textB, quickMode);
+          break;
+      }
+      
+      // Convert to FourPhaseResult format
+      resultB = {
+        phase1: directResult.formattedReport,
+        phase2: "Skipped - Quick Mode",
+        phase3: "Skipped - Quick Mode",
+        phase4: "Skipped - Quick Mode",
+        finalScore: directResult.overallScore || 75,
+        formattedReport: directResult.formattedReport
+      };
     } else {
       resultB = needsChunkingB 
         ? await performChunked4PhaseEvaluation(textB, provider)
