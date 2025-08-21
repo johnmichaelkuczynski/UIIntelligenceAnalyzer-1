@@ -17,12 +17,12 @@ function Navigation() {
   return (
     <nav className="bg-primary text-primary-foreground py-4">
       <div className="container mx-auto flex justify-between items-center">
-        <div className="font-bold text-xl">Originality Meter</div>
+        <div className="font-bold text-xl">Intelligence Meter</div>
         <ul className="flex gap-6">
           <li>
             <Link href="/" className="flex items-center gap-2 hover:underline">
               <Lightbulb className="h-5 w-5" />
-              <span>Originality Meter</span>
+              <span>Intelligence Meter</span>
             </Link>
           </li>
           <li>

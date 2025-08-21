@@ -175,7 +175,7 @@ export default function OriginalityMeter() {
                 <ModeIcon className="w-8 h-8" />
               </div>
               <CardTitle className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                Originality Meter
+                Intelligence Meter
               </CardTitle>
             </div>
             <p className="text-gray-600 text-lg">
