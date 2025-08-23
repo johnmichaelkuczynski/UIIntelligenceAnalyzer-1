@@ -45,7 +45,7 @@ const modeColors = {
 
 export default function OriginalityMeter() {
   const [documentMode, setDocumentMode] = useState<'single' | 'dual'>('single');
-  const [evaluationMode, setEvaluationMode] = useState<EvaluationMode>('originality');
+  const [evaluationMode, setEvaluationMode] = useState<EvaluationMode>('intelligence');
   const [provider, setProvider] = useState<LLMProvider>('anthropic');
   const [comprehensive, setComprehensive] = useState(false);
   const [textA, setTextA] = useState('');
@@ -175,11 +175,11 @@ export default function OriginalityMeter() {
                 <ModeIcon className="w-8 h-8" />
               </div>
               <CardTitle className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                Intelligence Meter
+                Improve Your Writing
               </CardTitle>
             </div>
             <p className="text-gray-600 text-lg">
-              Advanced {evaluationMode} evaluation using rigorous analytical protocols
+              Advanced writing analysis using rigorous analytical protocols
             </p>
           </CardHeader>
         </Card>
