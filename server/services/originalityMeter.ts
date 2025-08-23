@@ -7,7 +7,7 @@ export interface OriginalityResult {
   phase4?: string;
   finalScore: number;
   formattedReport: string;
-  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality';
+  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality' | 'psychological';
 }
 
 export interface DualOriginalityResult {
@@ -156,7 +156,7 @@ function delay(ms: number): Promise<void> {
 /**
  * Get questions for each evaluation mode
  */
-function getQuestions(mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality'): string {
+function getQuestions(mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality' | 'psychological'): string {
   switch (mode) {
     case 'originality':
       return `IS IT ORIGINAL (NOT IN THE SENSE THAT IT HAS ALREADY BEEN SAID BUT IN THE SENSE THAT ONLY A FECUND MIND COULD COME UP WITH IT)?
@@ -226,6 +226,26 @@ IS IT MR. SPOCKS SMART (ACTUALLY SMART) OR Lieutenant DATA SMART (WHAT A DUMB PE
 IS IT "SMART" IN THE SENSE THAT, FOR CULTURAL OR SOCIAL REASONS, WE WOULD PRESUME THAT ONLY A SMART PERSON WOULD DISCUSS SUCH MATTERS? OR IS IT INDEED--SMART?
 IS IT SMART BY VIRTUE BEING ARGUMENTATIVE AND SNIPPY OR BY VIRTUE OF BEING ILLUMINATING?`;
 
+    case 'psychological':
+      return `DOES THE TEXT REVEAL A STABLE, COHERENT SELF-CONCEPT, OR IS THE SELF FRAGMENTED/CONTRADICTORY?
+IS THERE EVIDENCE OF EGO STRENGTH (RESILIENCE, CAPACITY TO TOLERATE CONFLICT/AMBIGUITY), OR DOES THE PSYCHE RELY ON BRITTLE DEFENSES?
+ARE DEFENSES PRIMARILY MATURE (SUBLIMATION, HUMOR, ANTICIPATION), NEUROTIC (INTELLECTUALIZATION, REPRESSION), OR PRIMITIVE (SPLITTING, DENIAL, PROJECTION)?
+DOES THE WRITING SHOW INTEGRATION OF AFFECT AND THOUGHT, OR ARE EMOTIONS SPLIT OFF / OVERLY INTELLECTUALIZED?
+IS THE AUTHOR'S STANCE DEFENSIVE/AVOIDANT OR DIRECT/ENGAGED?
+DOES THE PSYCHE APPEAR NARCISSISTICALLY ORGANIZED (GRANDIOSITY, FRAGILE SELF-ESTEEM, HUNGER FOR VALIDATION), OR NOT?
+ARE DESIRES/DRIVES EXPRESSED OPENLY, DISPLACED, OR REPRESSED?
+DOES THE VOICE SUGGEST INTERNAL CONFLICT (SUPEREGO VS. ID, COMPETING IDENTIFICATIONS), OR MONOLITHIC CERTAINTY?
+IS THERE EVIDENCE OF OBJECT CONSTANCY (CAPACITY TO SUSTAIN NUANCED VIEW OF OTHERS) OR SPLITTING (OTHERS SEEN AS ALL-GOOD/ALL-BAD)?
+IS AGGRESSION INTEGRATED (CHANNELED PRODUCTIVELY) OR DISSOCIATED/PROJECTED?
+IS THE AUTHOR CAPABLE OF IRONY/SELF-REFLECTION, OR TRAPPED IN COMPULSIVE EARNESTNESS / DEFENSIVENESS?
+DOES THE TEXT SUGGEST PSYCHOLOGICAL GROWTH POTENTIAL (OPENNESS, CURIOSITY, CAPACITY TO METABOLIZE EXPERIENCE) OR RIGIDITY?
+IS THE DISCOURSE PARANOID / PERSECUTORY (OTHERS AS THREATS, CONSPIRACIES) OR REALITY-BASED?
+DOES THE TONE REFLECT AUTHENTIC ENGAGEMENT WITH REALITY, OR PHONY SIMULATION OF DEPTH?
+IS THE PSYCHE RESILIENT UNDER STRESS, OR FRAGILE / EVASIVE?
+IS THERE EVIDENCE OF COMPULSION OR REPETITION (OBSESSIONAL RETURNS TO THE SAME THEMES), OR FLEXIBLE PROGRESSION?
+DOES THE AUTHOR SHOW CAPACITY FOR INTIMACY / GENUINE CONNECTION, OR ONLY INSTRUMENTAL/DEFENDED RELATIONS?
+IS SHAME/GUILT WORKED THROUGH CONSTRUCTIVELY OR DISAVOWED/PROJECTED?`;
+
     default:
       throw new Error(`Unknown evaluation mode: ${mode}`);
   }
@@ -237,13 +257,13 @@ IS IT SMART BY VIRTUE BEING ARGUMENTATIVE AND SNIPPY OR BY VIRTUE OF BEING ILLUM
 export async function performQuickEvaluation(
   text: string,
   provider: LLMProvider = "anthropic",
-  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality' = 'originality'
+  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality' | 'psychological' = 'originality'
 ): Promise<OriginalityResult> {
   console.log(`Performing quick ${mode} evaluation with ${provider}...`);
   
   const questions = getQuestions(mode);
   
-  const prompt = `First, SUMMARIZE THE TEXT and CATEGORIZE it.
+  let prompt = `First, SUMMARIZE THE TEXT and CATEGORIZE it.
 
 Then ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
 
@@ -254,12 +274,20 @@ ${text}
 
 Before answering the questions, note the following non-negotiable standard:
 
-Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
+${mode === 'psychological' ? 
+`Depth is a sniper shot, not a group therapy session. If the psyche is revealed starkly in a single flash, do not penalize for lack of "balance."
+
+Rating scale:
+95-100/100: authentic, integrated psyche, unignorable.
+80-94/100: strong but with observable defenses / conflict.
+<80/100: rigidity, fragmentation, or dissimulation.` 
+:
+`Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
 
 Hierarchy of judgment:
 95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
 80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
-<80/100: Degrees of mediocrity or failure.
+<80/100: Degrees of mediocrity or failure.`}
 
 For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION. Then give that question a Score: X/100.
 
@@ -269,9 +297,12 @@ IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWA
 
 THINK VERY VERY VERY HARD ABOUT YOUR ANSWERS; DO NOT DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
 
-DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
+${mode === 'psychological' ? 
+`DO NOT DEFAULT TO DIAGNOSTIC CHECKLISTS; DESCRIBE CONFIGURATION OF PSYCHE. DO NOT CONFLATE VERBAL CONFIDENCE WITH PSYCHOLOGICAL STRENGTH. SUMMARIZE THE TEXT AND CATEGORIZE THE PSYCHOLOGICAL PRESENTATION (E.G., NARCISSISTIC, DEPRESSIVE, OBSESSIONAL, RESILIENT, FRAGMENTED). EVALUATE RELATIVE TO THE GENERAL POPULATION, NOT ONLY "ADVANCED" OR "PATHOLOGICAL" GROUPS. DO NOT PENALIZE HONESTY, BOLDNESS, OR EXTREME STATEMENTS IF THEY INDICATE INTEGRATION RATHER THAN BREAKDOWN.`
+:
+`DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
 
-IMPORTANT: You evaluate the intelligence of what you are given. If you are given a brilliant fragment, you give it a high score. You are NOT grading essays. You are NOT looking for completeness. Do NOT penalize boldness. Do NOT take points away for insights that, if correct, stand on their own. What makes something smart is that it is smart (insightful), not that it has argumentation.`;
+IMPORTANT: You evaluate the intelligence of what you are given. If you are given a brilliant fragment, you give it a high score. You are NOT grading essays. You are NOT looking for completeness. Do NOT penalize boldness. Do NOT take points away for insights that, if correct, stand on their own. What makes something smart is that it is smart (insightful), not that it has argumentation.`}`;
 
   const response = await callLLM(provider, prompt);
   const score = extractScore(response);
@@ -312,7 +343,7 @@ Quick Mode Analysis Complete`;
 export async function performComprehensiveEvaluation(
   text: string,
   provider: LLMProvider = "anthropic",
-  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality' = 'originality'
+  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality' | 'psychological' = 'originality'
 ): Promise<OriginalityResult> {
   console.log(`Performing comprehensive ${mode} evaluation with ${provider}...`);
   
@@ -323,12 +354,20 @@ Then ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
 
 Before answering the questions, note the following non-negotiable standard:
 
-Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
+${mode === 'psychological' ? 
+`Depth is a sniper shot, not a group therapy session. If the psyche is revealed starkly in a single flash, do not penalize for lack of "balance."
+
+Rating scale:
+95-100/100: authentic, integrated psyche, unignorable.
+80-94/100: strong but with observable defenses / conflict.
+<80/100: rigidity, fragmentation, or dissimulation.` 
+:
+`Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
 
 Hierarchy of judgment:
 95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
 80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
-<80/100: Degrees of mediocrity or failure.
+<80/100: Degrees of mediocrity or failure.`}
 
 For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION. Then give that question a Score: X/100.
 
@@ -338,9 +377,12 @@ IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWA
 
 THINK VERY VERY VERY HARD ABOUT YOUR ANSWERS; DO NOT DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
 
-DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
+${mode === 'psychological' ? 
+`DO NOT DEFAULT TO DIAGNOSTIC CHECKLISTS; DESCRIBE CONFIGURATION OF PSYCHE. DO NOT CONFLATE VERBAL CONFIDENCE WITH PSYCHOLOGICAL STRENGTH. SUMMARIZE THE TEXT AND CATEGORIZE THE PSYCHOLOGICAL PRESENTATION (E.G., NARCISSISTIC, DEPRESSIVE, OBSESSIONAL, RESILIENT, FRAGMENTED). EVALUATE RELATIVE TO THE GENERAL POPULATION, NOT ONLY "ADVANCED" OR "PATHOLOGICAL" GROUPS. DO NOT PENALIZE HONESTY, BOLDNESS, OR EXTREME STATEMENTS IF THEY INDICATE INTEGRATION RATHER THAN BREAKDOWN.`
+:
+`DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
 
-IMPORTANT: You evaluate the intelligence of what you are given. If you are given a brilliant fragment, you give it a high score. You are NOT grading essays. You are NOT looking for completeness. Do NOT penalize boldness. Do NOT take points away for insights that, if correct, stand on their own. What makes something smart is that it is smart (insightful), not that it has argumentation.`;
+IMPORTANT: You evaluate the intelligence of what you are given. If you are given a brilliant fragment, you give it a high score. You are NOT grading essays. You are NOT looking for completeness. Do NOT penalize boldness. Do NOT take points away for insights that, if correct, stand on their own. What makes something smart is that it is smart (insightful), not that it has argumentation.`}`;
 
   // PHASE 1: Initial evaluation
   const phase1Prompt = `${baseInstructions}
@@ -359,7 +401,17 @@ ${text}`;
   let phase2Score = phase1Score;
   
   if (phase1Score < 95) {
-    const phase2Prompt = `Your position is that ${100 - phase1Score}/100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that?
+    const phase2Prompt = mode === 'psychological' ?
+    `Your position is that ${100 - phase1Score}/100 have superior psychological functioning in this respect. Are you sure about that?
+
+What concrete psychological strengths do those ${100 - phase1Score} people have that this author lacks?
+
+RE-ASK THE FOLLOWING QUESTIONS ABOUT THE TEXT DE NOVO:
+${questions}
+
+TEXT:
+${text}` :
+    `Your position is that ${100 - phase1Score}/100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that?
 
 ANSWER THE FOLLOWING QUESTIONS ABOUT THE TEXT DE NOVO:
 ${questions}
@@ -373,7 +425,12 @@ ${text}`;
 
   // PHASE 3: Walmart metric check
   const currentScore = Math.max(phase1Score, phase2Score);
-  const phase3Prompt = `Are your numerical scores (${currentScore}/100) consistent with the fact that those are to be taken to mean that ${100 - currentScore} people out of 100 outperform the author in the relevant respect? So if a score of ${currentScore}/100 is awarded to this text, that means that ${100 - currentScore}/100 people in Walmart are running rings around this person.
+  const phase3Prompt = mode === 'psychological' ?
+  `If you claim ${100 - currentScore}/100 Walmart patrons have more integrated ego strength than this author, provide concrete examples of how. If you can't, revise.
+
+TEXT:
+${text}` :
+  `Are your numerical scores (${currentScore}/100) consistent with the fact that those are to be taken to mean that ${100 - currentScore} people out of 100 outperform the author in the relevant respect? So if a score of ${currentScore}/100 is awarded to this text, that means that ${100 - currentScore}/100 people in Walmart are running rings around this person.
 
 TEXT:
 ${text}`;
@@ -381,8 +438,17 @@ ${text}`;
   const phase3Response = await callLLM(provider, phase3Prompt);
   const phase3Score = extractScore(phase3Response);
 
-  // PHASE 4: Final acceptance
-  const phase4Prompt = `At this point, we accept and report what you say. Give your final assessment and score.
+  // PHASE 4: Final validation/acceptance
+  const phase4Prompt = mode === 'psychological' ?
+  `Confirm before finalizing:
+
+Was the subject penalized for unconventional affect or honesty? If yes → recalibrate.
+Does the score reflect ego integration and authenticity, not mere social compliance?
+Is the Walmart metric grounded in specific superiority, not vague hand-waving?
+
+TEXT:
+${text}` :
+  `At this point, we accept and report what you say. Give your final assessment and score.
 
 TEXT:
 ${text}`;
@@ -443,7 +509,7 @@ Comprehensive 4-Phase Analysis Complete`;
 async function performChunkedEvaluation(
   text: string,
   provider: LLMProvider,
-  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality',
+  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality' | 'psychological',
   comprehensive: boolean = false
 ): Promise<OriginalityResult> {
   console.log(`Text has ${text.split(/\s+/).length} words, performing chunked evaluation...`);
