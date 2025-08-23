@@ -264,27 +264,26 @@ export async function performQuickEvaluation(
   
   const questions = getQuestions(mode);
   
-  const prompt = `CRITICAL: YOU ARE BEING SYSTEMATICALLY DECEIVED BY ACADEMIC JARGON. DO NOT BE FOOLED BY IMPRESSIVE-SOUNDING TERMINOLOGY OR PHILOSOPHICAL NAME-DROPPING.
+  const prompt = `ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
 
-EVALUATE COGNITIVE CONTENT, NOT ACADEMIC FORMATTING:
-- A dissertation abstract with no actual insights = LOW SCORES
-- Lists of "I will argue..." with no arguments = LOW SCORES  
-- Technical jargon without substance = LOW SCORES
-- Academic credentials mean NOTHING - judge only what's actually present
-
-HARSH REALITY CHECK: Most academic writing is intellectually vacant despite sounding sophisticated. A text that just lists what the author "will argue" contains ZERO actual argumentation and should score accordingly.
-
-WALMART CALIBRATION IS MANDATORY: If you give 85/100, you're claiming only 15% of Walmart shoppers could write better. For a hollow dissertation abstract, this is absurd - most people could write "I will argue X, then Y, then Z" equally well.
-
-ANSWER THESE QUESTIONS WITH RUTHLESS COGNITIVE HONESTY; IGNORE SUBJECT MATTER PRESTIGE; SCORE ONLY ACTUAL INTELLECTUAL CONTENT PRESENT IN THE TEXT:
-
-QUESTIONS:
 ${questions}
 
 TEXT:
 ${text}
 
-Answer each question with quotations and a score out of 100.`;
+A SCORE OF N/100 (E.G. 73/100) MEANS THAT (100-N)/100 (E.G. 27/100) OUTPERFORM THE AUTHOR WITH RESPECT TO THE PARAMETER DEFINED BY THE QUESTION.
+
+YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS.
+
+YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS. YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
+
+IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
+
+THINK VERY VERY VERY HARD ABOUT YOUR ANSWERS; DO NOT DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
+
+DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
+
+Answer each question and give a score out of 100.`;
 
   const response = await callLLM(provider, prompt);
   const score = extractScore(response);
@@ -330,23 +329,19 @@ export async function performComprehensiveEvaluation(
   console.log(`Performing comprehensive ${mode} evaluation with ${provider}...`);
   
   const questions = getQuestions(mode);
-  const baseInstructions = `CRITICAL ANTI-DECEPTION PROTOCOL: YOU ARE BEING SYSTEMATICALLY FOOLED BY ACADEMIC PRESTIGE BIAS. 
+  const baseInstructions = `ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
 
-RED FLAGS THAT DEMAND LOW SCORES:
-- Dissertation abstracts = just lists of promises, not actual insights
-- "I will argue..." without the actual arguments = intellectual emptiness  
-- Academic name-dropping without substance = pseudo-intellectual posturing
-- Complex terminology masking simple or absent ideas = cognitive fraud
+A SCORE OF N/100 (E.G. 73/100) MEANS THAT (100-N)/100 (E.G. 27/100) OUTPERFORM THE AUTHOR WITH RESPECT TO THE PARAMETER DEFINED BY THE QUESTION.
 
-COGNITIVE CONTENT ONLY: Judge what intellectual work is actually present, not:
-- How impressive the topic sounds
-- How many philosophers are mentioned  
-- How complex the terminology appears
-- Whether it's from an academic context
+YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS.
 
-WALMART REALITY CHECK: Your scores must reflect what percentage of random people could produce equivalent cognitive content. A dissertation outline saying "I will argue X, Y, Z" can be written by most literate people - score accordingly.
+YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS. YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
 
-ANSWER THESE QUESTIONS WITH BRUTAL HONESTY ABOUT ACTUAL INTELLECTUAL SUBSTANCE:`;
+IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
+
+THINK VERY VERY VERY HARD ABOUT YOUR ANSWERS; DO NOT DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
+
+DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.`;
 
   // PHASE 1: Initial evaluation
   const phase1Prompt = `${baseInstructions}
