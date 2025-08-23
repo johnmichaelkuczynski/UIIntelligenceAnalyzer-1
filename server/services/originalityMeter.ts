@@ -100,14 +100,7 @@ function extractScore(text: string): number {
       const scoreMatch = match.match(/(\d+)/);
       return scoreMatch ? parseInt(scoreMatch[1]) : 0;
     });
-    let average = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
-    
-    // ANTI-INFLATION CORRECTION: If all scores are suspiciously high (>70), apply reality check
-    if (scores.every(score => score > 70) && scores.length > 10) {
-      console.log(`WARNING: Suspiciously high scores detected (all > 70). Applying anti-inflation correction.`);
-      average = Math.round(average * 0.6); // Reduce by 40% for grade inflation
-    }
-    
+    const average = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
     console.log(`Calculated average score from ${scores.length} questions: ${scores.join(', ')} = ${average}/100`);
     return Math.min(Math.max(average, 0), 100);
   }
@@ -119,14 +112,7 @@ function extractScore(text: string): number {
       const scoreMatch = match.match(/(\d+)\/100/);
       return scoreMatch ? parseInt(scoreMatch[1]) : 0;
     });
-    let average = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
-    
-    // Apply same anti-inflation correction
-    if (scores.every(score => score > 70) && scores.length > 10) {
-      console.log(`WARNING: Suspiciously high alternative scores detected. Applying correction.`);
-      average = Math.round(average * 0.6);
-    }
-    
+    const average = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
     console.log(`Alternative calculation: averaged ${scores.length} question scores: ${scores.join(', ')} = ${average}/100`);
     return Math.min(Math.max(average, 0), 100);
   }
@@ -135,21 +121,14 @@ function extractScore(text: string): number {
   const fallbackMatches = text.match(/(?<!Final Score: )(\d+)\/100/g);
   if (fallbackMatches && fallbackMatches.length > 1) {
     const scores = fallbackMatches.map(match => parseInt(match.match(/(\d+)/)?.[1] || "0"));
-    let average = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
-    
-    // Apply correction for fallback too
-    if (scores.every(score => score > 70)) {
-      console.log(`WARNING: Suspiciously high fallback scores detected. Applying correction.`);
-      average = Math.round(average * 0.6);
-    }
-    
+    const average = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
     console.log(`Fallback calculation: averaged ${scores.length} scores: ${scores.join(', ')} = ${average}/100`);
     return Math.min(Math.max(average, 0), 100);
   }
   
-  // Default fallback - much lower for unknown content
-  console.log('No scores found, using conservative fallback of 45/100');
-  return 45;
+  // Default fallback
+  console.log('No scores found, using default fallback of 75/100');
+  return 75;
 }
 
 /**
