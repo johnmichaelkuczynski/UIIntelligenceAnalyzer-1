@@ -91,10 +91,10 @@ async function callLLM(provider: LLMProvider, prompt: string): Promise<string> {
  * Extract score from text response
  */
 function extractScore(text: string): number {
-  // Look for individual question scores in the format "Score: X/100"
-  const scoreMatches = text.match(/Score:\s*(\d+)\/100/g);
+  // Look for individual question scores in the format "Score: X/100" but EXCLUDE "Final Score:"
+  const scoreMatches = text.match(/(?<!Final )Score:\s*(\d+)\/100/g);
   
-  if (scoreMatches && scoreMatches.length > 1) {
+  if (scoreMatches && scoreMatches.length > 0) {
     // Calculate average of all individual question scores
     const scores = scoreMatches.map(match => {
       const scoreMatch = match.match(/(\d+)/);
@@ -105,14 +105,29 @@ function extractScore(text: string): number {
     return Math.min(Math.max(average, 0), 100);
   }
   
-  // Fallback to any X/100 pattern if individual scores not found
-  const fallbackMatches = text.match(/(\d+)\/100/g);
-  if (fallbackMatches) {
+  // Alternative: Look for lines that end with Score: X/100 (but not Final Score)
+  const alternativeMatches = text.match(/^(?!.*Final).*Score:\s*(\d+)\/100/gm);
+  if (alternativeMatches && alternativeMatches.length > 0) {
+    const scores = alternativeMatches.map(match => {
+      const scoreMatch = match.match(/(\d+)\/100/);
+      return scoreMatch ? parseInt(scoreMatch[1]) : 0;
+    });
+    const average = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+    console.log(`Alternative calculation: averaged ${scores.length} question scores: ${scores.join(', ')} = ${average}/100`);
+    return Math.min(Math.max(average, 0), 100);
+  }
+  
+  // Last resort fallback to any X/100 pattern excluding "Final Score"
+  const fallbackMatches = text.match(/(?<!Final Score: )(\d+)\/100/g);
+  if (fallbackMatches && fallbackMatches.length > 1) {
     const scores = fallbackMatches.map(match => parseInt(match.match(/(\d+)/)?.[1] || "0"));
-    return Math.max(...scores);
+    const average = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+    console.log(`Fallback calculation: averaged ${scores.length} scores: ${scores.join(', ')} = ${average}/100`);
+    return Math.min(Math.max(average, 0), 100);
   }
   
   // Default fallback
+  console.log('No scores found, using default fallback of 75/100');
   return 75;
 }
 
