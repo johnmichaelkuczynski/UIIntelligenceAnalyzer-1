@@ -100,7 +100,14 @@ function extractScore(text: string): number {
       const scoreMatch = match.match(/(\d+)/);
       return scoreMatch ? parseInt(scoreMatch[1]) : 0;
     });
-    const average = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+    let average = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+    
+    // ANTI-INFLATION CORRECTION: If all scores are suspiciously high (>70), apply reality check
+    if (scores.every(score => score > 70) && scores.length > 10) {
+      console.log(`WARNING: Suspiciously high scores detected (all > 70). Applying anti-inflation correction.`);
+      average = Math.round(average * 0.6); // Reduce by 40% for grade inflation
+    }
+    
     console.log(`Calculated average score from ${scores.length} questions: ${scores.join(', ')} = ${average}/100`);
     return Math.min(Math.max(average, 0), 100);
   }
@@ -112,7 +119,14 @@ function extractScore(text: string): number {
       const scoreMatch = match.match(/(\d+)\/100/);
       return scoreMatch ? parseInt(scoreMatch[1]) : 0;
     });
-    const average = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+    let average = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+    
+    // Apply same anti-inflation correction
+    if (scores.every(score => score > 70) && scores.length > 10) {
+      console.log(`WARNING: Suspiciously high alternative scores detected. Applying correction.`);
+      average = Math.round(average * 0.6);
+    }
+    
     console.log(`Alternative calculation: averaged ${scores.length} question scores: ${scores.join(', ')} = ${average}/100`);
     return Math.min(Math.max(average, 0), 100);
   }
@@ -121,14 +135,21 @@ function extractScore(text: string): number {
   const fallbackMatches = text.match(/(?<!Final Score: )(\d+)\/100/g);
   if (fallbackMatches && fallbackMatches.length > 1) {
     const scores = fallbackMatches.map(match => parseInt(match.match(/(\d+)/)?.[1] || "0"));
-    const average = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+    let average = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+    
+    // Apply correction for fallback too
+    if (scores.every(score => score > 70)) {
+      console.log(`WARNING: Suspiciously high fallback scores detected. Applying correction.`);
+      average = Math.round(average * 0.6);
+    }
+    
     console.log(`Fallback calculation: averaged ${scores.length} scores: ${scores.join(', ')} = ${average}/100`);
     return Math.min(Math.max(average, 0), 100);
   }
   
-  // Default fallback
-  console.log('No scores found, using default fallback of 75/100');
-  return 75;
+  // Default fallback - much lower for unknown content
+  console.log('No scores found, using conservative fallback of 45/100');
+  return 45;
 }
 
 /**
@@ -243,7 +264,19 @@ export async function performQuickEvaluation(
   
   const questions = getQuestions(mode);
   
-  const prompt = `ANSWER THESE QUESTIONS; DO NOT DEFAULT TO BUREAUCRATIC OR CONSENSUS-BASED NORMS; YOU ARE NOT GRADING THE TEXT; YOU ARE JUST ANSWERING THESE QUESTIONS IN THE MOST CANDID WAY POSSIBLE; PROVIDE QUOTES TO ILLUSTRATE YOUR ANSWERS; THE TEXTS VARY IN QUALITY; SOME ARE FAR FAR SMARTER THAN ANY PROFESSOR; SOME ARE AS DUMB AS ANY THIRD GRADER. YOU ARE TO ASSIGN SCORES OUT OF 100 FOR EACH QUESTION (FOR EACH TEXT). THESE SCORES ARE NOT GRADES; A SCORE OF N/100 FOR A GIVEN QUESTION MEANS THAT (100-N)/100 PEOPLE WOULD DO BETTER; SO IF YOU ASSIGN A SCORE OF 71/100 TO A GIVEN QUESTION, THAT MEANS THAT IN A WALMART OR FOOTBALL STADIUM WITH A 1000 PEOPLE IN IT, AROUND 170 WOULD BE SOLIDLY MORE INTELLIGENT. SO THINK VERY VERY CAREFULLY HOW YOU ANSWER THE QUESTIONS. YOU ARE JUST TO ANSWER THE QUESTIONS; YOU ARE NOT TO MAKE INFERENCES ABOUT WHAT IS DRIVING THE QUESTIONS. YOU ARE ONLY TO ANSWER THE QUESTIONS (WITH QUOTATIONS AND SCORES). DO NOT SPECULATE; DO NOT GRADE MORE HARSHLY FOR HIGHER LEVEL WORK; DO NOT BE NICE; DO NOT BE MEAN. DO NOT EQUATE 'QUALITY' WITH 'WHAT A COMMITTEE OF IQ 114 BUREAUCRATS WOULD AGREE TO.'
+  const prompt = `CRITICAL: YOU ARE BEING SYSTEMATICALLY DECEIVED BY ACADEMIC JARGON. DO NOT BE FOOLED BY IMPRESSIVE-SOUNDING TERMINOLOGY OR PHILOSOPHICAL NAME-DROPPING.
+
+EVALUATE COGNITIVE CONTENT, NOT ACADEMIC FORMATTING:
+- A dissertation abstract with no actual insights = LOW SCORES
+- Lists of "I will argue..." with no arguments = LOW SCORES  
+- Technical jargon without substance = LOW SCORES
+- Academic credentials mean NOTHING - judge only what's actually present
+
+HARSH REALITY CHECK: Most academic writing is intellectually vacant despite sounding sophisticated. A text that just lists what the author "will argue" contains ZERO actual argumentation and should score accordingly.
+
+WALMART CALIBRATION IS MANDATORY: If you give 85/100, you're claiming only 15% of Walmart shoppers could write better. For a hollow dissertation abstract, this is absurd - most people could write "I will argue X, then Y, then Z" equally well.
+
+ANSWER THESE QUESTIONS WITH RUTHLESS COGNITIVE HONESTY; IGNORE SUBJECT MATTER PRESTIGE; SCORE ONLY ACTUAL INTELLECTUAL CONTENT PRESENT IN THE TEXT:
 
 QUESTIONS:
 ${questions}
@@ -297,7 +330,23 @@ export async function performComprehensiveEvaluation(
   console.log(`Performing comprehensive ${mode} evaluation with ${provider}...`);
   
   const questions = getQuestions(mode);
-  const baseInstructions = `ANSWER THESE QUESTIONS; DO NOT DEFAULT TO BUREAUCRATIC OR CONSENSUS-BASED NORMS; YOU ARE NOT GRADING THE TEXT; YOU ARE JUST ANSWERING THESE QUESTIONS IN THE MOST CANDID WAY POSSIBLE; PROVIDE QUOTES TO ILLUSTRATE YOUR ANSWERS; THE TEXTS VARY IN QUALITY; SOME ARE FAR FAR SMARTER THAN ANY PROFESSOR; SOME ARE AS DUMB AS ANY THIRD GRADER. YOU ARE TO ASSIGN SCORES OUT OF 100 FOR EACH QUESTION. THESE SCORES ARE NOT GRADES; A SCORE OF N/100 FOR A GIVEN QUESTION MEANS THAT (100-N)/100 PEOPLE WOULD DO BETTER; SO IF YOU ASSIGN A SCORE OF 71/100 TO A GIVEN QUESTION, THAT MEANS THAT IN A WALMART OR FOOTBALL STADIUM WITH A 1000 PEOPLE IN IT, AROUND 170 WOULD BE SOLIDLY MORE INTELLIGENT. SO THINK VERY VERY CAREFULLY HOW YOU ANSWER THE QUESTIONS. YOU ARE JUST TO ANSWER THE QUESTIONS; YOU ARE NOT TO MAKE INFERENCES ABOUT WHAT IS DRIVING THE QUESTIONS. YOU ARE ONLY TO ANSWER THE QUESTIONS (WITH QUOTATIONS AND SCORES). DO NOT SPECULATE; DO NOT GRADE MORE HARSHLY FOR HIGHER LEVEL WORK; DO NOT BE NICE; DO NOT BE MEAN. DO NOT EQUATE 'QUALITY' WITH 'WHAT A COMMITTEE OF IQ 114 BUREAUCRATS WOULD AGREE TO.'`;
+  const baseInstructions = `CRITICAL ANTI-DECEPTION PROTOCOL: YOU ARE BEING SYSTEMATICALLY FOOLED BY ACADEMIC PRESTIGE BIAS. 
+
+RED FLAGS THAT DEMAND LOW SCORES:
+- Dissertation abstracts = just lists of promises, not actual insights
+- "I will argue..." without the actual arguments = intellectual emptiness  
+- Academic name-dropping without substance = pseudo-intellectual posturing
+- Complex terminology masking simple or absent ideas = cognitive fraud
+
+COGNITIVE CONTENT ONLY: Judge what intellectual work is actually present, not:
+- How impressive the topic sounds
+- How many philosophers are mentioned  
+- How complex the terminology appears
+- Whether it's from an academic context
+
+WALMART REALITY CHECK: Your scores must reflect what percentage of random people could produce equivalent cognitive content. A dissertation outline saying "I will argue X, Y, Z" can be written by most literate people - score accordingly.
+
+ANSWER THESE QUESTIONS WITH BRUTAL HONESTY ABOUT ACTUAL INTELLECTUAL SUBSTANCE:`;
 
   // PHASE 1: Initial evaluation
   const phase1Prompt = `${baseInstructions}
