@@ -91,6 +91,14 @@ async function callLLM(provider: LLMProvider, prompt: string): Promise<string> {
  * Extract score from text response
  */
 function extractScore(text: string): number {
+  // First check for "Final Score: X/100" (from phases 3-4)
+  const finalScoreMatch = text.match(/Final Score:\s*(\d+)\/100/i);
+  if (finalScoreMatch) {
+    const score = parseInt(finalScoreMatch[1]);
+    console.log(`Found Final Score: ${score}/100`);
+    return Math.min(Math.max(score, 0), 100);
+  }
+
   // Look for individual question scores in the format "Score: X/100" but EXCLUDE "Final Score:"
   const scoreMatches = text.match(/(?<!Final )Score:\s*(\d+)\/100/g);
   
@@ -422,14 +430,14 @@ ${text}`;
 
 What concrete psychological strengths do those ${100 - phase1Score} people have that this author lacks?
 
-RE-ASK THE FOLLOWING QUESTIONS ABOUT THE TEXT DE NOVO:
+RE-ASK THE FOLLOWING QUESTIONS ABOUT THE TEXT DE NOVO - GIVE EACH QUESTION A Score: X/100:
 ${questions}
 
 TEXT:
 ${text}` :
     `Your position is that ${100 - phase1Score}/100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that?
 
-ANSWER THE FOLLOWING QUESTIONS ABOUT THE TEXT DE NOVO:
+ANSWER THE FOLLOWING QUESTIONS ABOUT THE TEXT DE NOVO - GIVE EACH QUESTION A Score: X/100:
 ${questions}
 
 TEXT:
@@ -446,6 +454,8 @@ ${text}`;
 
 REMINDER: N/100 means (100-N)/100 outperform the author. DO NOT use conventional grading. USE THE WALMART METRIC.
 
+Give your revised assessment and end with: Final Score: X/100
+
 TEXT:
 ${text}` :
   `WALMART METRIC CHECK: Your score of ${currentScore}/100 means ${100 - currentScore}/100 people outperform this author. 
@@ -460,6 +470,8 @@ If this text shows genuine insight, originality, or brilliance, it deserves 95-1
 DO NOT penalize for "assumed knowledge" or "challenging for non-specialists" - that's midwit thinking.
 
 Can ${100 - currentScore} out of 100 Walmart shoppers actually write better analysis than this? If not, revise upward immediately.
+
+Give your revised assessment and end with: Final Score: X/100
 
 TEXT:
 ${text}`;
@@ -477,6 +489,8 @@ Is the Walmart metric grounded in specific superiority, not vague hand-waving?
 
 REMINDER: N/100 means (100-N)/100 outperform the author. NO CONVENTIONAL GRADING.
 
+End your response with: Final Score: X/100
+
 TEXT:
 ${text}` :
   `FINAL WALMART METRIC ENFORCEMENT: N/100 means (100-N)/100 outperform the author.
@@ -490,6 +504,8 @@ ABSOLUTELY FORBIDDEN:
 If this text shows genuine brilliance, insight, or sophisticated analysis, score it 95-100/100. Do not penalize sophistication.
 
 Your final score MUST use the Walmart metric. Give it the score it actually deserves.
+
+End your response with: Final Score: X/100
 
 TEXT:
 ${text}`;
