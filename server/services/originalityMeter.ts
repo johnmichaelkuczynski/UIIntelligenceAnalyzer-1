@@ -243,12 +243,23 @@ export async function performQuickEvaluation(
   
   const questions = getQuestions(mode);
   
-  const prompt = `ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
+  const prompt = `First, SUMMARIZE THE TEXT and CATEGORIZE it.
+
+Then ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
 
 ${questions}
 
 TEXT:
 ${text}
+
+Before answering the questions, note the following non-negotiable standard:
+
+Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
+
+Hierarchy of judgment:
+95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
+80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
+<80/100: Degrees of mediocrity or failure.
 
 For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION. Then give that question a Score: X/100.
 
@@ -258,7 +269,9 @@ IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWA
 
 THINK VERY VERY VERY HARD ABOUT YOUR ANSWERS; DO NOT DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
 
-DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.`;
+DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
+
+IMPORTANT: You evaluate the intelligence of what you are given. If you are given a brilliant fragment, you give it a high score. You are NOT grading essays. You are NOT looking for completeness. Do NOT penalize boldness. Do NOT take points away for insights that, if correct, stand on their own. What makes something smart is that it is smart (insightful), not that it has argumentation.`;
 
   const response = await callLLM(provider, prompt);
   const score = extractScore(response);
@@ -304,7 +317,18 @@ export async function performComprehensiveEvaluation(
   console.log(`Performing comprehensive ${mode} evaluation with ${provider}...`);
   
   const questions = getQuestions(mode);
-  const baseInstructions = `ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
+  const baseInstructions = `First, SUMMARIZE THE TEXT and CATEGORIZE it.
+
+Then ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
+
+Before answering the questions, note the following non-negotiable standard:
+
+Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
+
+Hierarchy of judgment:
+95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
+80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
+<80/100: Degrees of mediocrity or failure.
 
 For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION. Then give that question a Score: X/100.
 
@@ -314,7 +338,9 @@ IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWA
 
 THINK VERY VERY VERY HARD ABOUT YOUR ANSWERS; DO NOT DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
 
-DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.`;
+DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
+
+IMPORTANT: You evaluate the intelligence of what you are given. If you are given a brilliant fragment, you give it a high score. You are NOT grading essays. You are NOT looking for completeness. Do NOT penalize boldness. Do NOT take points away for insights that, if correct, stand on their own. What makes something smart is that it is smart (insightful), not that it has argumentation.`;
 
   // PHASE 1: Initial evaluation
   const phase1Prompt = `${baseInstructions}
@@ -323,9 +349,7 @@ QUESTIONS:
 ${questions}
 
 TEXT:
-${text}
-
-Answer each question with quotations and a score out of 100.`;
+${text}`;
 
   const phase1Response = await callLLM(provider, phase1Prompt);
   const phase1Score = extractScore(phase1Response);
@@ -341,9 +365,7 @@ ANSWER THE FOLLOWING QUESTIONS ABOUT THE TEXT DE NOVO:
 ${questions}
 
 TEXT:
-${text}
-
-Give a revised score out of 100.`;
+${text}`;
 
     phase2Response = await callLLM(provider, phase2Prompt);
     phase2Score = extractScore(phase2Response);
@@ -351,30 +373,22 @@ Give a revised score out of 100.`;
 
   // PHASE 3: Walmart metric check
   const currentScore = Math.max(phase1Score, phase2Score);
-  const phase3Prompt = `You stated that ${100 - currentScore}/100 Walmart patrons outperform the author. Provide specific examples of work by those patrons that demonstrates this superiority. If you cannot, justify or revise the score.
+  const phase3Prompt = `Are your numerical scores (${currentScore}/100) consistent with the fact that those are to be taken to mean that ${100 - currentScore} people out of 100 outperform the author in the relevant respect? So if a score of ${currentScore}/100 is awarded to this text, that means that ${100 - currentScore}/100 people in Walmart are running rings around this person.
 
 TEXT:
-${text}
-
-Final score out of 100:`;
+${text}`;
 
   const phase3Response = await callLLM(provider, phase3Prompt);
   const phase3Score = extractScore(phase3Response);
 
-  // PHASE 4: Final validation
-  const phase4Prompt = `Before finalizing scores, confirm:
-
-Have you penalized the text for not being conventional? If yes, recalibrate.
-Does the score reflect truth density, not compliance with norms?
-Is the Walmart metric empirically grounded or a lazy guess?
+  // PHASE 4: Final acceptance
+  const phase4Prompt = `At this point, we accept and report what you say. Give your final assessment and score.
 
 TEXT:
-${text}
-
-Final score out of 100:`;
+${text}`;
 
   const phase4Response = await callLLM(provider, phase4Prompt);
-  const finalScore = Math.max(phase1Score, phase2Score, phase3Score, extractScore(phase4Response));
+  const finalScore = extractScore(phase4Response);
 
   // Helper function to clean markdown
   const cleanMarkdown = (text: string) => text
@@ -393,16 +407,16 @@ Final score out of 100:`;
 
   let formattedReport = `COMPREHENSIVE ${mode.toUpperCase()} EVALUATION
 
-PHASE 1: INITIAL ASSESSMENT
+PHASE 1: INITIAL EVALUATION
 ${cleanPhase1}
 
-PHASE 2: PUSHBACK ANALYSIS
+PHASE 2: PUSHBACK (IF SCORE < 95)
 ${cleanPhase2}
 
-PHASE 3: WALMART METRIC ENFORCEMENT
+PHASE 3: WALMART METRIC CHECK
 ${cleanPhase3}
 
-PHASE 4: FINAL VALIDATION
+PHASE 4: FINAL ACCEPTANCE
 ${cleanPhase4}
 
 Final Score: ${finalScore}/100
