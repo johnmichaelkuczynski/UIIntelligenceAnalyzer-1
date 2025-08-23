@@ -291,7 +291,11 @@ Hierarchy of judgment:
 
 For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION. Then give that question a Score: X/100.
 
-A SCORE OF N/100 (E.G. 73/100) MEANS THAT (100-N)/100 (E.G. 27/100) OUTPERFORM THE AUTHOR WITH RESPECT TO THE PARAMETER DEFINED BY THE QUESTION. YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS. YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS. YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
+A SCORE OF N/100 (E.G. 73/100) MEANS THAT (100-N)/100 (E.G. 27/100) OUTPERFORM THE AUTHOR WITH RESPECT TO THE PARAMETER DEFINED BY THE QUESTION. 
+
+CRITICAL: DO NOT REVERT TO CONVENTIONAL ACADEMIC GRADING (A-, B+, etc.). USE ONLY THE WALMART METRIC.
+
+YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS. YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS. YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
 
 IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
 
@@ -371,7 +375,11 @@ Hierarchy of judgment:
 
 For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION. Then give that question a Score: X/100.
 
-A SCORE OF N/100 (E.G. 73/100) MEANS THAT (100-N)/100 (E.G. 27/100) OUTPERFORM THE AUTHOR WITH RESPECT TO THE PARAMETER DEFINED BY THE QUESTION. YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS. YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS. YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
+A SCORE OF N/100 (E.G. 73/100) MEANS THAT (100-N)/100 (E.G. 27/100) OUTPERFORM THE AUTHOR WITH RESPECT TO THE PARAMETER DEFINED BY THE QUESTION. 
+
+CRITICAL: DO NOT REVERT TO CONVENTIONAL ACADEMIC GRADING (A-, B+, etc.). USE ONLY THE WALMART METRIC.
+
+YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS. YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS. YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
 
 IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
 
@@ -428,9 +436,17 @@ ${text}`;
   const phase3Prompt = mode === 'psychological' ?
   `If you claim ${100 - currentScore}/100 Walmart patrons have more integrated ego strength than this author, provide concrete examples of how. If you can't, revise.
 
+REMINDER: N/100 means (100-N)/100 outperform the author. DO NOT use conventional grading. USE THE WALMART METRIC.
+
 TEXT:
 ${text}` :
-  `Are your numerical scores (${currentScore}/100) consistent with the fact that those are to be taken to mean that ${100 - currentScore} people out of 100 outperform the author in the relevant respect? So if a score of ${currentScore}/100 is awarded to this text, that means that ${100 - currentScore}/100 people in Walmart are running rings around this person.
+  `Your score of ${currentScore}/100 means ${100 - currentScore}/100 people outperform this author. Is this accurate?
+
+If this text shows genuine insight, originality, or brilliance, it deserves 95-100/100. Don't use risk-averse academic standards.
+
+REMINDER: N/100 means (100-N)/100 outperform the author. DO NOT revert to conventional grading. 
+
+Can ${100 - currentScore} out of 100 Walmart shoppers write better philosophy than this? If not, revise upward.
 
 TEXT:
 ${text}`;
@@ -446,9 +462,15 @@ Was the subject penalized for unconventional affect or honesty? If yes → recal
 Does the score reflect ego integration and authenticity, not mere social compliance?
 Is the Walmart metric grounded in specific superiority, not vague hand-waving?
 
+REMINDER: N/100 means (100-N)/100 outperform the author. NO CONVENTIONAL GRADING.
+
 TEXT:
 ${text}` :
-  `At this point, we accept and report what you say. Give your final assessment and score.
+  `Final check: Does your score properly use the Walmart metric?
+
+N/100 means (100-N)/100 outperform the author. If this text shows genuine brilliance or insight, score it 95-100/100.
+
+DO NOT use conventional academic grading. DO NOT be diplomatic. Give it the score it deserves.
 
 TEXT:
 ${text}`;
