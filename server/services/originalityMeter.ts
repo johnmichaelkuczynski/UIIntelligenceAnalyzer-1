@@ -454,7 +454,27 @@ TEXT:
 ${text}`;
 
   const phase4Response = await callLLM(provider, phase4Prompt);
-  const finalScore = extractScore(phase4Response);
+  const phase4Score = extractScore(phase4Response);
+  
+  // Use Phase 1 score as baseline (contains detailed question analysis)
+  // Only update if later phases provide valid scores above the fallback threshold (85)
+  let finalScore = phase1Score;
+  
+  // Check if any later phase provided a meaningful score improvement
+  if (phase2Score > 85 && phase2Score > finalScore) {
+    finalScore = phase2Score;
+    console.log(`Using Phase 2 score: ${phase2Score}/100`);
+  }
+  if (phase3Score > 85 && phase3Score > finalScore) {
+    finalScore = phase3Score;
+    console.log(`Using Phase 3 score: ${phase3Score}/100`);
+  }
+  if (phase4Score > 85 && phase4Score > finalScore) {
+    finalScore = phase4Score;
+    console.log(`Using Phase 4 score: ${phase4Score}/100`);
+  }
+  
+  console.log(`Comprehensive ${mode} evaluation complete - Score: ${finalScore}/100`);
 
   // Helper function to clean markdown
   const cleanMarkdown = (text: string) => text
