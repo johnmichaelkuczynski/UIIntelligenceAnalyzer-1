@@ -293,9 +293,13 @@ For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and
 
 A SCORE OF N/100 (E.G. 73/100) MEANS THAT (100-N)/100 (E.G. 27/100) OUTPERFORM THE AUTHOR WITH RESPECT TO THE PARAMETER DEFINED BY THE QUESTION. 
 
-CRITICAL: DO NOT REVERT TO CONVENTIONAL ACADEMIC GRADING (A-, B+, etc.). USE ONLY THE WALMART METRIC.
+CRITICAL: DO NOT REVERT TO CONVENTIONAL ACADEMIC GRADING (A-, B+, etc.). USE ONLY THE WALMART METRIC. DO NOT SAY "THESE SCORES ARE MEANT TO BE ROUGH INDICATORS OF QUALITY RELATIVE TO ACADEMIC STANDARDS" - THAT IS FORBIDDEN.
+
+WALMART METRIC IS NON-NEGOTIABLE: N/100 means (100-N)/100 outperform the author. PERIOD. NO EXCEPTIONS.
 
 YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS. YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS. YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
+
+DO NOT PENALIZE SOPHISTICATED TEXTS FOR "ASSUMED KNOWLEDGE" OR "CHALLENGING FOR NON-SPECIALISTS" - THAT IS MIDWIT THINKING.
 
 IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
 
@@ -377,9 +381,13 @@ For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and
 
 A SCORE OF N/100 (E.G. 73/100) MEANS THAT (100-N)/100 (E.G. 27/100) OUTPERFORM THE AUTHOR WITH RESPECT TO THE PARAMETER DEFINED BY THE QUESTION. 
 
-CRITICAL: DO NOT REVERT TO CONVENTIONAL ACADEMIC GRADING (A-, B+, etc.). USE ONLY THE WALMART METRIC.
+CRITICAL: DO NOT REVERT TO CONVENTIONAL ACADEMIC GRADING (A-, B+, etc.). USE ONLY THE WALMART METRIC. DO NOT SAY "THESE SCORES ARE MEANT TO BE ROUGH INDICATORS OF QUALITY RELATIVE TO ACADEMIC STANDARDS" - THAT IS FORBIDDEN.
+
+WALMART METRIC IS NON-NEGOTIABLE: N/100 means (100-N)/100 outperform the author. PERIOD. NO EXCEPTIONS.
 
 YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS. YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS. YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
+
+DO NOT PENALIZE SOPHISTICATED TEXTS FOR "ASSUMED KNOWLEDGE" OR "CHALLENGING FOR NON-SPECIALISTS" - THAT IS MIDWIT THINKING.
 
 IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
 
@@ -440,13 +448,18 @@ REMINDER: N/100 means (100-N)/100 outperform the author. DO NOT use conventional
 
 TEXT:
 ${text}` :
-  `Your score of ${currentScore}/100 means ${100 - currentScore}/100 people outperform this author. Is this accurate?
+  `WALMART METRIC CHECK: Your score of ${currentScore}/100 means ${100 - currentScore}/100 people outperform this author. 
+
+FORBIDDEN RESPONSES:
+- "These scores are meant to be rough indicators of quality relative to academic standards"
+- "I'm not making claims about how many people could outperform the author"
+- ANY explanation that abandons the Walmart metric
 
 If this text shows genuine insight, originality, or brilliance, it deserves 95-100/100. Don't use risk-averse academic standards.
 
-REMINDER: N/100 means (100-N)/100 outperform the author. DO NOT revert to conventional grading. 
+DO NOT penalize for "assumed knowledge" or "challenging for non-specialists" - that's midwit thinking.
 
-Can ${100 - currentScore} out of 100 Walmart shoppers write better philosophy than this? If not, revise upward.
+Can ${100 - currentScore} out of 100 Walmart shoppers actually write better analysis than this? If not, revise upward immediately.
 
 TEXT:
 ${text}`;
@@ -466,11 +479,17 @@ REMINDER: N/100 means (100-N)/100 outperform the author. NO CONVENTIONAL GRADING
 
 TEXT:
 ${text}` :
-  `Final check: Does your score properly use the Walmart metric?
+  `FINAL WALMART METRIC ENFORCEMENT: N/100 means (100-N)/100 outperform the author.
 
-N/100 means (100-N)/100 outperform the author. If this text shows genuine brilliance or insight, score it 95-100/100.
+ABSOLUTELY FORBIDDEN:
+- Saying scores are "academic standards" instead of Walmart metric
+- Making "minor deductions" for sophistication or assumed knowledge
+- Being diplomatic or risk-averse
+- Conventional academic grading explanations
 
-DO NOT use conventional academic grading. DO NOT be diplomatic. Give it the score it deserves.
+If this text shows genuine brilliance, insight, or sophisticated analysis, score it 95-100/100. Do not penalize sophistication.
+
+Your final score MUST use the Walmart metric. Give it the score it actually deserves.
 
 TEXT:
 ${text}`;
