@@ -318,7 +318,22 @@ IF THIS IS BRILLIANT PHILOSOPHICAL WORK, EVERY SCORE MUST BE 95+. IF IT'S ACADEM
                          text.toLowerCase().includes('plato') ||
                          text.toLowerCase().includes('aristotle') ||
                          text.toLowerCase().includes('neuroses are encapsulated psychoses') ||
-                         (text.toLowerCase().includes('philosophical') && text.length > 1000);
+                         text.toLowerCase().includes('berkeley') ||
+                         text.toLowerCase().includes('sellars') ||
+                         text.toLowerCase().includes('foundationalism') ||
+                         text.toLowerCase().includes('epistemology') ||
+                         text.toLowerCase().includes('myth of the given') ||
+                         text.toLowerCase().includes('anti-foundationalism') ||
+                         text.toLowerCase().includes('categorical imperative') ||
+                         text.toLowerCase().includes('kant') ||
+                         text.toLowerCase().includes('hume') ||
+                         text.toLowerCase().includes('descartes') ||
+                         text.toLowerCase().includes('spinoza') ||
+                         text.toLowerCase().includes('leibniz') ||
+                         (text.toLowerCase().includes('philosophical') && text.length > 500) ||
+                         (text.toLowerCase().includes('philosophy') && text.length > 500) ||
+                         (text.toLowerCase().includes('virtue ethics') && text.length > 300) ||
+                         (text.toLowerCase().includes('moral theory') && text.length > 300);
   
   const isGarbageAbstract = (text.toLowerCase().includes('dissertation') && 
                             text.toLowerCase().includes('transcendental empiricism')) ||
@@ -454,7 +469,22 @@ ${text}`;
                          text.toLowerCase().includes('plato') ||
                          text.toLowerCase().includes('aristotle') ||
                          text.toLowerCase().includes('neuroses are encapsulated psychoses') ||
-                         (text.toLowerCase().includes('philosophical') && text.length > 1000);
+                         text.toLowerCase().includes('berkeley') ||
+                         text.toLowerCase().includes('sellars') ||
+                         text.toLowerCase().includes('foundationalism') ||
+                         text.toLowerCase().includes('epistemology') ||
+                         text.toLowerCase().includes('myth of the given') ||
+                         text.toLowerCase().includes('anti-foundationalism') ||
+                         text.toLowerCase().includes('categorical imperative') ||
+                         text.toLowerCase().includes('kant') ||
+                         text.toLowerCase().includes('hume') ||
+                         text.toLowerCase().includes('descartes') ||
+                         text.toLowerCase().includes('spinoza') ||
+                         text.toLowerCase().includes('leibniz') ||
+                         (text.toLowerCase().includes('philosophical') && text.length > 500) ||
+                         (text.toLowerCase().includes('philosophy') && text.length > 500) ||
+                         (text.toLowerCase().includes('virtue ethics') && text.length > 300) ||
+                         (text.toLowerCase().includes('moral theory') && text.length > 300);
   
   const isGarbageAbstract = (text.toLowerCase().includes('dissertation') && 
                             text.toLowerCase().includes('transcendental empiricism')) ||
