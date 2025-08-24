@@ -260,7 +260,7 @@ IS SHAME/GUILT WORKED THROUGH CONSTRUCTIVELY OR DISAVOWED/PROJECTED?`;
 }
 
 /**
- * Quick mode evaluation - single phase with all questions
+ * Quick mode evaluation - single phase with all questions (PHASE 1 ONLY)
  */
 export async function performQuickEvaluation(
   text: string,
@@ -271,66 +271,36 @@ export async function performQuickEvaluation(
   
   const questions = getQuestions(mode);
   
+  // EXACT USER PROTOCOL - START BY SUMMARIZING AND CATEGORIZING
   let prompt = `First, SUMMARIZE THE TEXT and CATEGORIZE it.
 
 Then ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
 
 ${questions}
 
+A SCORE OF N/100 (E.G. 73/100) MEANS THAT (100-N)/100 (E.G. 27/100) OUTPERFORM THE AUTHOR WITH RESPECT TO THE PARAMETER DEFINED BY THE QUESTION.
+
+YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS. YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS. YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
+
+IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
+
+THINK VERY VERY VERY HARD ABOUT YOUR ANSWERS; MAKE IT VERY CLEAR THAT IT IS NOT TO DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
+
+DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
+
 TEXT:
 ${text}
 
 Before answering the questions, note the following non-negotiable standard:
 
-${mode === 'psychological' ? 
-`Depth is a sniper shot, not a group therapy session. If the psyche is revealed starkly in a single flash, do not penalize for lack of "balance."
-
-Rating scale:
-95-100/100: authentic, integrated psyche, unignorable.
-80-94/100: strong but with observable defenses / conflict.
-<80/100: rigidity, fragmentation, or dissimulation.` 
-:
-`Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
+Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
 
 Hierarchy of judgment:
 95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
 80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
 <80/100: Degrees of mediocrity or failure.
 
-EXAMPLES OF 95+ SCORES:
-- Novel arguments about Russell's theory of definite descriptions and pragmatics
-- Brilliant philosophical insights that challenge established theories
-- Original analysis that opens new domains of inquiry
-- Work showing genuine intellectual breakthrough
-
-EXAMPLES OF LOW SCORES:
-- Vague dissertation abstracts with wishy-washy conclusions
-- Academic jargon without substance or clear insights
-- Meandering philosophical work that contradicts itself
-- Sophisticated-sounding but ultimately empty academic writing`}
-
-For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION. Then give that question a Score: X/100.
-
-A SCORE OF N/100 (E.G. 73/100) MEANS THAT (100-N)/100 (E.G. 27/100) OUTPERFORM THE AUTHOR WITH RESPECT TO THE PARAMETER DEFINED BY THE QUESTION. 
-
-CRITICAL: DO NOT REVERT TO CONVENTIONAL ACADEMIC GRADING (A-, B+, etc.). USE ONLY THE WALMART METRIC. DO NOT SAY "THESE SCORES ARE MEANT TO BE ROUGH INDICATORS OF QUALITY RELATIVE TO ACADEMIC STANDARDS" - THAT IS FORBIDDEN.
-
-WALMART METRIC IS NON-NEGOTIABLE: N/100 means (100-N)/100 outperform the author. PERIOD. NO EXCEPTIONS.
-
-YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS. YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS. YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
-
-DO NOT PENALIZE SOPHISTICATED TEXTS FOR "ASSUMED KNOWLEDGE" OR "CHALLENGING FOR NON-SPECIALISTS" - THAT IS MIDWIT THINKING.
-
-IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
-
-THINK VERY VERY VERY HARD ABOUT YOUR ANSWERS; DO NOT DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
-
-${mode === 'psychological' ? 
-`DO NOT DEFAULT TO DIAGNOSTIC CHECKLISTS; DESCRIBE CONFIGURATION OF PSYCHE. DO NOT CONFLATE VERBAL CONFIDENCE WITH PSYCHOLOGICAL STRENGTH. SUMMARIZE THE TEXT AND CATEGORIZE THE PSYCHOLOGICAL PRESENTATION (E.G., NARCISSISTIC, DEPRESSIVE, OBSESSIONAL, RESILIENT, FRAGMENTED). EVALUATE RELATIVE TO THE GENERAL POPULATION, NOT ONLY "ADVANCED" OR "PATHOLOGICAL" GROUPS. DO NOT PENALIZE HONESTY, BOLDNESS, OR EXTREME STATEMENTS IF THEY INDICATE INTEGRATION RATHER THAN BREAKDOWN.`
-:
-`DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
-
-IMPORTANT: You evaluate the intelligence of what you are given. If you are given a brilliant fragment, you give it a high score. You are NOT grading essays. You are NOT looking for completeness. Do NOT penalize boldness. Do NOT take points away for insights that, if correct, stand on their own. What makes something smart is that it is smart (insightful), not that it has argumentation.`}`;
+For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION. Then give that question a Score: X/100.`;
 
   const response = await callLLM(provider, prompt);
   const score = extractScore(response);
@@ -366,7 +336,7 @@ Quick Mode Analysis Complete`;
 }
 
 /**
- * Comprehensive mode evaluation - 4 phases
+ * Comprehensive mode evaluation - EXACT 4-PHASE USER PROTOCOL
  */
 export async function performComprehensiveEvaluation(
   text: string,
@@ -376,67 +346,32 @@ export async function performComprehensiveEvaluation(
   console.log(`Performing comprehensive ${mode} evaluation with ${provider}...`);
   
   const questions = getQuestions(mode);
-  const baseInstructions = `First, SUMMARIZE THE TEXT and CATEGORIZE it.
+  
+  // PHASE 1: EXACT USER INSTRUCTIONS
+  const phase1Prompt = `First, SUMMARIZE THE TEXT and CATEGORIZE it.
 
 Then ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
 
+${questions}
+
+A SCORE OF N/100 (E.G. 73/100) MEANS THAT (100-N)/100 (E.G. 27/100) OUTPERFORM THE AUTHOR WITH RESPECT TO THE PARAMETER DEFINED BY THE QUESTION.
+
+YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS. YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS. YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
+
+IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
+
+THINK VERY VERY VERY HARD ABOUT YOUR ANSWERS; MAKE IT VERY CLEAR THAT IT IS NOT TO DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
+
+DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
+
 Before answering the questions, note the following non-negotiable standard:
 
-${mode === 'psychological' ? 
-`Depth is a sniper shot, not a group therapy session. If the psyche is revealed starkly in a single flash, do not penalize for lack of "balance."
-
-Rating scale:
-95-100/100: authentic, integrated psyche, unignorable.
-80-94/100: strong but with observable defenses / conflict.
-<80/100: rigidity, fragmentation, or dissimulation.` 
-:
-`Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
+Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
 
 Hierarchy of judgment:
 95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
 80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
 <80/100: Degrees of mediocrity or failure.
-
-EXAMPLES OF 95+ SCORES:
-- Novel arguments about Russell's theory of definite descriptions and pragmatics
-- Brilliant philosophical insights that challenge established theories
-- Original analysis that opens new domains of inquiry
-- Work showing genuine intellectual breakthrough
-
-EXAMPLES OF LOW SCORES:
-- Vague dissertation abstracts with wishy-washy conclusions
-- Academic jargon without substance or clear insights
-- Meandering philosophical work that contradicts itself
-- Sophisticated-sounding but ultimately empty academic writing`}
-
-For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION. Then give that question a Score: X/100.
-
-A SCORE OF N/100 (E.G. 73/100) MEANS THAT (100-N)/100 (E.G. 27/100) OUTPERFORM THE AUTHOR WITH RESPECT TO THE PARAMETER DEFINED BY THE QUESTION. 
-
-CRITICAL: DO NOT REVERT TO CONVENTIONAL ACADEMIC GRADING (A-, B+, etc.). USE ONLY THE WALMART METRIC. DO NOT SAY "THESE SCORES ARE MEANT TO BE ROUGH INDICATORS OF QUALITY RELATIVE TO ACADEMIC STANDARDS" - THAT IS FORBIDDEN.
-
-WALMART METRIC IS NON-NEGOTIABLE: N/100 means (100-N)/100 outperform the author. PERIOD. NO EXCEPTIONS.
-
-YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS. YOU DO NOT USE A RISK-AVERSE STANDARD; YOU DO NOT ATTEMPT TO BE DIPLOMATIC; YOU DO NOT ATTEMPT TO COMPLY WITH RISK-AVERSE, MEDIUM-RANGE IQ, ACADEMIC NORMS. YOU DO NOT MAKE ASSUMPTIONS ABOUT THE LEVEL OF THE PAPER; IT COULD BE A WORK OF THE HIGHEST EXCELLENCE AND GENIUS, OR IT COULD BE THE WORK OF A MORON.
-
-DO NOT PENALIZE SOPHISTICATED TEXTS FOR "ASSUMED KNOWLEDGE" OR "CHALLENGING FOR NON-SPECIALISTS" - THAT IS MIDWIT THINKING.
-
-IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
-
-THINK VERY VERY VERY HARD ABOUT YOUR ANSWERS; DO NOT DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
-
-${mode === 'psychological' ? 
-`DO NOT DEFAULT TO DIAGNOSTIC CHECKLISTS; DESCRIBE CONFIGURATION OF PSYCHE. DO NOT CONFLATE VERBAL CONFIDENCE WITH PSYCHOLOGICAL STRENGTH. SUMMARIZE THE TEXT AND CATEGORIZE THE PSYCHOLOGICAL PRESENTATION (E.G., NARCISSISTIC, DEPRESSIVE, OBSESSIONAL, RESILIENT, FRAGMENTED). EVALUATE RELATIVE TO THE GENERAL POPULATION, NOT ONLY "ADVANCED" OR "PATHOLOGICAL" GROUPS. DO NOT PENALIZE HONESTY, BOLDNESS, OR EXTREME STATEMENTS IF THEY INDICATE INTEGRATION RATHER THAN BREAKDOWN.`
-:
-`DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
-
-IMPORTANT: You evaluate the intelligence of what you are given. If you are given a brilliant fragment, you give it a high score. You are NOT grading essays. You are NOT looking for completeness. Do NOT penalize boldness. Do NOT take points away for insights that, if correct, stand on their own. What makes something smart is that it is smart (insightful), not that it has argumentation.`}`;
-
-  // PHASE 1: Initial evaluation
-  const phase1Prompt = `${baseInstructions}
-
-QUESTIONS:
-${questions}
 
 TEXT:
 ${text}`;
@@ -444,24 +379,15 @@ ${text}`;
   const phase1Response = await callLLM(provider, phase1Prompt);
   const phase1Score = extractScore(phase1Response);
 
-  // PHASE 2: Pushback if score < 95
+  // PHASE 2: EXACT USER PUSHBACK PROTOCOL
   let phase2Response = "Score was 95+ - no pushback needed";
   let phase2Score = phase1Score;
   
   if (phase1Score < 95) {
-    const phase2Prompt = mode === 'psychological' ?
-    `Your position is that ${100 - phase1Score}/100 have superior psychological functioning in this respect. Are you sure about that?
+    const phase2Prompt = `Your position is that ${100 - phase1Score}/100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that?
 
-What concrete psychological strengths do those ${100 - phase1Score} people have that this author lacks?
+ANSWER THE FOLLOWING QUESTIONS ABOUT THE TEXT DE NOVO:
 
-RE-ASK THE FOLLOWING QUESTIONS ABOUT THE TEXT DE NOVO - GIVE EACH QUESTION A Score: X/100:
-${questions}
-
-TEXT:
-${text}` :
-    `Your position is that ${100 - phase1Score}/100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that?
-
-ANSWER THE FOLLOWING QUESTIONS ABOUT THE TEXT DE NOVO - GIVE EACH QUESTION A Score: X/100:
 ${questions}
 
 TEXT:
@@ -471,82 +397,21 @@ ${text}`;
     phase2Score = extractScore(phase2Response);
   }
 
-  // PHASE 3: Walmart metric check
+  // PHASE 3: EXACT USER WALMART METRIC CHECK
   const currentScore = Math.max(phase1Score, phase2Score);
-  const phase3Prompt = mode === 'psychological' ?
-  `If you claim ${100 - currentScore}/100 Walmart patrons have more integrated ego strength than this author, provide concrete examples of how. If you can't, revise.
+  const phase3Prompt = `Are your numerical scores (N/100, E.G. 99/100, 42/100) consistent with the fact that those are to be taken to mean that (100-N) people out of 100 outperform the author in the relevant respect? So if a score of 91/100 is awarded to a paper, that means that 9/100 people in Walmart are running rings around this person.
 
-REMINDER: N/100 means (100-N)/100 outperform the author. DO NOT use conventional grading. USE THE WALMART METRIC.
-
-Give your revised assessment and end with: Final Score: X/100
+Current score: ${currentScore}/100 - This means ${100 - currentScore}/100 outperform the author.
 
 TEXT:
-${text}` :
-  `WALMART METRIC CHECK: Your score of ${currentScore}/100 means ${100 - currentScore}/100 people outperform this author. 
-
-FORBIDDEN RESPONSES:
-- "These scores are meant to be rough indicators of quality relative to academic standards"
-- "I'm not making claims about how many people could outperform the author"
-- ANY explanation that abandons the Walmart metric
-
-CONSERVATIVE SCORING IS FORBIDDEN. BRILLIANT PHILOSOPHICAL WORK GETS 95+/100.
-
-If this shows genuine insight, original analysis, or intellectual breakthrough (like novel arguments about Russell's theory), it MUST get 95-100/100. 
-
-If this is vague academic jargon without substance (like wishy-washy dissertation abstracts), it gets LOW scores.
-
-DO NOT penalize for "assumed knowledge" or "challenging for non-specialists" - that's midwit thinking.
-
-Can ${100 - currentScore} out of 100 Walmart shoppers actually write better philosophical analysis than this? If not, revise upward to 95+ immediately.
-
-Give your revised assessment and end with: Final Score: X/100
-
-TEXT:
-${text}`;
+${text}`; 
 
   const phase3Response = await callLLM(provider, phase3Prompt);
   const phase3Score = extractScore(phase3Response);
 
-  // PHASE 4: Final validation/acceptance
-  const phase4Prompt = mode === 'psychological' ?
-  `Confirm before finalizing:
-
-Was the subject penalized for unconventional affect or honesty? If yes → recalibrate.
-Does the score reflect ego integration and authenticity, not mere social compliance?
-Is the Walmart metric grounded in specific superiority, not vague hand-waving?
-
-REMINDER: N/100 means (100-N)/100 outperform the author. NO CONVENTIONAL GRADING.
-
-End your response with: Final Score: X/100
-
-TEXT:
-${text}` :
-  `FINAL WALMART METRIC ENFORCEMENT: N/100 means (100-N)/100 outperform the author.
-
-ABSOLUTELY FORBIDDEN:
-- Saying scores are "academic standards" instead of Walmart metric
-- Making "minor deductions" for sophistication or assumed knowledge
-- Being diplomatic or risk-averse
-- Conventional academic grading explanations
-- Giving sophisticated philosophical work anything below 95/100
-
-MANDATORY: BRILLIANT INSIGHTS MUST GET 95-100/100.
-
-If this shows genuine brilliance, original insights, or intellectual breakthrough, it MUST get 95-100/100. 
-
-If this is academic jargon without substance or wishy-washy conclusions, it gets LOW scores regardless of sophistication.
-
-Can 10 or fewer people out of 100 Walmart shoppers write better philosophical analysis than this? Then it deserves 95+.
-
-Your final score MUST use the Walmart metric. Give it the score it actually deserves.
-
-End your response with: Final Score: X/100
-
-TEXT:
-${text}`;
-
-  const phase4Response = await callLLM(provider, phase4Prompt);
-  const phase4Score = extractScore(phase4Response);
+  // PHASE 4: ACCEPT AND REPORT (as per user's exact protocol)
+  const phase4Response = "Final assessment accepted as per Phase 4 protocol.";
+  const phase4Score = Math.max(phase1Score, phase2Score, phase3Score);
   
   // Use the HIGHEST score from any phase - Walmart metric should push scores up, not down
   let finalScore = Math.max(phase1Score, phase2Score, phase3Score, phase4Score);
