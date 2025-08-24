@@ -7,11 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
-import { Loader2, Download, Upload, Brain, Lightbulb, Scale, Target, FileText, Users } from "lucide-react";
+import { Loader2, Download, Upload, Brain, Lightbulb, Scale, Target, FileText } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
-type EvaluationMode = 'originality' | 'intelligence' | 'cogency' | 'overall_quality' | 'psychological';
+type EvaluationMode = 'originality' | 'intelligence' | 'cogency' | 'overall_quality';
 type LLMProvider = 'anthropic' | 'deepseek' | 'openai' | 'perplexity';
 
 interface OriginalityResult {
@@ -33,16 +33,14 @@ const modeIcons = {
   originality: Lightbulb,
   intelligence: Brain,
   cogency: Scale,
-  overall_quality: Target,
-  psychological: Users
+  overall_quality: Target
 };
 
 const modeColors = {
   originality: "bg-purple-500",
   intelligence: "bg-blue-500", 
   cogency: "bg-green-500",
-  overall_quality: "bg-orange-500",
-  psychological: "bg-red-500"
+  overall_quality: "bg-orange-500"
 };
 
 export default function OriginalityMeter() {
@@ -214,7 +212,6 @@ export default function OriginalityMeter() {
                     <SelectItem value="intelligence">Intelligence</SelectItem>
                     <SelectItem value="cogency">Cogency</SelectItem>
                     <SelectItem value="overall_quality">Overall Quality</SelectItem>
-                    <SelectItem value="psychological">Psychological</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

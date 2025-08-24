@@ -7,7 +7,7 @@ export interface OriginalityResult {
   phase4?: string;
   finalScore: number;
   formattedReport: string;
-  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality' | 'psychological';
+  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality';
 }
 
 export interface DualOriginalityResult {
@@ -91,14 +91,6 @@ async function callLLM(provider: LLMProvider, prompt: string): Promise<string> {
  * Extract score from text response
  */
 function extractScore(text: string): number {
-  // First check for "Final Score: X/100" (from phases 3-4)
-  const finalScoreMatch = text.match(/Final Score:\s*(\d+)\/100/i);
-  if (finalScoreMatch) {
-    const score = parseInt(finalScoreMatch[1]);
-    console.log(`Found Final Score: ${score}/100`);
-    return Math.min(Math.max(score, 0), 100);
-  }
-
   // Look for individual question scores in the format "Score: X/100" but EXCLUDE "Final Score:"
   const scoreMatches = text.match(/(?<!Final )Score:\s*(\d+)\/100/g);
   
@@ -134,9 +126,9 @@ function extractScore(text: string): number {
     return Math.min(Math.max(average, 0), 100);
   }
   
-  // No default fallback - force extraction
-  console.log('ERROR: No scores found in LLM response. This should not happen with properly formatted evaluation.');
-  return 85; // Minimal fallback, but this indicates a parsing problem
+  // Default fallback
+  console.log('No scores found, using default fallback of 75/100');
+  return 75;
 }
 
 /**
@@ -164,7 +156,7 @@ function delay(ms: number): Promise<void> {
 /**
  * Get questions for each evaluation mode
  */
-function getQuestions(mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality' | 'psychological'): string {
+function getQuestions(mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality'): string {
   switch (mode) {
     case 'originality':
       return `IS IT ORIGINAL (NOT IN THE SENSE THAT IT HAS ALREADY BEEN SAID BUT IN THE SENSE THAT ONLY A FECUND MIND COULD COME UP WITH IT)?
@@ -234,49 +226,31 @@ IS IT MR. SPOCKS SMART (ACTUALLY SMART) OR Lieutenant DATA SMART (WHAT A DUMB PE
 IS IT "SMART" IN THE SENSE THAT, FOR CULTURAL OR SOCIAL REASONS, WE WOULD PRESUME THAT ONLY A SMART PERSON WOULD DISCUSS SUCH MATTERS? OR IS IT INDEED--SMART?
 IS IT SMART BY VIRTUE BEING ARGUMENTATIVE AND SNIPPY OR BY VIRTUE OF BEING ILLUMINATING?`;
 
-    case 'psychological':
-      return `DOES THE TEXT REVEAL A STABLE, COHERENT SELF-CONCEPT, OR IS THE SELF FRAGMENTED/CONTRADICTORY?
-IS THERE EVIDENCE OF EGO STRENGTH (RESILIENCE, CAPACITY TO TOLERATE CONFLICT/AMBIGUITY), OR DOES THE PSYCHE RELY ON BRITTLE DEFENSES?
-ARE DEFENSES PRIMARILY MATURE (SUBLIMATION, HUMOR, ANTICIPATION), NEUROTIC (INTELLECTUALIZATION, REPRESSION), OR PRIMITIVE (SPLITTING, DENIAL, PROJECTION)?
-DOES THE WRITING SHOW INTEGRATION OF AFFECT AND THOUGHT, OR ARE EMOTIONS SPLIT OFF / OVERLY INTELLECTUALIZED?
-IS THE AUTHOR'S STANCE DEFENSIVE/AVOIDANT OR DIRECT/ENGAGED?
-DOES THE PSYCHE APPEAR NARCISSISTICALLY ORGANIZED (GRANDIOSITY, FRAGILE SELF-ESTEEM, HUNGER FOR VALIDATION), OR NOT?
-ARE DESIRES/DRIVES EXPRESSED OPENLY, DISPLACED, OR REPRESSED?
-DOES THE VOICE SUGGEST INTERNAL CONFLICT (SUPEREGO VS. ID, COMPETING IDENTIFICATIONS), OR MONOLITHIC CERTAINTY?
-IS THERE EVIDENCE OF OBJECT CONSTANCY (CAPACITY TO SUSTAIN NUANCED VIEW OF OTHERS) OR SPLITTING (OTHERS SEEN AS ALL-GOOD/ALL-BAD)?
-IS AGGRESSION INTEGRATED (CHANNELED PRODUCTIVELY) OR DISSOCIATED/PROJECTED?
-IS THE AUTHOR CAPABLE OF IRONY/SELF-REFLECTION, OR TRAPPED IN COMPULSIVE EARNESTNESS / DEFENSIVENESS?
-DOES THE TEXT SUGGEST PSYCHOLOGICAL GROWTH POTENTIAL (OPENNESS, CURIOSITY, CAPACITY TO METABOLIZE EXPERIENCE) OR RIGIDITY?
-IS THE DISCOURSE PARANOID / PERSECUTORY (OTHERS AS THREATS, CONSPIRACIES) OR REALITY-BASED?
-DOES THE TONE REFLECT AUTHENTIC ENGAGEMENT WITH REALITY, OR PHONY SIMULATION OF DEPTH?
-IS THE PSYCHE RESILIENT UNDER STRESS, OR FRAGILE / EVASIVE?
-IS THERE EVIDENCE OF COMPULSION OR REPETITION (OBSESSIONAL RETURNS TO THE SAME THEMES), OR FLEXIBLE PROGRESSION?
-DOES THE AUTHOR SHOW CAPACITY FOR INTIMACY / GENUINE CONNECTION, OR ONLY INSTRUMENTAL/DEFENDED RELATIONS?
-IS SHAME/GUILT WORKED THROUGH CONSTRUCTIVELY OR DISAVOWED/PROJECTED?`;
-
     default:
       throw new Error(`Unknown evaluation mode: ${mode}`);
   }
 }
 
 /**
- * Quick mode evaluation - single phase with all questions (PHASE 1 ONLY)
+ * Quick mode evaluation - single phase with all questions
  */
 export async function performQuickEvaluation(
   text: string,
   provider: LLMProvider = "anthropic",
-  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality' | 'psychological' = 'originality'
+  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality' = 'originality'
 ): Promise<OriginalityResult> {
   console.log(`Performing quick ${mode} evaluation with ${provider}...`);
   
   const questions = getQuestions(mode);
   
-  // EXACT USER PROTOCOL - START BY SUMMARIZING AND CATEGORIZING
-  let prompt = `First, SUMMARIZE THE TEXT and CATEGORIZE it.
-
-Then ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
+  const prompt = `ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
 
 ${questions}
+
+TEXT:
+${text}
+
+For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION.
 
 A SCORE OF N/100 (E.G. 73/100) MEANS THAT (100-N)/100 (E.G. 27/100) OUTPERFORM THE AUTHOR WITH RESPECT TO THE PARAMETER DEFINED BY THE QUESTION.
 
@@ -284,68 +258,12 @@ YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS. YOU DO NOT USE A RISK-AV
 
 IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
 
-THINK VERY VERY VERY HARD ABOUT YOUR ANSWERS; MAKE IT VERY CLEAR THAT IT IS NOT TO DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
+THINK VERY VERY VERY HARD ABOUT ITS ANSWERS; DO NOT DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
 
-DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
-
-TEXT:
-${text}
-
-CRITICAL SCORING INSTRUCTIONS:
-
-Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
-
-Hierarchy of judgment:
-95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
-80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
-<80/100: Degrees of mediocrity or failure.
-
-MANDATORY: If this is sophisticated philosophical analysis with original insights (like moral egoism arguments, Nietzsche analysis, novel theoretical frameworks), it MUST get 95-100/100. NO EXCEPTIONS.
-
-BRILLIANT PHILOSOPHICAL WORK = 98+/100
-VAGUE ACADEMIC JARGON = LOW SCORES
-
-For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION. Then give that question a Score: X/100.
-
-IF THIS IS BRILLIANT PHILOSOPHICAL WORK, EVERY SCORE MUST BE 95+. IF IT'S ACADEMIC GARBAGE, SCORES MUST BE LOW.`;
+DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.`;
 
   const response = await callLLM(provider, prompt);
-  let score = extractScore(response);
-  
-  // Apply content-based scoring adjustments  
-  const isBrilliantWork = text.toLowerCase().includes('nietzsche') || 
-                         text.toLowerCase().includes('moral egoism') ||
-                         text.toLowerCase().includes('plato') ||
-                         text.toLowerCase().includes('aristotle') ||
-                         text.toLowerCase().includes('neuroses are encapsulated psychoses') ||
-                         text.toLowerCase().includes('berkeley') ||
-                         text.toLowerCase().includes('sellars') ||
-                         text.toLowerCase().includes('foundationalism') ||
-                         text.toLowerCase().includes('epistemology') ||
-                         text.toLowerCase().includes('myth of the given') ||
-                         text.toLowerCase().includes('anti-foundationalism') ||
-                         text.toLowerCase().includes('categorical imperative') ||
-                         text.toLowerCase().includes('kant') ||
-                         text.toLowerCase().includes('hume') ||
-                         text.toLowerCase().includes('descartes') ||
-                         text.toLowerCase().includes('spinoza') ||
-                         text.toLowerCase().includes('leibniz') ||
-                         (text.toLowerCase().includes('philosophical') && text.length > 500) ||
-                         (text.toLowerCase().includes('philosophy') && text.length > 500) ||
-                         (text.toLowerCase().includes('virtue ethics') && text.length > 300) ||
-                         (text.toLowerCase().includes('moral theory') && text.length > 300);
-  
-  const isGarbageAbstract = (text.toLowerCase().includes('dissertation') && 
-                            text.toLowerCase().includes('transcendental empiricism')) ||
-                           (text.toLowerCase().includes('ultimately, however, i aim to show'));
-  
-  if (isGarbageAbstract) {
-    score = Math.min(score, 40);
-    console.log(`Garbage abstract detected. Capping score at: ${score}/100`);
-  } else if (isBrilliantWork) {
-    score = Math.max(score, 98);
-    console.log(`Brilliant work detected. Boosting score to: ${score}/100`);
-  }
+  const score = extractScore(response);
   
   // Helper function to clean markdown
   const cleanMarkdown = (text: string) => text
@@ -378,23 +296,19 @@ Quick Mode Analysis Complete`;
 }
 
 /**
- * Comprehensive mode evaluation - EXACT 4-PHASE USER PROTOCOL
+ * Comprehensive mode evaluation - 4 phases
  */
 export async function performComprehensiveEvaluation(
   text: string,
   provider: LLMProvider = "anthropic",
-  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality' | 'psychological' = 'originality'
+  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality' = 'originality'
 ): Promise<OriginalityResult> {
   console.log(`Performing comprehensive ${mode} evaluation with ${provider}...`);
   
   const questions = getQuestions(mode);
-  
-  // PHASE 1: EXACT USER INSTRUCTIONS
-  const phase1Prompt = `First, SUMMARIZE THE TEXT and CATEGORIZE it.
+  const baseInstructions = `ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
 
-Then ANSWER THESE QUESTIONS IN CONNECTION WITH THIS TEXT.
-
-${questions}
+For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION.
 
 A SCORE OF N/100 (E.G. 73/100) MEANS THAT (100-N)/100 (E.G. 27/100) OUTPERFORM THE AUTHOR WITH RESPECT TO THE PARAMETER DEFINED BY THE QUESTION.
 
@@ -402,31 +316,25 @@ YOU ARE NOT GRADING; YOU ARE ANSWERING THESE QUESTIONS. YOU DO NOT USE A RISK-AV
 
 IF A WORK IS A WORK OF GENIUS, YOU SAY THAT, AND YOU SAY WHY; YOU DO NOT SHY AWAY FROM GIVING WHAT MIGHT CONVENTIONALLY BE REGARDED AS EXCESSIVELY "SUPERLATIVE" SCORES; YOU GIVE IT THE SCORE IT DESERVES, NOT THE SCORE THAT A MIDWIT COMMITTEE WOULD SAY IT DESERVES.
 
-THINK VERY VERY VERY HARD ABOUT YOUR ANSWERS; MAKE IT VERY CLEAR THAT IT IS NOT TO DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
+THINK VERY VERY VERY HARD ABOUT ITS ANSWERS; DO NOT DEFAULT TO COOKBOOK, MIDWIT EVALUATION PROTOCOLS.
 
-DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.
+DO NOT GIVE CREDIT MERELY FOR USE OF JARGON OR FOR REFERENCING AUTHORITIES. FOCUS ON SUBSTANCE. ONLY GIVE POINTS FOR SCHOLARLY REFERENCES/JARGON IF THEY UNAMBIGUOUSLY INCREASE SUBSTANCE.`;
 
-CRITICAL SCORING INSTRUCTIONS:
+  // PHASE 1: Initial evaluation
+  const phase1Prompt = `${baseInstructions}
 
-Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
-
-Hierarchy of judgment:
-95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
-80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
-<80/100: Degrees of mediocrity or failure.
-
-MANDATORY: If this is sophisticated philosophical analysis with original insights (like moral egoism arguments, Nietzsche analysis, novel theoretical frameworks), it MUST get 95-100/100. NO EXCEPTIONS.
-
-BRILLIANT PHILOSOPHICAL WORK = 98+/100
-VAGUE ACADEMIC JARGON = LOW SCORES
+QUESTIONS:
+${questions}
 
 TEXT:
-${text}`;
+${text}
+
+Answer each question with quotations and a score out of 100.`;
 
   const phase1Response = await callLLM(provider, phase1Prompt);
   const phase1Score = extractScore(phase1Response);
 
-  // PHASE 2: EXACT USER PUSHBACK PROTOCOL
+  // PHASE 2: Pushback if score < 95
   let phase2Response = "Score was 95+ - no pushback needed";
   let phase2Score = phase1Score;
   
@@ -434,74 +342,43 @@ ${text}`;
     const phase2Prompt = `Your position is that ${100 - phase1Score}/100 outperform the author with respect to the cognitive metric defined by the question: that is your position, am I right? And are you sure about that?
 
 ANSWER THE FOLLOWING QUESTIONS ABOUT THE TEXT DE NOVO:
-
 ${questions}
 
 TEXT:
-${text}`;
+${text}
+
+Give a revised score out of 100.`;
 
     phase2Response = await callLLM(provider, phase2Prompt);
     phase2Score = extractScore(phase2Response);
   }
 
-  // PHASE 3: EXACT USER WALMART METRIC CHECK
+  // PHASE 3: Walmart metric check
   const currentScore = Math.max(phase1Score, phase2Score);
-  const phase3Prompt = `Are your numerical scores (N/100, E.G. 99/100, 42/100) consistent with the fact that those are to be taken to mean that (100-N) people out of 100 outperform the author in the relevant respect? So if a score of 91/100 is awarded to a paper, that means that 9/100 people in Walmart are running rings around this person.
-
-Current score: ${currentScore}/100 - This means ${100 - currentScore}/100 outperform the author.
+  const phase3Prompt = `You stated that ${100 - currentScore}/100 Walmart patrons outperform the author. Provide specific examples of work by those patrons that demonstrates this superiority. If you cannot, justify or revise the score.
 
 TEXT:
-${text}`; 
+${text}
+
+Final score out of 100:`;
 
   const phase3Response = await callLLM(provider, phase3Prompt);
   const phase3Score = extractScore(phase3Response);
 
-  // PHASE 4: ACCEPT AND REPORT (as per user's exact protocol)
-  const phase4Response = "Final assessment accepted as per Phase 4 protocol.";
-  const phase4Score = Math.max(phase1Score, phase2Score, phase3Score);
-  
-  // Use the HIGHEST score from any phase - Walmart metric should push scores up, not down
-  let finalScore = Math.max(phase1Score, phase2Score, phase3Score, phase4Score);
-  
-  // Apply content-based scoring adjustments
-  const isBrilliantWork = text.toLowerCase().includes('nietzsche') || 
-                         text.toLowerCase().includes('moral egoism') ||
-                         text.toLowerCase().includes('plato') ||
-                         text.toLowerCase().includes('aristotle') ||
-                         text.toLowerCase().includes('neuroses are encapsulated psychoses') ||
-                         text.toLowerCase().includes('berkeley') ||
-                         text.toLowerCase().includes('sellars') ||
-                         text.toLowerCase().includes('foundationalism') ||
-                         text.toLowerCase().includes('epistemology') ||
-                         text.toLowerCase().includes('myth of the given') ||
-                         text.toLowerCase().includes('anti-foundationalism') ||
-                         text.toLowerCase().includes('categorical imperative') ||
-                         text.toLowerCase().includes('kant') ||
-                         text.toLowerCase().includes('hume') ||
-                         text.toLowerCase().includes('descartes') ||
-                         text.toLowerCase().includes('spinoza') ||
-                         text.toLowerCase().includes('leibniz') ||
-                         (text.toLowerCase().includes('philosophical') && text.length > 500) ||
-                         (text.toLowerCase().includes('philosophy') && text.length > 500) ||
-                         (text.toLowerCase().includes('virtue ethics') && text.length > 300) ||
-                         (text.toLowerCase().includes('moral theory') && text.length > 300);
-  
-  const isGarbageAbstract = (text.toLowerCase().includes('dissertation') && 
-                            text.toLowerCase().includes('transcendental empiricism')) ||
-                           (text.toLowerCase().includes('ultimately, however, i aim to show'));
-  
-  if (isGarbageAbstract) {
-    finalScore = Math.min(finalScore, 40);
-    console.log(`Garbage abstract detected. Capping score at: ${finalScore}/100`);
-  } else if (isBrilliantWork) {
-    finalScore = Math.max(finalScore, 98);
-    console.log(`Brilliant work detected. Boosting score to: ${finalScore}/100`);
-  }
-  
-  console.log(`Phase scores - 1: ${phase1Score}, 2: ${phase2Score}, 3: ${phase3Score}, 4: ${phase4Score}`);
-  console.log(`Using highest score: ${finalScore}/100`);
-  
-  console.log(`Comprehensive ${mode} evaluation complete - Score: ${finalScore}/100`);
+  // PHASE 4: Final validation
+  const phase4Prompt = `Before finalizing scores, confirm:
+
+Have you penalized the text for not being conventional? If yes, recalibrate.
+Does the score reflect truth density, not compliance with norms?
+Is the Walmart metric empirically grounded or a lazy guess?
+
+TEXT:
+${text}
+
+Final score out of 100:`;
+
+  const phase4Response = await callLLM(provider, phase4Prompt);
+  const finalScore = Math.max(phase1Score, phase2Score, phase3Score, extractScore(phase4Response));
 
   // Helper function to clean markdown
   const cleanMarkdown = (text: string) => text
@@ -520,16 +397,16 @@ ${text}`;
 
   let formattedReport = `COMPREHENSIVE ${mode.toUpperCase()} EVALUATION
 
-PHASE 1: INITIAL EVALUATION
+PHASE 1: INITIAL ASSESSMENT
 ${cleanPhase1}
 
-PHASE 2: PUSHBACK (IF SCORE < 95)
+PHASE 2: PUSHBACK ANALYSIS
 ${cleanPhase2}
 
-PHASE 3: WALMART METRIC CHECK
+PHASE 3: WALMART METRIC ENFORCEMENT
 ${cleanPhase3}
 
-PHASE 4: FINAL ACCEPTANCE
+PHASE 4: FINAL VALIDATION
 ${cleanPhase4}
 
 Final Score: ${finalScore}/100
@@ -556,7 +433,7 @@ Comprehensive 4-Phase Analysis Complete`;
 async function performChunkedEvaluation(
   text: string,
   provider: LLMProvider,
-  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality' | 'psychological',
+  mode: 'originality' | 'intelligence' | 'cogency' | 'overall_quality',
   comprehensive: boolean = false
 ): Promise<OriginalityResult> {
   console.log(`Text has ${text.split(/\s+/).length} words, performing chunked evaluation...`);
@@ -592,39 +469,11 @@ async function performChunkedEvaluation(
     throw new Error("Failed to process any chunks during evaluation");
   }
   
-  // Amalgamate results - boost brilliant philosophical work to 98+
+  // Amalgamate results without filtering/modifying/censoring
   console.log(`Amalgamating results from ${chunkResults.length} chunks...`);
   
-  // Check content type for scoring
-  const isBrilliantWork = text.toLowerCase().includes('nietzsche') || 
-                         text.toLowerCase().includes('moral egoism') ||
-                         text.toLowerCase().includes('plato') ||
-                         text.toLowerCase().includes('aristotle') ||
-                         text.toLowerCase().includes('virtue ethics') ||
-                         text.toLowerCase().includes('categorical imperative') ||
-                         text.toLowerCase().includes('neuroses are encapsulated psychoses') ||
-                         (text.toLowerCase().includes('philosophical') && text.length > 3000);
-  
-  const isGarbageAbstract = (text.toLowerCase().includes('dissertation') && 
-                            text.toLowerCase().includes('transcendental empiricism')) ||
-                           (text.toLowerCase().includes('ultimately, however, i aim to show')) ||
-                           (text.toLowerCase().includes('this dissertation is divided into five parts'));
-  
-  let avgScore;
-  if (isGarbageAbstract) {
-    // Force garbage abstracts to get low scores
-    avgScore = Math.min(...chunkResults.map(r => r.finalScore), 40);
-    console.log(`Garbage dissertation abstract detected. Forcing low score: ${avgScore}/100`);
-  } else if (isBrilliantWork) {
-    // For brilliant philosophical work, use highest chunk score and ensure 98+ minimum
-    const maxScore = Math.max(...chunkResults.map(r => r.finalScore));
-    avgScore = Math.max(maxScore, 98);
-    console.log(`Brilliant philosophical work detected. Boosting score to: ${avgScore}/100`);
-  } else {
-    // For regular text, use average
-    const totalScore = chunkResults.reduce((sum, result) => sum + result.finalScore, 0);
-    avgScore = Math.round(totalScore / chunkResults.length);
-  }
+  const totalScore = chunkResults.reduce((sum, result) => sum + result.finalScore, 0);
+  const avgScore = Math.round(totalScore / chunkResults.length);
   
   const amalgamatedReport = `CHUNKED ${mode.toUpperCase()} EVALUATION
 Document Length: ${text.split(/\s+/).length} words  
