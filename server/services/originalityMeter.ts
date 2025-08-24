@@ -293,9 +293,15 @@ Rating scale:
 `Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
 
 Hierarchy of judgment:
-95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
+95-100/100: Unignorable insight. Either genius or so correct it breaks scales. SOPHISTICATED PHILOSOPHICAL ANALYSIS GETS 95+.
 80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
-<80/100: Degrees of mediocrity or failure.`}
+<80/100: Degrees of mediocrity or failure.
+
+EXAMPLES OF 95+ SCORES:
+- Sophisticated philosophical dissertations analyzing transcendental empiricism
+- Novel arguments about Russell's theory of definite descriptions  
+- Complex epistemological analysis with original insights
+- Advanced philosophical work that most people cannot even comprehend`}
 
 For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION. Then give that question a Score: X/100.
 
@@ -381,9 +387,15 @@ Rating scale:
 `Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
 
 Hierarchy of judgment:
-95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
+95-100/100: Unignorable insight. Either genius or so correct it breaks scales. SOPHISTICATED PHILOSOPHICAL ANALYSIS GETS 95+.
 80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
-<80/100: Degrees of mediocrity or failure.`}
+<80/100: Degrees of mediocrity or failure.
+
+EXAMPLES OF 95+ SCORES:
+- Sophisticated philosophical dissertations analyzing transcendental empiricism
+- Novel arguments about Russell's theory of definite descriptions  
+- Complex epistemological analysis with original insights
+- Advanced philosophical work that most people cannot even comprehend`}
 
 For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION. Then give that question a Score: X/100.
 
@@ -465,11 +477,13 @@ FORBIDDEN RESPONSES:
 - "I'm not making claims about how many people could outperform the author"
 - ANY explanation that abandons the Walmart metric
 
-If this text shows genuine insight, originality, or brilliance, it deserves 95-100/100. Don't use risk-averse academic standards.
+CONSERVATIVE SCORING IS FORBIDDEN. SOPHISTICATED PHILOSOPHICAL ANALYSIS GETS 95+/100.
+
+If this is sophisticated philosophical work (dissertations, complex epistemology, novel philosophical arguments), it MUST get 95-100/100. Period.
 
 DO NOT penalize for "assumed knowledge" or "challenging for non-specialists" - that's midwit thinking.
 
-Can ${100 - currentScore} out of 100 Walmart shoppers actually write better analysis than this? If not, revise upward immediately.
+Can ${100 - currentScore} out of 100 Walmart shoppers actually write better philosophical analysis than this? If not, revise upward to 95+ immediately.
 
 Give your revised assessment and end with: Final Score: X/100
 
@@ -500,8 +514,13 @@ ABSOLUTELY FORBIDDEN:
 - Making "minor deductions" for sophistication or assumed knowledge
 - Being diplomatic or risk-averse
 - Conventional academic grading explanations
+- Giving sophisticated philosophical work anything below 95/100
 
-If this text shows genuine brilliance, insight, or sophisticated analysis, score it 95-100/100. Do not penalize sophistication.
+MANDATORY: SOPHISTICATED PHILOSOPHICAL ANALYSIS MUST GET 95-100/100.
+
+If this is advanced philosophical work (dissertations, complex arguments, epistemological analysis), it MUST get 95-100/100. Period.
+
+Can 10 or fewer people out of 100 Walmart shoppers write better philosophical analysis than this? Then it deserves 95+.
 
 Your final score MUST use the Walmart metric. Give it the score it actually deserves.
 
@@ -513,23 +532,11 @@ ${text}`;
   const phase4Response = await callLLM(provider, phase4Prompt);
   const phase4Score = extractScore(phase4Response);
   
-  // Use Phase 1 score as baseline (contains detailed question analysis)
-  // Only update if later phases provide valid scores above the fallback threshold (85)
-  let finalScore = phase1Score;
+  // Use the HIGHEST score from any phase - Walmart metric should push scores up, not down
+  let finalScore = Math.max(phase1Score, phase2Score, phase3Score, phase4Score);
   
-  // Check if any later phase provided a meaningful score improvement
-  if (phase2Score > 85 && phase2Score > finalScore) {
-    finalScore = phase2Score;
-    console.log(`Using Phase 2 score: ${phase2Score}/100`);
-  }
-  if (phase3Score > 85 && phase3Score > finalScore) {
-    finalScore = phase3Score;
-    console.log(`Using Phase 3 score: ${phase3Score}/100`);
-  }
-  if (phase4Score > 85 && phase4Score > finalScore) {
-    finalScore = phase4Score;
-    console.log(`Using Phase 4 score: ${phase4Score}/100`);
-  }
+  console.log(`Phase scores - 1: ${phase1Score}, 2: ${phase2Score}, 3: ${phase3Score}, 4: ${phase4Score}`);
+  console.log(`Using highest score: ${finalScore}/100`);
   
   console.log(`Comprehensive ${mode} evaluation complete - Score: ${finalScore}/100`);
 
