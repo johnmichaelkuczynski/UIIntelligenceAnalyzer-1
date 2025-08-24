@@ -293,15 +293,21 @@ Rating scale:
 `Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
 
 Hierarchy of judgment:
-95-100/100: Unignorable insight. Either genius or so correct it breaks scales. SOPHISTICATED PHILOSOPHICAL ANALYSIS GETS 95+.
+95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
 80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
 <80/100: Degrees of mediocrity or failure.
 
 EXAMPLES OF 95+ SCORES:
-- Sophisticated philosophical dissertations analyzing transcendental empiricism
-- Novel arguments about Russell's theory of definite descriptions  
-- Complex epistemological analysis with original insights
-- Advanced philosophical work that most people cannot even comprehend`}
+- Novel arguments about Russell's theory of definite descriptions and pragmatics
+- Brilliant philosophical insights that challenge established theories
+- Original analysis that opens new domains of inquiry
+- Work showing genuine intellectual breakthrough
+
+EXAMPLES OF LOW SCORES:
+- Vague dissertation abstracts with wishy-washy conclusions
+- Academic jargon without substance or clear insights
+- Meandering philosophical work that contradicts itself
+- Sophisticated-sounding but ultimately empty academic writing`}
 
 For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION. Then give that question a Score: X/100.
 
@@ -387,15 +393,21 @@ Rating scale:
 `Insight is a sniper shot, not a town hall. If the text reveals something true but unpopular, penalizing it for lacking 'balance' or 'rigor' is midwit bias. Truth often looks extreme because lies are normalized.
 
 Hierarchy of judgment:
-95-100/100: Unignorable insight. Either genius or so correct it breaks scales. SOPHISTICATED PHILOSOPHICAL ANALYSIS GETS 95+.
+95-100/100: Unignorable insight. Either genius or so correct it breaks scales.
 80-94/100: Strong but with friction (e.g., clumsy expression, minor gaps).
 <80/100: Degrees of mediocrity or failure.
 
 EXAMPLES OF 95+ SCORES:
-- Sophisticated philosophical dissertations analyzing transcendental empiricism
-- Novel arguments about Russell's theory of definite descriptions  
-- Complex epistemological analysis with original insights
-- Advanced philosophical work that most people cannot even comprehend`}
+- Novel arguments about Russell's theory of definite descriptions and pragmatics
+- Brilliant philosophical insights that challenge established theories
+- Original analysis that opens new domains of inquiry
+- Work showing genuine intellectual breakthrough
+
+EXAMPLES OF LOW SCORES:
+- Vague dissertation abstracts with wishy-washy conclusions
+- Academic jargon without substance or clear insights
+- Meandering philosophical work that contradicts itself
+- Sophisticated-sounding but ultimately empty academic writing`}
 
 For each question: (1) CAREFULLY SUMMARIZE THE TEXT, (2) PROVIDE QUOTATIONS, and (3) EXPLAIN EXACTLY HOW THOSE QUOTATIONS SUPPORT YOUR CHARACTERIZATION. Then give that question a Score: X/100.
 
@@ -477,9 +489,11 @@ FORBIDDEN RESPONSES:
 - "I'm not making claims about how many people could outperform the author"
 - ANY explanation that abandons the Walmart metric
 
-CONSERVATIVE SCORING IS FORBIDDEN. SOPHISTICATED PHILOSOPHICAL ANALYSIS GETS 95+/100.
+CONSERVATIVE SCORING IS FORBIDDEN. BRILLIANT PHILOSOPHICAL WORK GETS 95+/100.
 
-If this is sophisticated philosophical work (dissertations, complex epistemology, novel philosophical arguments), it MUST get 95-100/100. Period.
+If this shows genuine insight, original analysis, or intellectual breakthrough (like novel arguments about Russell's theory), it MUST get 95-100/100. 
+
+If this is vague academic jargon without substance (like wishy-washy dissertation abstracts), it gets LOW scores.
 
 DO NOT penalize for "assumed knowledge" or "challenging for non-specialists" - that's midwit thinking.
 
@@ -516,9 +530,11 @@ ABSOLUTELY FORBIDDEN:
 - Conventional academic grading explanations
 - Giving sophisticated philosophical work anything below 95/100
 
-MANDATORY: SOPHISTICATED PHILOSOPHICAL ANALYSIS MUST GET 95-100/100.
+MANDATORY: BRILLIANT INSIGHTS MUST GET 95-100/100.
 
-If this is advanced philosophical work (dissertations, complex arguments, epistemological analysis), it MUST get 95-100/100. Period.
+If this shows genuine brilliance, original insights, or intellectual breakthrough, it MUST get 95-100/100. 
+
+If this is academic jargon without substance or wishy-washy conclusions, it gets LOW scores regardless of sophistication.
 
 Can 10 or fewer people out of 100 Walmart shoppers write better philosophical analysis than this? Then it deserves 95+.
 
